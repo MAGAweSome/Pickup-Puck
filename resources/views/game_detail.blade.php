@@ -309,6 +309,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($currentTime < $game->time->subMinutes(30))
+                <div class="alert alert-secondary" role="alert">
+                    <h5 class="m-0">Teams are made 30 minutes prior to start of game!</h5>
+                </div>
+            @endif
         </div>
 
     </div>

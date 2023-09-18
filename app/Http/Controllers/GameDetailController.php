@@ -10,6 +10,7 @@ use App\Models\Games\GamePayment;
 use App\Models\Games\GamePlayer;
 use App\Models\User;
 use Artisan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,8 @@ class GameDetailController extends Controller
         $user_is_a_goalie = False;
         $users = User::all();
 
+        $currentTime = Carbon::now();
+
         $lightTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get()->pluck('name');
         $darkTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get()->pluck('name');
 
@@ -61,7 +64,21 @@ class GameDetailController extends Controller
 
         $current_game_price_percentage = 100*($game->collected_game_cost/$game->ice_cost);
 
-        return view('game_detail', ['game' => $game, 'GAME_ROLES' => GameRoles::cases(), 'players' => $players, 'goalies' => $goalies, 'user_registered' => $user_registered, 'user_paid' => $user_paid, 'current_game_price_percentage' => $current_game_price_percentage, 'users' => $users, 'players_attending' => $players_attending, 'user_is_a_goalie' => $user_is_a_goalie, 'lightTeamPlayers' => $lightTeamPlayers, 'darkTeamPlayers' => $darkTeamPlayers]);
+        return view('game_detail', [
+            'game' => $game,
+            'GAME_ROLES' => GameRoles::cases(),
+            'players' => $players,
+            'goalies' => $goalies,
+            'user_registered' => $user_registered,
+            'user_paid' => $user_paid,
+            'current_game_price_percentage' => $current_game_price_percentage,
+            'users' => $users,
+            'players_attending' => $players_attending,
+            'user_is_a_goalie' => $user_is_a_goalie,
+            'lightTeamPlayers' => $lightTeamPlayers,
+            'darkTeamPlayers' => $darkTeamPlayers,
+            'currentTime' => $currentTime
+        ]);
     }
 
     public function update(UserAcceptGameRequest $request, Game $game) {
