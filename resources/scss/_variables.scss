@@ -1,0 +1,23 @@
+// Body
+$body-bg: #f8fafc;
+
+// Typography
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+
+// Login Details
+.parent {
+    height: 200px;
+    background: gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.child {
+    background-color: orange;
+    width: 100px;
+    height: 100px;
+}
+  

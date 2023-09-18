@@ -1,0 +1,51 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    padding-top: 60px;
+    min-height: 100vh;
+}
+
+// Navbar
+nav {
+    height: 60px;
+    width: 100%;
+    box-shadow: 0 2px 2px -1px rgba(0,0,0,0.2);
+}
+
+// Main page background
+
+// .index-background h1{
+//     background-image: url('img/background.jpg');
+//     background-position: 50%;
+//     background-repeat: no-repeat;
+//     background-attachment: scroll;
+//     max-width: 100%;
+//     height: auto;
+//     // background-size: fit;
+//     // filter: brightness(45%);
+// }
+
+// Custom Color
+.siding {
+    background-color: #dee2e6;
+}
+
+// Games Tile
+.game-tile {
+    border: 2px solid black;
+    margin-top: 1px;
+    border-radius: 5px;
+}
+
+.game-tile-top {
+    // background-color: #7FA5F9;
+    // background-color: #0058b1;
+    background-color: #f9fafb;
+}
+
+.game-tile-main {
+    // background-color: #b6c8f0;
+    background-color: #7ba9d8;
+}
