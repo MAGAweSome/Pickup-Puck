@@ -29,7 +29,6 @@
                 <div class="card mb-2">
                     <div class="card-header row align-items-center justify-content-between m-0">
                         <!-- <h5 class="col-2 m-0"><i class="fa-regular fa-calendar fa-2xl" style="color: #005eff;"></i></h5> -->
-                        <h1>{{$game->time}} > {{$currentTime}}</h1>
                         <h5 class="col-12 m-0">{{$game->title}} | {{$game->game_time}}</h5>
                         
                         @if(in_array($game->id, $gamesAttending))
