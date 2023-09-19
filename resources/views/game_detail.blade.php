@@ -94,7 +94,7 @@
                 @csrf
                 
                 <div class="d-flex dropdown justify-content-center">
-                    <div class="input-group w-auto m-5">
+                    <div class="input-group mb-3">
                         <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
                             <option value="" selected disabled hidden>Please Select</option>
                             @foreach ($GAME_ROLES as $gamerole)
@@ -107,40 +107,50 @@
 
                             @endforeach
                         </select>
+                        @error('gameRole')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+
                         <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
                     </div>
                 </div>
             </form>
         @endif
 
-        {{-- @error('feild') --}}
         <h1 id="attendingGuests">Any Guests Attending</h1>
         <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
             @csrf
-            
-            <div class="d-flex dropdown justify-content-center">
-                <div class="input-group w-auto m-5">
-                    <div class="input-group-prepend">
-                        <label class="input-group-text" for="inputGroupSelect01">Guest Name:</label>
-                    </div>
-                    <input type="text" id="name" name="name" class="form-control" placeholder="Full Name" aria-label="Full Name" aria-describedby="basic-addon2" required>
-                    @error('name')
-                        <div class="alert alert-danger">{{ $message }}</div>
-                    @enderror
-                    <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
-                        <option value="" selected disabled hidden>Please Select</option>
-                        @foreach ($GAME_ROLES as $gamerole)
-                            
-                            @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
-                                <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
-                            @else
-                                <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
-                            @endif
+            <div class="input-group w-auto mb-3">
+                <span class="input-group-text">Guest Name:</span>
 
-                        @endforeach
-                    </select>
-                    <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
-                </div>
+                <input type="text" class="form-control" placeholder="Full Name" name="name" aria-label="Full Name" aria-describedby="basic-addon2" required>
+                @error('name')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
+
+                <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
+                    <option value="" selected disabled hidden>Please Select</option>
+                    @foreach ($GAME_ROLES as $gamerole)
+                        
+                        @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
+                            <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
+                        @else
+                            <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
+                        @endif
+
+                    @endforeach
+                </select>
+                @error('gameRole')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
+
+                <button type="submit" class="btn btn-primary rounded-end" name="guestGame" data-mdb-ripple-color="dark">Submit</button>
             </div>
         </form>
         {{-- @enderror --}}
@@ -152,12 +162,25 @@
                 @csrf
                 <div class="input-group mb-3">
                     <span class="input-group-text">$</span>
+
                     <input type="number" class="form-control" placeholder="15" size="1" value="{{$game->price}}" name="gamePayment" min="{{$game->price}}" required>
-                    <select class="form-select" aria-label="Default select example" required>
+                    @error('gamePayment')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+
+                    <select class="form-select" aria-label="Default select example" name="paymentMethod" required>
                         <option value="e-Transfer" selected>e-Transfer</option>
                         <option value="cash">Cash</option>
                     </select>
-                    <button type="submit" class="btn btn-primary" name="payment" data-mdb-ripple-color="dark">Submit</button>
+                    @error('paymentMethod')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                    
+                    <button type="submit" class="btn btn-primary rounded-end" name="payment" data-mdb-ripple-color="dark">Submit</button>
                 </div>
             </form>
         @endif
@@ -198,12 +221,23 @@
                                                             @csrf
                                                             <div class="input-group mb-3">
                                                                 <span class="input-group-text">$</span>
-                                                                <input type="number" class="form-control" placeholder="15" size="1" value="{{$game->price}}" name="gamePayment" min="{{$game->price}}" required>
                                                                 
+                                                                <input type="number" class="form-control" placeholder="15" size="1" value="{{$game->price}}" name="gamePayment" min="{{$game->price}}" required>
+                                                                @error('gamePayment')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
+
                                                                 <select class="form-select" aria-label="Default select example" name="paymentMethod">
                                                                     <option selected value="e-Transfer">e-Transfer</option>
                                                                     <option value="Cash">Cash</option>
                                                                 </select>
+                                                                @error('paymentMethod')
+                                                                    <span class="invalid-feedback" role="alert">
+                                                                        <strong>{{ $message }}</strong>
+                                                                    </span>
+                                                                @enderror
 
                                                                 <button type="submit" class="btn btn-primary" name="payment" data-mdb-ripple-color="dark">Submit</button>
                                                             </div>
@@ -253,7 +287,7 @@
                                 @if(!in_array($user->name, $players_attending))
                                     <tr>
                                         <td class="align-middle">{{ $user->name }}</td>
-                                        <!-- <td>{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first() }}</td> -->
+                                        {{-- <td>{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first() }}</td> --}}
                                         <td class="text-end"><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adminAcceptGame">Going <i class="fa-solid fa-check"></i></button></td>
 
                                         <!-- Vertically centered modal -->
@@ -283,6 +317,12 @@
 
                                                                         @endforeach
                                                                     </select>
+                                                                    @error('gameRole')
+                                                                        <span class="invalid-feedback" role="alert">
+                                                                            <strong>{{ $message }}</strong>
+                                                                        </span>
+                                                                    @enderror
+
                                                                     <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
                                                                 </div>
                                                             </div>
