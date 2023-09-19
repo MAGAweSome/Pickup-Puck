@@ -4,6 +4,12 @@
 
 <!-- <div class="w-75 bg-light h-100"> -->
     <div class="m-5">
+        @if(Session::has('success'))
+            <div class="alert alert-success">
+                {{ Session::get('success') }}
+            </div>
+        @endif
+
         <h1 id="game_details_top" class="text-center">
             {{$game->title}} Details
         </h1>
@@ -83,14 +89,9 @@
         </table>
 
         @if($user_registered == false)
+            <h1 id="acceptGame" class="mt-5">Accept Game</h1>
             <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST">
                 @csrf
-
-                @if(Session::has('success'))
-                    <div class="alert alert-success">
-                        {{ Session::get('success') }}
-                    </div>
-                @endif
                 
                 <div class="d-flex dropdown justify-content-center">
                     <div class="input-group w-auto m-5">
@@ -112,8 +113,40 @@
             </form>
         @endif
 
+        {{-- @error('feild') --}}
+        <h1 id="attendingGuests">Any Guests Attending</h1>
+        <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
+            @csrf
+            
+            <div class="d-flex dropdown justify-content-center">
+                <div class="input-group w-auto m-5">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="inputGroupSelect01">Guest Name:</label>
+                    </div>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Full Name" aria-label="Full Name" aria-describedby="basic-addon2" required>
+                    @error('name')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                    <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
+                        <option value="" selected disabled hidden>Please Select</option>
+                        @foreach ($GAME_ROLES as $gamerole)
+                            
+                            @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
+                                <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
+                            @else
+                                <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
+                            @endif
+
+                        @endforeach
+                    </select>
+                    <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
+                </div>
+            </div>
+        </form>
+        {{-- @enderror --}}
+
         @if(!$user_is_a_goalie and $user_paid == false)
-            <h1>Please pay</h1>
+            <h1 id="pleasePay" class="mt-5">Please Pay</h1>
         
             <form action="{{ route('game_detail_pay.game_id', ['game' => $game->id]) }}" method="POST">
                 @csrf

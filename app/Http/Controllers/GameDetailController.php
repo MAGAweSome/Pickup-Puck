@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Enums\Games\GameRoles;
 use App\Http\Requests\Admin\UserAcceptGamePayment;
 use App\Http\Requests\Admin\UserAcceptGameRequest;
+use App\Http\Requests\Admin\UserAcceptGameRequestGuest;
 use App\Models\Games\Game;
 use App\Models\Games\GamePayment;
 use App\Models\Games\GamePlayer;
+use App\Models\Games\GamePlayersGuest;
 use App\Models\User;
 use Artisan;
 use Carbon\Carbon;
@@ -53,7 +55,7 @@ class GameDetailController extends Controller
         foreach ($players as $player){
             array_push($players_attending, $player);
         }
-
+        
         foreach ($goalies as $goalie){
             array_push($players_attending, $goalie);
 
@@ -90,6 +92,17 @@ class GameDetailController extends Controller
         ]);
 
         return back()->with('success', 'You have successfully added your game!');
+    }
+
+    public function updateGuest(UserAcceptGameRequestGuest $request, Game $game) {
+
+        GamePlayersGuest::create([
+            'name' => $request['name'],
+            'game_id' => $game->id,
+            'role' => $request['gameRole']
+        ]);
+
+        return back()->with('success', 'You have successfully added a guest to the game!');
     }
 
     public function adminUpdate(UserAcceptGameRequest $request, Game $game, $user_id) {
