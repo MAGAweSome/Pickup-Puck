@@ -11,6 +11,7 @@ use App\Models\Games\GamePayment;
 use App\Models\Games\GamePlayer;
 use App\Models\Games\GamePlayersGuest;
 use App\Models\User;
+use App\Models\Guest;
 use Artisan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class GameDetailController extends Controller
             if (Auth::user()->name == $goalie){
                 $user_is_a_goalie = TRUE;
             }
-        }        
+        }
 
         $current_game_price_percentage = 100*($game->collected_game_cost/$game->ice_cost);
 
@@ -100,6 +101,10 @@ class GameDetailController extends Controller
             'name' => $request['name'],
             'game_id' => $game->id,
             'role' => $request['gameRole']
+        ]);
+        
+        Guest::create([
+            'name' => $request['name']
         ]);
 
         return back()->with('success', 'You have successfully added a guest to the game!');
