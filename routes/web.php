@@ -52,6 +52,7 @@ Route::middleware('verified')->group(function () {
     Route::get('/update/password',[UpdatePasswordController::class, 'index'])->name('update_password');
 
     Route::get('/game/{game}', [GameDetailController::class, 'index'])->name('game_detail.game_id');
+    Route::get('/game/{game}/search', [GameDetailController::class, 'searchGuestList'])->name('game_detail_search_guest.game_id');
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
     Route::post('/game/{game}/name/role', [GameDetailController::class, 'updateGuest'])->name('game_detail_update_guest.game_id');
     Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])->name('admin_game_detail_update.game_id.user_id');

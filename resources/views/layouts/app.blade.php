@@ -20,6 +20,9 @@
         <meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#eeeeee" media="(prefers-color-scheme: dark)"> -->
 
+        {{-- For Guest Player Search --}}
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     </head>
 
     <body class="antialiased siding justify-content-center row m-0 d-flex"> 

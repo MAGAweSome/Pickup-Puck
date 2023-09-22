@@ -45,6 +45,7 @@ class GameDetailController extends Controller
         $goalies = $game->goalies->pluck('name');
         $user_is_a_goalie = False;
         $users = User::all();
+        $guests = Guest::all();
 
         $currentTime = Carbon::now();
 
@@ -76,6 +77,7 @@ class GameDetailController extends Controller
             'user_paid' => $user_paid,
             'current_game_price_percentage' => $current_game_price_percentage,
             'users' => $users,
+            'guests' => $guests,
             'players_attending' => $players_attending,
             'user_is_a_goalie' => $user_is_a_goalie,
             'lightTeamPlayers' => $lightTeamPlayers,
@@ -108,6 +110,26 @@ class GameDetailController extends Controller
         ]);
 
         return back()->with('success', 'You have successfully added a guest to the game!');
+    }
+
+    public function searchGuestList(Request $request) {
+        if ($request->ajax()) {
+            $data = Guest::where('name', 'LIKE', $request->guestName.'%')->get();
+
+            $output='';
+            if (count($data) > 0) {
+                $output .= '<ul id="list">';
+                
+                foreach ($data as $row) {
+                    $output .= '<li class="item text-dark">'.$row->name.'</li>';
+                }
+
+                $output .= '</ul>';
+            } else { 
+                $output .='';
+            }
+            return $output;
+        }
     }
 
     public function adminUpdate(UserAcceptGameRequest $request, Game $game, $user_id) {

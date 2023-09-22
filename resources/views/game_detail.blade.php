@@ -1,6 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    input + div {
+        display: none;
+        overflow-x: auto; 
+        overflow-y: auto;
+    }
+    
+    .guestNameDropDown:focus-within div {
+      display: block;
+    }
+    
+    #list {
+      /* Remove default list styling */
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    #list li {
+      border: 1px solid #ddd; /* Add a border to all links */
+      margin-top: -1px; /* Prevent double borders */
+      background-color: #f6f6f6; /* Grey background color */
+      padding: 12px; /* Add some padding */
+      text-decoration: none; /* Remove default text underline */
+      font-size: 18px; /* Increase the font-size */
+      color: black; /* Add a black text color */
+      display: block; /* Make it into a block element to fill the whole list */
+    }
+    
+    #list li:hover:not(.header) {
+      background-color: #eee; /* Add a hover effect to all links, except for headers */
+    }
+
+    #guestList {
+        display: none;
+    }
+    </style>
 
 <!-- <div class="w-75 bg-light h-100"> -->
     <div class="m-5">
@@ -12,7 +49,7 @@
 
         <h1 id="game_details_top" class="text-center">
             {{$game->title}} Details
-        </h1>
+        </h1>        
 
         @role ('admin')
             <div class=" d-flex flex-row mx-5">
@@ -122,10 +159,11 @@
         <h1 id="attendingGuests">Any Guests Attending</h1>
         <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
             @csrf
-            <div class="input-group w-auto mb-3">
+            <div class="input-group w-auto mb-3" id="guestNameDiv">
                 <span class="input-group-text">Guest Name:</span>
 
-                <input type="text" class="form-control" placeholder="Full Name" name="name" aria-label="Full Name" aria-describedby="basic-addon2" required>
+                <input type="text" id="guestName" class="form-control" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" required>
+                
                 @error('name')
                     <span class="invalid-feedback" role="alert">
                         <strong>{{ $message }}</strong>
@@ -153,7 +191,45 @@
                 <button type="submit" class="btn btn-primary rounded-end" name="guestGame" data-mdb-ripple-color="dark">Submit</button>
             </div>
         </form>
-        {{-- @enderror --}}
+        <p class="mb-1"></p>
+        <div id="guestList">
+        </div>
+        {{-- This script is to show the gestNames --}}
+        <script>
+
+            // $(document).ready(function() {
+            //     $("#guestNameDiv input").focus(function() {
+            //         $('#guestList').show();
+            //     });
+                
+            //     $('#guestNameDiv input').blur(function(){
+            //         if( !$(this).val() ) {
+            //             $('#guestList').hide();
+            //         }
+            //     });            
+            // });
+
+            $(document).ready(function(){
+                $('#guestName').on('keyup', function(){
+                    var value = $(this).val();
+
+                    $.ajax({
+                        url:"{{$game->id}}/search",
+                        type:"GET",
+                        data:{'guestName':value},
+                        success:function(data){
+                            $('#guestList').html(data);
+                        }
+                    });
+                });
+                
+                $(document).on('click', 'li', function(){
+                    var value = $(this).text();
+                    $('#guestName').val(value);
+                    $('#guestList').html('');
+                })
+            });
+        </script>
 
         @if(!$user_is_a_goalie and $user_paid == false)
             <h1 id="pleasePay" class="mt-5">Please Pay</h1>
@@ -391,6 +467,7 @@
         </div>
 
     </div>
-
 <!-- </div> -->
+
+
 @endsection
