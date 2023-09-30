@@ -58,6 +58,12 @@ Route::middleware('verified')->group(function () {
     Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])->name('admin_game_detail_update.game_id.user_id');
     Route::post('/game/{game}/payment', [GameDetailController::class, 'payment'])->name('game_detail_pay.game_id');
     Route::post('/admin/game/{game}/{player_id}/payment', [GameDetailController::class, 'adminPayment'])->name('admin_game_detail_pay.game_id.player_id');
+    Route::get('/game/{game}/generateTeams', [GameDetailController::class, 'generateTeams'])->name('game_detail_generateTeams.game_id');
+    Route::get('clear_cache', function () {
+
+        \Illuminate\Support\Facades\Artisan::call('pp:generate-teams');
+    
+    });
 
     // Must have admin role to access
     Route::prefix('admin')->middleware(['role:admin'])->group(function () {

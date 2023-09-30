@@ -471,11 +471,13 @@
                     </tbody>
                 </table>
             </div>
-
+            
             @if ($currentTime < $game->time->subMinutes(30))
                 <div class="alert alert-secondary" role="alert">
                     <h5 class="m-0">Teams are made 30 minutes prior to start of game!</h5>
                 </div>
+            @else
+                <a type="button" class="btn btn-primary" href="{{ route('game_detail_generateTeams.game_id', ['game' => $game->id]) }}">Generate Teams</a> 
             @endif
         </div>
 

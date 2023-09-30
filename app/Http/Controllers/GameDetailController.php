@@ -12,9 +12,9 @@ use App\Models\Games\GamePlayer;
 use App\Models\Games\GamePlayersGuest;
 use App\Models\User;
 use App\Models\Guest;
-use Artisan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -100,6 +100,13 @@ class GameDetailController extends Controller
         ]);
 
         return back()->with('success', 'You have successfully added your game!');
+    }
+
+    public function generateTeams() {
+        
+        Artisan::call('pp:generate-teams');
+
+        return back()->with('success', 'You have successfully generated teams!');
     }
 
     public function updateGuest(UserAcceptGameRequestGuest $request, Game $game) {
