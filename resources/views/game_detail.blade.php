@@ -40,7 +40,7 @@
     </style>
 
 <!-- <div class="w-75 bg-light h-100"> -->
-    <div class="m-5">
+    <div>
         @if(Session::has('success'))
             <div class="alert alert-success">
                 {{ Session::get('success') }}
@@ -52,7 +52,7 @@
         </h1>        
 
         @role ('admin')
-            <div class=" d-flex flex-row mx-5">
+            <div class=" d-flex flex-row mx-md-5">
                 <div class="p-0 align-self-end">
 
                     @if($game->ice_cost - $game->collected_game_cost < 0)
@@ -67,7 +67,7 @@
                 </div>
             </div>
             
-            <div class="progress m-5 mt-0" role="progressbar">
+            <div class="progress m-md-5 mb-3 mb-md-0 mt-0" role="progressbar">
                 <div class="progress-bar" style="width: {{ $current_game_price_percentage }}%;">${{$game->collected_game_cost}}</div>
             </div>
         @endrole
@@ -162,7 +162,7 @@
             <div class="input-group w-auto mb-3" id="guestNameDiv">
                 <span class="input-group-text">Guest Name:</span>
 
-                <input type="text" id="guestName" class="form-control" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" minlength="4" required>
+                <input type="text" id="guestName" class="form-control center w-md-auto" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" minlength="4" required>
                 
                 @error('guestName')
                     <span class="invalid-feedback" role="alert">
@@ -170,7 +170,7 @@
                     </span>
                 @enderror
 
-                <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
+                <select required class="form-select w-md-auto w-md-100" aria-label="Default select example" name="gameRole" id="gameRole">
                     <option value="" selected disabled hidden>Please Select</option>
                     @foreach ($GAME_ROLES as $gamerole)
                         

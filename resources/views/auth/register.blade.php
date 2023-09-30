@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- <div class="w-75 bg-light h-100"> -->
-    <div class="m-5 card">
+    <div class="card">
         <div class="card-header">
             {{ __('Register') }}
             /

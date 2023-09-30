@@ -3,7 +3,7 @@
 @section('content')
 
 <!-- <div class="w-75 bg-light h-100"> -->
-    <div class="m-5 card">
+    <div>
         <h1 class="text-center">Password Management</h1>
         <hr>
 

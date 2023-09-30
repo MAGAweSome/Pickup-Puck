@@ -3,7 +3,7 @@
 @section('content')
 
 <!-- <div class="w-75 bg-light h-100"> -->
-    <div class="m-5">
+    <div>
         <h1 class="text-center">{{ $user->name }}'s Game History</h1>
 
         <table class="table table-hover">

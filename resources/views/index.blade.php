@@ -3,7 +3,7 @@
 @section('content')
 
     <!-- <div class="w-75 bg-light index-background"> -->
-        <div class="m-5 text-center">
+        <div class="text-center">
             <h1>Pickup Puck</h1>
 
             <!-- @role ('admin')
