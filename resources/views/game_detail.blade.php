@@ -162,9 +162,9 @@
             <div class="input-group w-auto mb-3" id="guestNameDiv">
                 <span class="input-group-text">Guest Name:</span>
 
-                <input type="text" id="guestName" class="form-control" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" required>
+                <input type="text" id="guestName" class="form-control" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" minlength="4" required>
                 
-                @error('name')
+                @error('guestName')
                     <span class="invalid-feedback" role="alert">
                         <strong>{{ $message }}</strong>
                     </span>
@@ -197,17 +197,17 @@
         {{-- This script is to show the gestNames --}}
         <script>
 
-            // $(document).ready(function() {
-            //     $("#guestNameDiv input").focus(function() {
-            //         $('#guestList').show();
-            //     });
+            $(document).ready(function() {
+                $("#guestNameDiv input").focus(function() {
+                    $('#guestList').show();
+                });
                 
-            //     $('#guestNameDiv input').blur(function(){
-            //         if( !$(this).val() ) {
-            //             $('#guestList').hide();
-            //         }
-            //     });            
-            // });
+                $('#guestNameDiv input').blur(function(){
+                    if( !$(this).val() ) {
+                        $('#guestList').hide();
+                    }
+                });            
+            });
 
             $(document).ready(function(){
                 $('#guestName').on('keyup', function(){
@@ -225,7 +225,8 @@
                 
                 $(document).on('click', 'li', function(){
                     var value = $(this).text();
-                    $('#guestName').val(value);
+                    // $('#guestName').val(value);
+                    document.getElementById("guestName").value = value;
                     $('#guestList').html('');
                 })
             });
@@ -327,6 +328,12 @@
                                 @endrole
                             </tr>
                         @endforeach
+
+                        @foreach($guestPlayers as $guestPlayer)
+                            <tr>
+                                <td class="align-middle" colspan="3">{{$guestPlayer}}</td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -341,6 +348,12 @@
                         @foreach($goalies as $goalie)
                             <tr>
                                 <td class="align-middle">{{$goalie}}</td>
+                            </tr>
+                        @endforeach
+
+                        @foreach($guestGoalies as $guestGoalie)
+                            <tr>
+                                <td class="align-middle" colspan="3">{{$guestGoalie}}</td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -23,12 +23,12 @@ class UserAcceptGameRequestGuest extends FormRequest
      */
     public function rules(): array {
         return [
-            'name' => [
+            'guestName' => [
                 'required',
                 'string',
                 'min:4',
                 'max:255'
-            ],
+            ], 
             
             'gameRole' => [
                 'required',

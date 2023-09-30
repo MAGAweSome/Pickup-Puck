@@ -49,6 +49,9 @@ class GameDetailController extends Controller
 
         $currentTime = Carbon::now();
 
+        $guestPlayers = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'player')->get()->pluck('name');
+        $guestGoalies = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->get()->pluck('name');
+
         $lightTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get()->pluck('name');
         $darkTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get()->pluck('name');
 
@@ -82,7 +85,9 @@ class GameDetailController extends Controller
             'user_is_a_goalie' => $user_is_a_goalie,
             'lightTeamPlayers' => $lightTeamPlayers,
             'darkTeamPlayers' => $darkTeamPlayers,
-            'currentTime' => $currentTime
+            'currentTime' => $currentTime,
+            'guestPlayers' => $guestPlayers,
+            'guestGoalies' => $guestGoalies
         ]);
     }
 
@@ -100,13 +105,13 @@ class GameDetailController extends Controller
     public function updateGuest(UserAcceptGameRequestGuest $request, Game $game) {
 
         GamePlayersGuest::create([
-            'name' => $request['name'],
+            'name' => $request['guestName'],
             'game_id' => $game->id,
             'role' => $request['gameRole']
         ]);
         
         Guest::create([
-            'name' => $request['name']
+            'name' => $request['guestName']
         ]);
 
         return back()->with('success', 'You have successfully added a guest to the game!');
