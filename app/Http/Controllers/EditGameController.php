@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Games\Game;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EditGameController extends Controller
 {
@@ -40,10 +41,22 @@ class EditGameController extends Controller
         $game->location =$request['location'];
         $game->duration = $request['duration'];
         $game->price = $request['price'];
-        $game->ice_cost = $request['ice_cost'];
+        // $game->ice_cost = $request['ice_cost'];
         
         $game->save();
         
         return redirect('home');
+    }
+    
+    public function delete(Request $request, Game $game) {
+        
+        // Game::where('id', $game->id)->first();
+
+        DB::table('games')->where('id', $game->id)->delete();
+        DB::table('game_players')->where('game_id', $game->id)->delete();
+        DB::table('game_players_guests')->where('game_id', $game->id)->delete();
+        DB::table('game_teams_players')->where('game_id', $game->id)->delete();
+        
+        return redirect('home')->with('success','Game deleted successfully!');;
     }
 }

@@ -51,7 +51,7 @@
             {{$game->title}} Details
         </h1>        
 
-        @role ('admin')
+        {{-- @role ('admin')
             <div class=" d-flex flex-row mx-md-5">
                 <div class="p-0 align-self-end">
 
@@ -70,12 +70,12 @@
             <div class="progress m-md-5 mb-3 mb-md-0 mt-0" role="progressbar">
                 <div class="progress-bar" style="width: {{ $current_game_price_percentage }}%;">${{$game->collected_game_cost}}</div>
             </div>
-        @endrole
+        @endrole --}}
 
         <div style="width: 100%">
             <iframe 
                 width="100%" 
-                height="600" 
+                height="300" 
                 frameborder="0" 
                 crolling="no"
                 marginheight="0" 
@@ -117,12 +117,12 @@
                 <th>Game Price</th>
                 <td>${{$game->price}}</td>
             </tbody>
-            @role ('admin')
+            {{-- @role ('admin')
                 <tbody>
                     <th>Ice Cost</th>
                     <td>${{$game->ice_cost}}</td>
                 </tbody>
-            @endrole
+            @endrole --}}
         </table>
 
         @if($user_registered == false)
@@ -156,7 +156,7 @@
             </form>
         @endif
 
-        <h1 id="attendingGuests">Any Guests Attending</h1>
+        <h1 id="attendingGuests">Will You Be Bringing A Guest?</h1>
         <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
             @csrf
             <div class="input-group w-auto mb-3" id="guestNameDiv">
@@ -232,7 +232,7 @@
             });
         </script>
 
-        @if(!$user_is_a_goalie and $user_paid == false)
+        {{-- @if(!$user_is_a_goalie and $user_paid == false)
             <h1 id="pleasePay" class="mt-5">Please Pay</h1>
         
             <form action="{{ route('game_detail_pay.game_id', ['game' => $game->id]) }}" method="POST">
@@ -260,7 +260,7 @@
                     <button type="submit" class="btn btn-primary rounded-end" name="payment" data-mdb-ripple-color="dark">Submit</button>
                 </div>
             </form>
-        @endif
+        @endif --}}
 
         <h1 id="skaters" class="mt-5">Skaters</h1>
 
@@ -278,7 +278,7 @@
                             <tr>
                                 <td class="align-middle">{{$player_name}}</td>
 
-                                @role('admin')
+                                {{-- @role('admin')
                                     @if ($game->gamePayments()->wherePivot('user_id', $player_id)->exists())
                                         <td class="text-end">Paid: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('payment')->first() }}</td>
                                         <td class="text-end">Method: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('method')->first() }}</td>
@@ -325,7 +325,7 @@
                                         </div>
 
                                     @endif
-                                @endrole
+                                @endrole --}}
                             </tr>
                         @endforeach
 

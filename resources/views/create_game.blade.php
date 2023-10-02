@@ -46,14 +46,14 @@
                         </div>
                     </h5>
                 </div>
-                <div class="col-lg-3">
+                {{-- <div class="col-lg-3">
                     <h5>Cost pof Ice: 
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input id="ice_cost" name="ice_cost" type="text" class="form-control" placeholder="200" size="1" required>
                         </div>
                     </h5>
-                </div>
+                </div> --}}
             </div>
 
             <button type="submit" class="btn btn-primary">Add Game</button>

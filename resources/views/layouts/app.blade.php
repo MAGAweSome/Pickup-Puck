@@ -32,7 +32,7 @@
         <div class="container">
             <div class="row align-items-start h-100">
                 <div class="col-md-1 d-md-inline d-sm-none"></div>
-                <div class="col-md-10 bg-light h-100 p-md-5 pt-3 pt-md-0">@yield('content')</div>
+                <div class="col-md-10 bg-light h-100 p-md-5 pt-3">@yield('content')</div>
                 <div class="col-md-1 d-md-inline d-sm-none"></div>
             </div>
         </div>

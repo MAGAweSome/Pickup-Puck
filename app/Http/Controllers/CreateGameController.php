@@ -37,10 +37,10 @@ class CreateGameController extends Controller
         $location = $request->input('location');
         $duration = $request->input('duration');
         $price = $request->input('price');
-        $ice_cost = $request->input('ice_cost');
+        // $ice_cost = $request->input('ice_cost');
         $currentTime = Carbon::now()->setTimezone('GMT-4');
 
-        $data = array('title' => $title, 'time' => $time, 'location' => $location, 'duration' => $duration, 'price' => $price, 'ice_cost' => $ice_cost, 'created_at' => $currentTime, 'updated_at' => $currentTime);
+        $data = array('title' => $title, 'time' => $time, 'location' => $location, 'duration' => $duration, 'price' => $price, 'created_at' => $currentTime, 'updated_at' => $currentTime);
         
         DB::table('games')->insert($data);
 

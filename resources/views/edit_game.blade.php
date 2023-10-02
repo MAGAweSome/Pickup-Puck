@@ -3,7 +3,7 @@
 @section('content')
 
 <!-- <div class="w-75 bg-light h-100"> -->
-    <div>
+    <div class="">
         <h1 class="text-center">
             Updating: {{ $game->title }}
         </h1>
@@ -38,7 +38,7 @@
                 <div class="col-lg-5">
                     <h5>Location: <input id="location" name="location" type="text" class="form-control" placeholder="1001 Franklin Blvd, Cambridge, ON N1R 8B5" value="1001 Franklin Blvd, Cambridge, ON N1R 8B5" required></h5>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-5">
                     <h5>Duration: 
                         <div class="input-group">
                             <input id="duration" name="duration" type="text" class="form-control" placeholder="50" value="50" size="1" required>
@@ -46,7 +46,7 @@
                         </div>
                     </h5>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-5">
                     <h5>Price Per Player: 
                         <div class="input-group">
                             <span class="input-group-text">$</span>
@@ -54,19 +54,21 @@
                         </div>
                     </h5>
                 </div>
-                <div class="col-lg-3">
-                    <h5>Cost pof Ice: 
+                {{-- <div class="col-lg-3">
+                    <h5>Cost of Ice: 
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input id="ice_cost" name="ice_cost" type="text" class="form-control" placeholder="200" size="1" value="{{$game->ice_cost}}" required>
                         </div>
                     </h5>
-                </div>
+                </div> --}}
+                <button type="submit" class="btn btn-primary col-lg-2 mt-2">Update Game</button>
             </div>
-
-            <button type="submit" class="btn btn-primary">Update Game</button>
+            
         </form>
-        
+
+        <a class="btn btn-danger col-12 mt-2 position-absolute bottom-0 end-0" href="../delete_game/{{$game->id}}"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete Game</a>
+
     </div>
 
 <!-- </div> -->

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('location');
             $table->integer('duration')->default(50);
             $table->float('price');
-            $table->float('ice_cost');
+            $table->float('ice_cost')->nullable();
             $table->float('collected_game_cost')->default(0);
             $table->integer('dark_score')->default(0);
             $table->integer('light_score')->default(0);

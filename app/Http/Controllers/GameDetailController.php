@@ -69,7 +69,7 @@ class GameDetailController extends Controller
             }
         }
 
-        $current_game_price_percentage = 100*($game->collected_game_cost/$game->ice_cost);
+        // $current_game_price_percentage = 100*($game->collected_game_cost/$game->ice_cost);
 
         return view('game_detail', [
             'game' => $game,
@@ -78,7 +78,7 @@ class GameDetailController extends Controller
             'goalies' => $goalies,
             'user_registered' => $user_registered,
             'user_paid' => $user_paid,
-            'current_game_price_percentage' => $current_game_price_percentage,
+            // 'current_game_price_percentage' => $current_game_price_percentage,
             'users' => $users,
             'guests' => $guests,
             'players_attending' => $players_attending,

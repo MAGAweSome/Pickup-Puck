@@ -75,6 +75,7 @@ Route::middleware('verified')->group(function () {
         Route::post('/create_game', [CreateGameController::class, 'create'])->name('game_create');
         Route::get('/edit_game/{game}', [EditGameController::class, 'index'])->name('edit_game');
         Route::post('/edit_game/{game}', [EditGameController::class, 'update'])->name('game_edit');
+        Route::get('/delete_game/{game}', [EditGameController::class, 'delete'])->name('delete_game');
     });
 });
 
