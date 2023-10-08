@@ -4,7 +4,7 @@
 
 <!-- <div class="w-75 bg-light h-100"> -->
     <div>
-        <h1 class="text-center">
+        <h1 class="text-center" data-title="Hello {{Auth::user()->name}}!" data-intro="Let me show you around!">
             Welcome {{{ Auth::user()->name }}} 
             <!-- You Are Logged In As
             @role ('admin')
@@ -26,7 +26,7 @@
                     $upcomingGamesExist = true;
                 @endphp
                 
-                <div class="card mb-2">
+                <div class="card mb-2" id="gameCard">
                     <div class="card-header row align-items-center justify-content-between m-0">
                         <!-- <h5 class="col-2 m-0"><i class="fa-regular fa-calendar fa-2xl" style="color: #005eff;"></i></h5> -->
                         <h5 class="col-12 m-0">{{$game->title}} | {{$game->game_time}}</h5>
@@ -43,10 +43,10 @@
                             <a class="col-auto m-0 text-decoration-none text-dark" href="/admin/edit_game/{{$game->id}}"><h5 class="m-0"><b>Edit <!--<i class="fas fa-edit"></i>--></b></h5></a>
                         @endrole
                     </div>
-                    <div class="card-body row align-items-center justify-content-between m-0">
+                    <div class="card-body row align-items-center justify-content-between m-0" id="gameLocation_Players">
                         <a href="https://maps.google.com/?q={{$game->location}}" target="_blank" class="col-auto text-decoration-none text-dark m-0"><h5 class="card-title m-0"><i class="fa-solid fa-location-dot"></i> {{$game->location}}</h5></a>
                         <h5 class="col-auto m-0">{{$game->players->count()}} Players | {{$game->goalies->count()}} Goalies</h5>
-                        <a href="game/{{$game->id}}" class="col-auto btn btn-primary m-0">See more!</a>
+                        <a id="gameMoreDetails" href="game/{{$game->id}}" class="col-auto btn btn-primary m-0" data-title="View Game Details" data-intro="Click here to accept the game and see more details about the game.">See more!</a>
                     </div>
                 </div>
 
@@ -83,9 +83,9 @@
                     <div class="card-body row align-items-center justify-content-between m-0">
                         <h5 class="col-auto card-title m-0"><i class="fa-solid fa-location-dot"></i> {{$game->location}}</h5>
                         <h5 class="col-auto m-0">{{$game->players->count()}} Players | {{$game->goalies->count()}} Goalies</h5>
-                        @role('admin')
+                        {{-- @role('admin')
                             <h5 class="col-auto m-0">${{$game->collected_game_cost}} of ${{$game->ice_cost}} | Collected for Game</h5>
-                        @endrole
+                        @endrole --}}
                     </div>
                 </div>
             @endif

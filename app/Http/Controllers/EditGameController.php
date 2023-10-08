@@ -50,12 +50,7 @@ class EditGameController extends Controller
     
     public function delete(Request $request, Game $game) {
         
-        // Game::where('id', $game->id)->first();
-
         DB::table('games')->where('id', $game->id)->delete();
-        DB::table('game_players')->where('game_id', $game->id)->delete();
-        DB::table('game_players_guests')->where('game_id', $game->id)->delete();
-        DB::table('game_teams_players')->where('game_id', $game->id)->delete();
         
         return redirect('home')->with('success','Game deleted successfully!');;
     }

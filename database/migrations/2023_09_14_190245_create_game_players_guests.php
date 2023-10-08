@@ -20,7 +20,7 @@ return new class extends Migration
         });
 
         Schema::table('game_players_guests', function (Blueprint $table) {
-            $table->foreign('game_id')->references('id')->on('games');
+            $table->foreign('game_id')->references('id')->on('games')->onDelete('cascade');
         });
     }
 

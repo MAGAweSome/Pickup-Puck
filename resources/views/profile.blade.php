@@ -12,8 +12,8 @@
             <div class="row align-items-center justify-content-between">
                 <div class="col-md-6"><h4>Name: {{ Auth::user()->name }}</h4></div>
                 <div class="col-md-6"><h4>e-Mail: {{ Auth::user()->email }}</h4></div>
-                <div class="col-md-6"><h4>Name Role: {{ ucfirst(trans(Auth::user()->role_preference)) }}</h4></div>
-                <a href="{{ route('update_profile') }}" class="col-6 text-decoration-none text-dark"><h4><i class="fa-regular fa-pen-to-square"></i> Update Profile</h4></a>
+                <div class="col-md-6" id="playerDesiredRole"><h4>Role: {{ ucfirst(trans(Auth::user()->role_preference)) }}</h4></div>
+                <a href="{{ route('update_profile') }}" class="col-6 text-decoration-none text-dark" id="updateProfile"><h4><i class="fa-regular fa-pen-to-square"></i> Update Profile</h4></a>
             </div>
         </div>
 

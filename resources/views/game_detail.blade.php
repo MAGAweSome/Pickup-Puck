@@ -80,11 +80,12 @@
                 crolling="no"
                 marginheight="0" 
                 marginwidth="0" 
-                src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{$game->location}}&amp;z=14&amp;output=embed">
+                src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{$game->location}}&amp;z=14&amp;output=embed"
+                id="gameMap">
             </iframe>
         </div>
 
-        <table class="table table-hover">
+        <table class="table table-hover" id="gameDetailTable">
             <tbody>
                 <th>Title</th>
                 <td>{{$game->title}}</td>
@@ -126,71 +127,75 @@
         </table>
 
         @if($user_registered == false)
-            <h1 id="acceptGame" class="mt-5">Accept Game</h1>
-            <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST">
-                @csrf
-                
-                <div class="d-flex dropdown justify-content-center">
-                    <div class="input-group mb-3">
-                        <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
-                            <option value="" selected disabled hidden>Please Select</option>
-                            @foreach ($GAME_ROLES as $gamerole)
-                                
-                                @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
-                                    <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
-                                @else
-                                    <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
-                                @endif
+            <div id="acceptGameDiv">
+                <h1 id="acceptGame" class="mt-5">Accept Game</h1>
+                <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST">
+                    @csrf
+                    
+                    <div class="d-flex dropdown justify-content-center">
+                        <div class="input-group mb-3">
+                            <select required class="form-select" aria-label="Default select example" name="gameRole" id="gameRole">
+                                <option value="" selected disabled hidden>Please Select</option>
+                                @foreach ($GAME_ROLES as $gamerole)
+                                    
+                                    @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
+                                        <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
+                                    @else
+                                        <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
+                                    @endif
 
-                            @endforeach
-                        </select>
-                        @error('gameRole')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
+                                @endforeach
+                            </select>
+                            @error('gameRole')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
 
-                        <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
+                            <button class="btn btn-primary" type="submit" id="accept_game_submit_button" name="game" data-mdb-ripple-color="dark">Accept Game</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         @endif
 
-        <h1 id="attendingGuests">Will You Be Bringing A Guest?</h1>
-        <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
-            @csrf
-            <div class="input-group w-auto mb-3" id="guestNameDiv">
-                <span class="input-group-text">Guest Name:</span>
-
-                <input type="text" id="guestName" class="form-control center w-md-auto" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" minlength="4" required>
-                
-                @error('guestName')
-                    <span class="invalid-feedback" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-
-                <select required class="form-select w-md-auto w-md-100" aria-label="Default select example" name="gameRole" id="gameRole">
-                    <option value="" selected disabled hidden>Please Select</option>
-                    @foreach ($GAME_ROLES as $gamerole)
-                        
-                        @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
-                            <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
-                        @else
-                            <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
-                        @endif
-
-                    @endforeach
-                </select>
-                @error('gameRole')
-                    <span class="invalid-feedback" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-
-                <button type="submit" class="btn btn-primary rounded-end" name="guestGame" data-mdb-ripple-color="dark">Submit</button>
-            </div>
-        </form>
+        <div id="attendingGuestsDiv">
+            <h1 id="attendingGuests">Will You Be Bringing A Guest?</h1>
+            <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST">
+                @csrf
+                <div class="input-group w-auto mb-3" id="guestNameDiv">
+                    <span class="input-group-text">Guest Name:</span>
+    
+                    <input type="text" id="guestName" class="form-control center w-md-auto" placeholder="Full Name" name="guestName" aria-label="Full Name" aria-describedby="basic-addon2" minlength="4" required>
+                    
+                    @error('guestName')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+    
+                    <select required class="form-select w-md-auto w-md-100" aria-label="Default select example" name="gameRole" id="gameRole">
+                        <option value="" selected disabled hidden>Please Select</option>
+                        @foreach ($GAME_ROLES as $gamerole)
+                            
+                            @if ($gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference))
+                                <option value="{{ $gamerole }}" selected>{{ $gamerole->name }}</option>
+                            @else
+                                <option value="{{ $gamerole }}">{{ $gamerole->name }}</option>
+                            @endif
+    
+                        @endforeach
+                    </select>
+                    @error('gameRole')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+    
+                    <button type="submit" class="btn btn-primary rounded-end" name="guestGame" data-mdb-ripple-color="dark">Submit</button>
+                </div>
+            </form>
+        </div>
         <p class="mb-1"></p>
         <div id="guestList">
         </div>
@@ -262,102 +267,104 @@
             </form>
         @endif --}}
 
-        <h1 id="skaters" class="mt-5">Skaters</h1>
-
-        <div class="row">
-            <div class="table-responsive col-md-6">
-                
-                <table class="table table-hover">
-                    <thead>
-                        <th colspan="3">Players</th>
-                    </thead>
-
-                    <tbody>
-                        @foreach($players as $player_id => $player_name)
-
-                            <tr>
-                                <td class="align-middle">{{$player_name}}</td>
-
-                                {{-- @role('admin')
-                                    @if ($game->gamePayments()->wherePivot('user_id', $player_id)->exists())
-                                        <td class="text-end">Paid: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('payment')->first() }}</td>
-                                        <td class="text-end">Method: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('method')->first() }}</td>
-                                    @else
-                                        <td class="text-end" colspan="2"><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paidGame">Enter Payment</button></td>
-
-                                        <!-- Vertically centered modal -->
-                                        <div class="modal fade" id="paidGame" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Please enter the ammount paid:</h1>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form action="{{ route('admin_game_detail_pay.game_id.player_id', ['game' => $game->id, 'player_id' => $player_id]) }}" method="POST">
-                                                            @csrf
-                                                            <div class="input-group mb-3">
-                                                                <span class="input-group-text">$</span>
-                                                                
-                                                                <input type="number" class="form-control" placeholder="15" size="1" value="{{$game->price}}" name="gamePayment" min="{{$game->price}}" required>
-                                                                @error('gamePayment')
-                                                                    <span class="invalid-feedback" role="alert">
-                                                                        <strong>{{ $message }}</strong>
-                                                                    </span>
-                                                                @enderror
-
-                                                                <select class="form-select" aria-label="Default select example" name="paymentMethod">
-                                                                    <option selected value="e-Transfer">e-Transfer</option>
-                                                                    <option value="Cash">Cash</option>
-                                                                </select>
-                                                                @error('paymentMethod')
-                                                                    <span class="invalid-feedback" role="alert">
-                                                                        <strong>{{ $message }}</strong>
-                                                                    </span>
-                                                                @enderror
-
-                                                                <button type="submit" class="btn btn-primary" name="payment" data-mdb-ripple-color="dark">Submit</button>
-                                                            </div>
-                                                        </form>
+        <div id="gameSkaters">
+            <h1 id="skaters" class="mt-5">Skaters</h1>
+    
+            <div class="row">
+                <div class="table-responsive col-md-6">
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <th colspan="3">Players</th>
+                        </thead>
+    
+                        <tbody>
+                            @foreach($players as $player_id => $player_name)
+    
+                                <tr>
+                                    <td class="align-middle">{{$player_name}}</td>
+    
+                                    {{-- @role('admin')
+                                        @if ($game->gamePayments()->wherePivot('user_id', $player_id)->exists())
+                                            <td class="text-end">Paid: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('payment')->first() }}</td>
+                                            <td class="text-end">Method: {{ $game->gamePayments()->wherePivot('user_id', $player_id)->pluck('method')->first() }}</td>
+                                        @else
+                                            <td class="text-end" colspan="2"><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paidGame">Enter Payment</button></td>
+    
+                                            <!-- Vertically centered modal -->
+                                            <div class="modal fade" id="paidGame" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Please enter the ammount paid:</h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form action="{{ route('admin_game_detail_pay.game_id.player_id', ['game' => $game->id, 'player_id' => $player_id]) }}" method="POST">
+                                                                @csrf
+                                                                <div class="input-group mb-3">
+                                                                    <span class="input-group-text">$</span>
+                                                                    
+                                                                    <input type="number" class="form-control" placeholder="15" size="1" value="{{$game->price}}" name="gamePayment" min="{{$game->price}}" required>
+                                                                    @error('gamePayment')
+                                                                        <span class="invalid-feedback" role="alert">
+                                                                            <strong>{{ $message }}</strong>
+                                                                        </span>
+                                                                    @enderror
+    
+                                                                    <select class="form-select" aria-label="Default select example" name="paymentMethod">
+                                                                        <option selected value="e-Transfer">e-Transfer</option>
+                                                                        <option value="Cash">Cash</option>
+                                                                    </select>
+                                                                    @error('paymentMethod')
+                                                                        <span class="invalid-feedback" role="alert">
+                                                                            <strong>{{ $message }}</strong>
+                                                                        </span>
+                                                                    @enderror
+    
+                                                                    <button type="submit" class="btn btn-primary" name="payment" data-mdb-ripple-color="dark">Submit</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                    @endif
-                                @endrole --}}
-                            </tr>
-                        @endforeach
-
-                        @foreach($guestPlayers as $guestPlayer)
-                            <tr>
-                                <td class="align-middle" colspan="3">{{$guestPlayer}}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="table-responsive col-md-6">
-                <table class="table table-hover">
-                    <thead>
-                        <th colspan="2">Goalies</th>
-                    </thead>
-
-                    <tbody>
-                        @foreach($goalies as $goalie)
-                            <tr>
-                                <td class="align-middle">{{$goalie}}</td>
-                            </tr>
-                        @endforeach
-
-                        @foreach($guestGoalies as $guestGoalie)
-                            <tr>
-                                <td class="align-middle" colspan="3">{{$guestGoalie}}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    
+                                        @endif
+                                    @endrole --}}
+                                </tr>
+                            @endforeach
+    
+                            @foreach($guestPlayers as $guestPlayer)
+                                <tr>
+                                    <td class="align-middle" colspan="3">{{$guestPlayer}}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+    
+                <div class="table-responsive col-md-6">
+                    <table class="table table-hover">
+                        <thead>
+                            <th colspan="2">Goalies</th>
+                        </thead>
+    
+                        <tbody>
+                            @foreach($goalies as $goalie)
+                                <tr>
+                                    <td class="align-middle">{{$goalie}}</td>
+                                </tr>
+                            @endforeach
+    
+                            @foreach($guestGoalies as $guestGoalie)
+                                <tr>
+                                    <td class="align-middle" colspan="3">{{$guestGoalie}}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -435,50 +442,52 @@
             </div>
         @endrole
 
-        <h1 id="teams" class="mt-5">Teams</h1>
-
-        <div class="row">
-            <div class="table-responsive col-md-6">
-                
-                <table class="table table-hover">
-                    <thead>
-                        <th colspan="3">Light Team</th>
-                    </thead>
-
-                    <tbody>
-                        @foreach($lightTeamPlayers as $lightTeamPlayer)
-                            <tr>
-                                <td class="align-middle">{{$lightTeamPlayer}}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="table-responsive col-md-6">
-                <table class="table table-hover">
-                    <thead>
-                        <th colspan="2">Dark Team</th>
-                    </thead>
-
-                    <tbody>
-                        
-                        @foreach($darkTeamPlayers as $darkTeamPlayer)
-                            <tr>
-                                <td class="align-middle">{{$darkTeamPlayer}}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            
-            @if ($currentTime < $game->time->subMinutes(30))
-                <div class="alert alert-secondary" role="alert">
-                    <h5 class="m-0">Teams are made 30 minutes prior to start of game!</h5>
+        <div id="gameTeam">
+            <h1 id="teams" class="mt-5">Teams</h1>
+    
+            <div class="row">
+                <div class="table-responsive col-md-6">
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <th colspan="3">Light Team</th>
+                        </thead>
+    
+                        <tbody>
+                            @foreach($lightTeamPlayers as $lightTeamPlayer)
+                                <tr>
+                                    <td class="align-middle">{{$lightTeamPlayer}}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            @else
-                <a type="button" class="btn btn-primary" href="{{ route('game_detail_generateTeams.game_id', ['game' => $game->id]) }}">Generate Teams</a> 
-            @endif
+    
+                <div class="table-responsive col-md-6">
+                    <table class="table table-hover">
+                        <thead>
+                            <th colspan="2">Dark Team</th>
+                        </thead>
+    
+                        <tbody>
+                            
+                            @foreach($darkTeamPlayers as $darkTeamPlayer)
+                                <tr>
+                                    <td class="align-middle">{{$darkTeamPlayer}}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                @if ($currentTime < $game->time->subMinutes(30))
+                    <div class="alert alert-secondary" role="alert">
+                        <h5 class="m-0">Teams are made 30 minutes prior to start of game!</h5>
+                    </div>
+                @else
+                    <a type="button" class="btn btn-primary" href="{{ route('game_detail_generateTeams.game_id', ['game' => $game->id]) }}">Generate Teams</a> 
+                @endif
+            </div>
         </div>
 
     </div>
