@@ -6,82 +6,76 @@
     <div>
         <h1 class="text-center">{{ $user->name }}'s Game History</h1>
 
-        <table class="table table-hover">
-            <thead>
-                <th>Game</th>
-                <th>Attendance</th>
-                <th>Paid</th>
-                <th>Paid Ammount</th>
-                <th>Method</th>
-                <th>Position</th>
-            </thead>
-            <tbody>
-                @foreach($games as $game)
-                    <tr>
-                        @php
-                            $players = $game->players->pluck('name')->toArray();
-                            $goalies = $game->goalies->pluck('name')->toArray();
-                        @endphp
-                        
-                        <td class="align-middle"><p class="m-0">{{ $game->title }}</p></td>
-                        
-                        @if($game->time->isFuture())
-                            @if(in_array($user->name, $players) || in_array($user->name, $goalies))
-                                <td class="align-middle">Attending</td>
-                            @else
-                                <td class="align-middle">Not Yet Attending</td>
-                            @endif
-                        @else
-                            @if(in_array($user->name, $players) || in_array($user->name, $goalies))
-                                <td class="align-middle">Attended</td>
-                            @else
-                                <td class="align-middle">Did Not Attend</td>
-                            @endif
-                        @endif
+        @foreach($games as $game)
 
-                        @if($game->time->isFuture())
-                            @if($game->gamePlayers()->wherePivot('user_id', $user->id)->exists())
-                                <td class="align-middle">Paid</td>
-                            @else
-                                <td class="align-middle">Please Pay</td>
-                            @endif
-                        @else
-                            @if($game->gamePlayers()->wherePivot('user_id', $user->id)->exists())
-                                <td class="align-middle">Paid</td>
-                            @else
-                                <td class="align-middle">No Payment</td>
-                            @endif
-                        @endif
-                        
-                        @if($game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first())
-                            <td class="align-middle">{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first() }}</td>
-                        @else
-                            <td class="align-middle">-</td>
-                        @endif
+            @php
+                $players = $game->players->pluck('name')->toArray();
+                $goalies = $game->goalies->pluck('name')->toArray();
+            @endphp
 
-                        @if($game->gamePayments()->wherePivot('user_id', $user->id)->pluck('method')->first())
-                            <td class="align-middle">{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('method')->first() }}</td>
+            <div class="row align-items-center justify-content-between m-0">
+                <div class="col-lg-3">
+                    <h5><b>Game:</b> {{ $game->title }}</h5>
+                </div>
+                <div class="col-lg-4">
+                    @if($game->time->isFuture())
+                        @if(in_array($user->name, $players) || in_array($user->name, $goalies))
+                            <h5><b>Attendance:</b> Attending</h5>
                         @else
-                            <td class="align-middle">-</td>
+                            <h5><b>Attendance:</b> Not Yet Attending</h5>
                         @endif
-
-                        @php
-                            $players = $game->players->pluck('name')->toArray();
-                            $goalies = $game->goalies->pluck('name')->toArray();
-                        @endphp
-
-                        @if(in_array($user->name, $players))
-                            <td class="align-middle">Player</td>
-                        @elseif(in_array($user->name, $goalies))
-                            <td class="align-middle">Goalie</td>
+                    @else
+                        @if(in_array($user->name, $players) || in_array($user->name, $goalies))
+                            <h5><b>Attendance:</b> Attended</h5>
                         @else
-                            <td class="align-middle">Not Attending</td>
+                            <h5><b>Attendance:</b> Did Not Attend</h5>
                         @endif
-                        
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+                    @endif
+                </div>
+                {{-- <div>
+                    Paid, Paid amount, and method
+
+                    @if($game->time->isFuture())
+                        @if($game->gamePlayers()->wherePivot('user_id', $user->id)->exists())
+                            <td class="align-middle">Paid</td>
+                        @else
+                            <td class="align-middle">Please Pay</td>
+                        @endif
+                    @else
+                        @if($game->gamePlayers()->wherePivot('user_id', $user->id)->exists())
+                            <td class="align-middle">Paid</td>
+                        @else
+                            <td class="align-middle">No Payment</td>
+                        @endif
+                    @endif
+                    
+                    @if($game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first())
+                        <td class="align-middle">{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('payment')->first() }}</td>
+                    @else
+                        <td class="align-middle">-</td>
+                    @endif
+
+                    @if($game->gamePayments()->wherePivot('user_id', $user->id)->pluck('method')->first())
+                        <td class="align-middle">{{ $game->gamePayments()->wherePivot('user_id', $user->id)->pluck('method')->first() }}</td>
+                    @else
+                        <td class="align-middle">-</td>
+                    @endif
+                </div> --}}
+                <div class="col-lg-2">
+                    @if(in_array($user->name, $players))
+                        <h5><b>Position:</b> Player</h5>
+                    @elseif(in_array($user->name, $goalies))
+                        <h5><b>Position:</b> Goalie</h5>
+                    @else
+                        <h5><b>Position:</b> Not Attending</h5>
+                    @endif
+
+                </div>
+                <hr>
+                
+            </div>
+
+        @endforeach
     
     </div>
 
