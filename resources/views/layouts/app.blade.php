@@ -23,6 +23,9 @@
         {{-- For Guest Player Search --}}
         <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+        {{-- For intro.js --}}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" integrity="sha512-ZltC0pC5nP28uLJ2SBRo8EmFHA+giWPQC6nM4xzwW4hXsTaIsfSMn0qTtotOP8NNWlAohVlJtDfLRKXxA7mJ4A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     </head>
 
     <body class="antialiased siding justify-content-center row m-0 d-flex"> 
@@ -42,4 +45,14 @@
         </form>
     </body>
 
+    {{-- Add intro.js --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js" integrity="sha512-MCM74PPZwlAz3VdPGg3cQn4Jb83jO2Q3LGika//u7H+hyk0HfyraT0u0gVf4jB44xJj3WwbGxn45L7frballmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        introJs().setOptions({
+            steps:[{
+                title:'Welcome!',
+                intro:'Hello World!'
+            }]
+        }).start();
+    </script>
 </html>
