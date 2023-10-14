@@ -117,9 +117,12 @@ class GameDetailController extends Controller
             'role' => $request['gameRole']
         ]);
         
-        Guest::create([
-            'name' => $request['guestName']
-        ]);
+        
+        if (!Guest::where('name', $request['guestName'])->exists()){
+            Guest::create([
+                'name' => $request['guestName']
+            ]);
+        }
 
         return back()->with('success', 'You have successfully added a guest to the game!');
     }
