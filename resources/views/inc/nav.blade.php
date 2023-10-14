@@ -5,11 +5,11 @@
             <a class="navbar-brand float-end me-2 fs-4" href="/login">Login / Register</a>
         @else
             <a class="navbar-brand float-start ms-3-sm fs-4" href="/">Dashboard</a>
-            <div class="dropdown float-end" id="navDropdown">
+            <div class="dropdown float-end" id="navigationBar">
                 <a class="navbar-brand fs-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{{ Auth::user()->name }}}
                 </a>
-                <div class="dropdown-menu mt-2 dropdown-menu-end">
+                <div class="dropdown-menu mt-2 dropdown-menu-end" id="navDropdown">
                     {{-- <a class="dropdown-item" href="/home">Dashboard</a> --}}
                     <a class="dropdown-item" href="/profile" id="navDropdownProfile">Profile</a>
                     @role ('admin')

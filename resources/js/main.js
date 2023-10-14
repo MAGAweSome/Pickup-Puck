@@ -15,14 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return window.location.pathname === "/profile";
     }
 
-    function displayError(errorText) {
-        const errorStep = document.getElementById("errorStep");
-        const errorTextElement = document.getElementById("errorText");
-    
-        errorTextElement.textContent = errorText;
-        errorStep.style.display = "block";
-    }
-
     // Function to start the Intro.js tour for the home page
     function startHomeIntroTour() {
         const tour = introJs();
@@ -81,9 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to start the Intro.js tour for the game page
     function startGameIntroTour() {
         const tour = introJs();
-        const tourSteps = [];
-
-        tourSteps.push(
+        
+        // Define the tour steps
+        let tourSteps = [
             {
                 title: "Game Detail Page",
                 intro: "This is the page that will show you more details about a game.",
@@ -119,11 +111,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 intro: "This is where you can see your team for the desired game. The team will only be made 30 minutes before the game.",
             },
             {
-                element: document.querySelector("#navDropdown"),
+                element: document.querySelector("#navigationBar"),
+                // element: document.querySelector("#navDropdown"),
                 title: "Nav Dropdown",
                 intro: "This is where you can view your profile by activating this dropdown and click profile.",
             }
-        );
+        ];
 
         // Set the Intro.js options with the specified steps
         tour.setOptions({
@@ -160,9 +153,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to start the Intro.js tour for the profile page
     function startProfileIntroTour() {
         const tour = introJs();
-        const tourSteps = [];
-
-        tourSteps.push(
+        
+        // Define the tour steps
+        let tourSteps = [
             {
                 title: "This is your Profile",
                 intro: "This is the profile page. Here you can see your information like Name, eMail, and your desired role for games.",
@@ -177,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Update Profile",
                 intro: "This is where you will go to change any account information or if you want to change your role to be the default goalie. <br><br>Click me if you would like to see the update page!",
             }
-        );
+        ];
 
         // Attach the oncomplete callback only if the user is seeing the page for the first time
         if (!localStorage.getItem("profileIntroCompleted") && isProfilePage()) {
