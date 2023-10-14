@@ -43,8 +43,10 @@ Route::get('/', function () {
 
 Auth::routes(['verify' => true]);
 
-Route::middleware('verified')->group(function () {
-    // Must have a verified account to access
+// Route::middleware('verified')->group(function () {
+// Must have a verified account to access
+
+Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile',[ProfileController::class, 'update'])->name('profile_update');
