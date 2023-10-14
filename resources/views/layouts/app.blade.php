@@ -36,7 +36,9 @@
     <div class="container">
         <div class="row align-items-start h-100">
             <div class="col-md-1 d-md-inline d-sm-none"></div>
-            <div class="col-md-10 bg-light h-100 p-md-5 pt-3">@yield('content')</div>
+            <div class="col-md-10 bg-light h-100 p-md-5 pt-3">
+                @yield('content')
+            </div>
             <div class="col-md-1 d-md-inline d-sm-none"></div>
         </div>
     </div>
@@ -48,39 +50,6 @@
     {{-- For intro.js --}}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
-    {{-- <script type="module">haha('But face head');</script> --}}
 </body>
 
 </html>
-{{-- This will see if its the users first time on the page, if so, show the intro, else dont shoow it
-        
-            <script>
-        
-                allCookies = document.cookie;
-        
-        
-                if (!document.cookie.includes("userFirstTime")) {
-                    document.cookie = "userFirstTime=true";
-                }
-        
-                document.cookie = newCookie;
-        
-                function showCookie() {
-        
-                    const cookieValue = document.cookie
-                    .split("; ")
-                    .find((row) => row.startsWith("userFirstTime="))
-                    ?.split("=")[1];
-        
-                    
-                    alert(allCookies);
-                    
-                    if (cookieValue == 'true') {
-                        alert('The cookieValue was: ' + cookieValue);
-                        alert('Now we show the first time user data');
-                        alert('Now we edit the cookie to false');
-                        document.cookie = "userFirstTime=false";
-                        alert(allCookies);
-                    }
-                }
-            </script> --}}

@@ -15,7 +15,7 @@
                     @role ('admin')
                     <a class="dropdown-item" href="/admin/user">Player List</a>
                     @endrole
-                    <a class="dropdown-item" href="#" onclick="runIntro();">Help</a>
+                    <button class="dropdown-item" id="start-tour">Start Tour</button>
                     <div class="dropdown-divider"></div>
                     <button class="dropdown-item" type="button" onclick="document.getElementById('logout-form').submit();">
                         {{ __('Logout') }}
