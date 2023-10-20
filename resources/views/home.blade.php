@@ -59,6 +59,10 @@
             </div>
         @endif
 
+        @if ($hasNotSignedUpForAllGames)
+            <a href="{{ route('seasons.accept-all', ['season' => $game->season_id]) }}" class="btn btn-primary w-100 mb-2">Accept All Games in This Season</a>
+        @endif
+
         @role ('admin')
             <a class="btn btn-primary w-100" href="/admin/create_game">Create new game!</a>
         @endrole

@@ -3,6 +3,7 @@
 namespace App\Models\Games;
 
 use App\Enums\Games\GameRoles;
+use App\Models\Season;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -67,5 +68,10 @@ class Game extends Model
         return Attribute::make(
             get: fn () => $this->time->isoFormat('dddd, MMM D @ h:mma')
         );
+    }
+
+    public function season()
+    {
+        return $this->belongsTo(Season::class);
     }
 }

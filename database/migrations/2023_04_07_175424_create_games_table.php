@@ -23,6 +23,8 @@ return new class extends Migration
             $table->float('collected_game_cost')->default(0);
             $table->integer('dark_score')->default(0);
             $table->integer('light_score')->default(0);
+            $table->unsignedBigInteger('season_id')->nullable();
+            $table->foreign('season_id')->references('id')->on('seasons');
             $table->timestamps();
         });
     }

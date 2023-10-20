@@ -60,12 +60,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = gameHref;
             });
         }
-        
+
         // Set the Intro.js options with the specified steps
         tour.setOptions({
             steps: tourSteps,
         });
-        
+
         // Start the tour
         tour.start();
     }
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to start the Intro.js tour for the game page
     function startGameIntroTour() {
         const tour = introJs();
-        
+
         // Define the tour steps
         let tourSteps = [
             {
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // element: document.querySelector("#navDropdown"),
                 title: "Nav Dropdown",
                 intro: "This is where you can view your profile by activating this dropdown and click profile.",
-            }
+            },
         ];
 
         // Set the Intro.js options with the specified steps
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "/profile"; // Replace with the actual profile page URL
             });
         }
-        
+
         // Set the Intro.js options with the specified steps
         tour.setOptions({
             steps: tourSteps,
@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to start the Intro.js tour for the profile page
     function startProfileIntroTour() {
         const tour = introJs();
-        
+
         // Define the tour steps
         let tourSteps = [
             {
@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 element: document.querySelector("#updateProfile"),
                 title: "Update Profile",
                 intro: "This is where you will go to change any account information or if you want to change your role to be the default goalie. <br><br>Click me if you would like to see the update page!",
-            }
+            },
         ];
 
         // Attach the oncomplete callback only if the user is seeing the page for the first time
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "/home"; // Replace with the actual home page URL
             });
         }
-        
+
         // Set the Intro.js options with the specified steps
         tour.setOptions({
             steps: tourSteps,
@@ -215,13 +215,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Add an event listener to the button for manual tour triggering
-    document.getElementById("start-tour").addEventListener("click", function () {
-        if (isHomePage()) {
-            startHomeIntroTour();
-        } else if (isGamePage()) {
-            startGameIntroTour();
-        } else if (isProfilePage()) {
-            startProfileIntroTour();
+    document
+        .getElementById("start-tour")
+        .addEventListener("click", function () {
+            if (isHomePage()) {
+                startHomeIntroTour();
+            } else if (isGamePage()) {
+                startGameIntroTour();
+            } else if (isProfilePage()) {
+                startProfileIntroTour();
+            }
+        });
+});
+
+// On the create game blade, this will highlight the season selector if it is not slected.
+$(document).ready(function () {
+    $('#createGameForm').on('submit', function (e) {
+        var selectedSeason = $('#season').val();
+        if (selectedSeason === "") {
+            e.preventDefault(); // Prevent form submission
+            $('#season').css('border-color', '#f00'); // Add a red border
+        } else {
+            $('#season').css('border-color', ''); // Remove the red border if a valid option is selected
         }
     });
 });

@@ -25,6 +25,9 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
+    {{-- For Add Season --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     {{-- For intro.js --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" />
 </head>

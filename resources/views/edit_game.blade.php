@@ -54,6 +54,30 @@
                         </div>
                     </h5>
                 </div>
+                <div class="col-lg-3">
+                    <div class="cs-form">
+                        <h5>Season:
+                            <select id="season" name="season" class="form-select" required>
+                                @if (count($seasons) == 0)
+                                    <optgroup label="Create a Season" disabled></optgroup>
+                                @else
+                                    <optgroup label="Seasons:" disabled></optgroup>
+                                @endif
+                            
+                                @foreach ($seasons as $season)
+                                    <option value="{{ $season->id }}" {{ $season->id == $game->season_id ? 'selected' : '' }}>
+                                        Season {{ $season->season_number }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </h5>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="cs-form">
+                        <button type="button" class="btn btn-primary col-lg-12" data-bs-toggle="modal" data-bs-target="#addNewSeasonModal" data-bs-dismiss="modal">Add New Season</button>
+                    </div>
+                </div>
                 {{-- <div class="col-lg-3">
                     <h5>Cost of Ice: 
                         <div class="input-group">
@@ -62,10 +86,40 @@
                         </div>
                     </h5>
                 </div> --}}
-                <button type="submit" class="btn btn-primary col-lg-2 mt-2">Update Game</button>
+                <div class="col-lg-12">
+                    <div class="cs-form">
+                        <button type="submit" class="btn btn-primary col-lg-12 mt-2">Update Game</button>
+                    </div>
+                </div>
             </div>
             
         </form>
+
+        <!-- Add New Season Modal -->
+        <div class="modal fade" id="addNewSeasonModal" tabindex="-1" role="dialog" aria-labelledby="addNewSeasonModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addNewSeasonModalLabel">Add New Season</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="addNewSeasonForm" action="{{ route('season.create') }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <!-- Form fields for creating a new season -->
+                            <div class="mb-3">
+                                <label for="season_number" class="form-label">Season Number</label>
+                                <input type="number" class="form-control" id="season_number" name="season_number"
+                                    min="1" value="{{ $nextSeasonNumber }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Add Season</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <a class="btn btn-danger col-12 mt-2 position-absolute bottom-0 end-0" href="../delete_game/{{$game->id}}"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete Game</a>
 

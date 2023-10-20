@@ -53,6 +53,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/update_profile', [UpdateProfileController::class, 'index'])->name('update_profile');
     Route::get('/update/password',[UpdatePasswordController::class, 'index'])->name('update_password');
 
+    Route::get('/seasons/{season}/accept-all', [HomeController::class, 'acceptAllGamesInSeason'])->name('seasons.accept-all');
+
     Route::get('/game/{game}', [GameDetailController::class, 'index'])->name('game_detail.game_id');
     Route::get('/game/{game}/search', [GameDetailController::class, 'searchGuestList'])->name('game_detail_search_guest.game_id');
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
@@ -75,6 +77,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/user/{user}',[UserRoleController::class, 'update'])->name('user_role_update.user_id');
         Route::get('/create_game', [CreateGameController::class, 'index'])->name('create_game');
         Route::post('/create_game', [CreateGameController::class, 'create'])->name('game_create');
+        Route::post('/seasons', [CreateGameController::class, 'createSeason'])->name('season.create');
         Route::get('/edit_game/{game}', [EditGameController::class, 'index'])->name('edit_game');
         Route::post('/edit_game/{game}', [EditGameController::class, 'update'])->name('game_edit');
         Route::get('/delete_game/{game}', [EditGameController::class, 'delete'])->name('delete_game');
