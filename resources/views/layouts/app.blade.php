@@ -14,6 +14,7 @@
 
     <!-- Tailwind CDN (for rapid UI overhaul). Keep @@vite for existing assets. -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -45,8 +46,10 @@
         /* Small utility for container max width matching previous layout */
         .app-container { max-width: 1100px; }
         /* Ensure only the top margin above the header is removed without touching page content spacing */
-        html, body { margin-top: 0 !important; padding-top: 0 !important; }
-        header { margin-top: 0 !important; }
+        html, body { margin: 0 !important; padding: 0 !important; background-color: #051426; }
+        header { margin: 0 !important; }
+        /* navbar height constant used to offset main layout */
+        :root { --nav-height: 4rem; }
     </style>
 </head>
 
@@ -57,7 +60,7 @@
     <div class="flex">
         @include('components.sidebar')
 
-        <main class="flex-1 p-6 md:p-10 app-container mx-auto w-full">
+        <main class="flex-1 p-6 md:p-10 app-container mx-auto w-full bg-deep-navy min-h-[calc(100vh-4rem)]">
             @yield('content')
         </main>
     </div>

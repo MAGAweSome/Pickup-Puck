@@ -4,6 +4,7 @@ use App\Http\Controllers\CreateGameController;
 use App\Http\Controllers\EditGameController;
 use App\Http\Controllers\GameDetailController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\GameController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UpdatePasswordController;
 use App\Http\Controllers\UpdateProfileController;
@@ -52,6 +53,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile',[ProfileController::class, 'update'])->name('profile_update');
     Route::get('/update_profile', [UpdateProfileController::class, 'index'])->name('update_profile');
     Route::get('/update/password',[UpdatePasswordController::class, 'index'])->name('update_password');
+
+    // Structural pages (sidebar links)
+    Route::get('/games', [GameController::class, 'index'])->name('games.index');
+
+    Route::get('/payments', function () {
+        return view('payments.index');
+    })->name('payments.index');
+
+    Route::get('/seasons', function () {
+        return view('seasons.index');
+    })->name('seasons.index');
+
+    Route::get('/settings', function () {
+        return view('settings.index');
+    })->name('settings.index');
 
     Route::get('/seasons/{season}/accept-all', [HomeController::class, 'acceptAllGamesInSeason'])->name('seasons.accept-all');
 

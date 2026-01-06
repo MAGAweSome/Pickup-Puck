@@ -34,7 +34,7 @@
                                     <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
                                     <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
                                 </div>
-                                <div class="text-right space-y-1">
+                                <div class="text-right space-y-1 text-center">
                                     @if(in_array($game->id, $gamesAttending))
                                         @include('components.badge', ['status' => 'Attending'])
                                     @else
