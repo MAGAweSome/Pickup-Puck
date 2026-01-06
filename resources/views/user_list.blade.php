@@ -2,39 +2,32 @@
 
 @section('content')
 
-<!-- <div class="w-75 bg-light h-100"> -->
-    <h1 class="text-center">Player List</h1>
-        
-    @foreach($users as $user)
+    <div>
+        <h1 class="text-2xl font-semibold text-ice mb-4">Player List</h1>
 
-        <div class="row align-items-center justify-content-between m-0">
-            <div class="col-lg-3">
-                <h5><b>Name:</b> <a href="/admin/user/{{$user->id}}" class="text-decoration-none text-dark">{{ $user->name }}</a></h5>
-            </div>
-            <div class="col-lg-4">
-                <h5><b>e-Mail:</b> {{ $user->email }}</h5>
-            </div>
-            <div class="col-lg-3">
-                <h5><b>Prefered Role:</b> {{ Str::title($user->role_preference) }}</h5>
-            </div>
-            <div class="col-lg-2">
-                @if ($user->hasRole('admin'))
-                    <h5 class="">Admin</h5>
-                @else    
-                    <h5 class=""></h5>
-                @endif
-            </div>
-            <div class="col-lg-12 mb-2">
-                <a class="btn btn-primary w-100" href="/admin/user/{{$user->id}}/history" role="button">Game History</a>
-            </div>
-            <div class="col-lg-12 mb-3">
-                <a class="btn btn-primary w-100" href="/admin/user/{{$user->id}}" role="button">View</a>
-            </div>
-            <hr>
-            
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @foreach($users as $user)
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <a href="/admin/user/{{$user->id}}" class="text-ice text-lg font-medium">{{ $user->name }}</a>
+                            <div class="text-sm text-slate-300">{{ $user->email }}</div>
+                        </div>
+                        <div class="text-right text-sm">
+                            <div class="text-slate-300">{{ Str::title($user->role_preference) }}</div>
+                            @if ($user->hasRole('admin'))
+                                <div class="mt-1 text-xs bg-amber-600 text-amber-900 px-2 py-0.5 rounded">Admin</div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex gap-2">
+                        <a class="w-full text-center px-3 py-2 bg-ice-blue text-deep-navy rounded" href="/admin/user/{{$user->id}}/history">Game History</a>
+                        <a class="w-full text-center px-3 py-2 border border-slate-600 rounded" href="/admin/user/{{$user->id}}">View</a>
+                    </div>
+                </div>
+            @endforeach
         </div>
+    </div>
 
-    @endforeach
-
-<!-- </div> -->
 @endsection

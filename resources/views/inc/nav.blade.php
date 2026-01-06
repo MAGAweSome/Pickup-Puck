@@ -1,27 +1,20 @@
-<nav class="navbar navbar-expand-lg row m-0 fixed-top navbar-light bg-light d-flex justify-content-center w-100">
-    <div class="w-75 p-0">
-        
-        @guest
-            <a class="navbar-brand float-end me-2 fs-4" href="/login">Login / Register</a>
-        @else
-            <a class="navbar-brand float-start ms-3-sm fs-4" href="/">Dashboard</a>
-            <div class="dropdown float-end" id="navigationBar">
-                <a class="navbar-brand fs-4 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{{ Auth::user()->name }}}
-                </a>
-                <div class="dropdown-menu mt-2 dropdown-menu-end" id="navDropdown">
-                    {{-- <a class="dropdown-item" href="/home">Dashboard</a> --}}
-                    <a class="dropdown-item" href="/profile" id="navDropdownProfile">Profile</a>
-                    @role ('admin')
-                    <a class="dropdown-item" href="/admin/user">Player List</a>
-                    @endrole
-                    <button class="dropdown-item" id="start-tour">Start Tour</button>
-                    <div class="dropdown-divider"></div>
-                    <button class="dropdown-item" type="button" onclick="document.getElementById('logout-form').submit();">
-                        {{ __('Logout') }}
-                    </button>
-                </div>
-            </div>
-        @endguest
+<header class="w-full bg-slate-800 sticky top-0 z-40">
+    <div class="app-container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <a href="/" class="text-ice-blue font-semibold text-lg">Pickup Puck</a>
+            <span class="text-sm text-slate-300 hidden md:inline">— Pickup hockey scheduling made simple</span>
+        </div>
+
+        <div class="flex items-center gap-4">
+            @guest
+                <a href="/login" class="px-3 py-1 rounded bg-ice-blue text-deep-navy font-medium">Login / Register</a>
+            @else
+                <a href="/profile" class="text-slate-200">Profile</a>
+                @role ('admin')
+                    <a href="/admin/user" class="text-slate-200">Players</a>
+                @endrole
+                <button onclick="document.getElementById('logout-form').submit();" class="ml-2 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
+            @endguest
+        </div>
     </div>
-</nav>
+</header>

@@ -2,106 +2,111 @@
 
 @section('content')
 
-<!-- <div class="w-75 bg-light h-100"> -->
-    <div>
-        <h1 class="text-center" data-title="Hello {{Auth::user()->name}}!" data-intro="Let me show you around!">
-            Welcome {{{ Auth::user()->name }}} 
-            <!-- You Are Logged In As
-            @role ('admin')
-                Admin
-            @else
-                User
-            @endrole -->
-        </h1>
-
-        <h3>Upcoming Games:</h3>
-
-        @php
-            $upcomingGamesExist = false;
-        @endphp
-
-        @foreach ($games as $game)
-            @if ($game->time > $currentTime)
-                @php
-                    $upcomingGamesExist = true;
-                @endphp
-                
-                <div class="card mb-2" id="gameCard">
-                    <div class="card-header row align-items-center justify-content-between m-0">
-                        <!-- <h5 class="col-2 m-0"><i class="fa-regular fa-calendar fa-2xl" style="color: #005eff;"></i></h5> -->
-                        <h5 class="col-12 m-0">{{$game->title}} | {{$game->game_time}}</h5>
-                        
-                        @if(in_array($game->id, $gamesAttending))
-                            <h5 class="col-auto m-0 text-success">Attending</h5>
-                        @else
-                            <h5 class="col-auto m-0 text-danger">Not Yet Attending</h5>
-                        @endif
-
-                        <h5 class="col-auto m-0">Game Cost: ${{$game->price}}</h5>
-                        
-                        @role ('admin')
-                            <a class="col-auto m-0 text-decoration-none text-dark" href="/admin/edit_game/{{$game->id}}"><h5 class="m-0"><b>Edit <!--<i class="fas fa-edit"></i>--></b></h5></a>
-                        @endrole
-                    </div>
-                    <div class="card-body row align-items-center justify-content-between m-0" id="gameLocation_Players">
-                        <a href="https://maps.google.com/?q={{$game->location}}" target="_blank" class="col-auto text-decoration-none text-dark m-0"><h5 class="card-title m-0"><i class="fa-solid fa-location-dot"></i> {{$game->location}}</h5></a>
-                        <h5 class="col-auto m-0">{{$game->players->count()}} Players | {{$game->goalies->count()}} Goalies</h5>
-                        <a id="gameMoreDetails" href="game/{{$game->id}}" class="col-auto btn btn-primary m-0" data-title="View Game Details" data-intro="Click here to accept the game and see more details about the game.">See more!</a>
-                    </div>
-                </div>
-
-            @endif
-        @endforeach
-
-        @if (!$upcomingGamesExist)
-            <div class="alert alert-secondary" role="alert">
-                <h5 class="m-0">There Are No Upcoming Games... Yet!</h5>
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-ice">Welcome {{{ Auth::user()->name }}}</h1>
+                <p class="text-sm text-slate-300">Upcoming and recent games at a glance.</p>
             </div>
-        @endif
-
-        @if ($hasNotSignedUpForAllGames)
-            <a href="{{ route('seasons.accept-all', ['season' => $game->season_id]) }}" class="btn btn-primary w-100 mb-2">Accept All Games in This Season</a>
-        @endif
-
-        @role ('admin')
-            <a class="btn btn-primary w-100" href="/admin/create_game">Create new game!</a>
-        @endrole
-
-        <h3 class="mt-4">Previous Games:</h3>
-        
-        @php
-            $passedGamesExist = false;
-        @endphp
-
-        @foreach ($games as $game)
-            @if ($game->time < $currentTime)
-                @php
-                    $passedGamesExist = true;
-                @endphp
-                <div class="card mb-2">
-                    <div class="card-header row align-items-center justify-content-between m-0">
-                        <!-- <h5 class="col-2 m-0"><i class="fa-regular fa-calendar fa-2xl" style="color: #005eff;"></i></h5> -->
-                        <h5 class="col-sm-9 col-12 m-0">{{$game->title}} | {{$game->game_time}}</h5>
-                        <h5 class="col-auto m-0">Game Cost: ${{$game->price}}</h5>
-                    </div>
-                    <div class="card-body row align-items-center justify-content-between m-0">
-                        <h5 class="col-auto card-title m-0"><i class="fa-solid fa-location-dot"></i> {{$game->location}}</h5>
-                        <h5 class="col-auto m-0">{{$game->players->count()}} Players | {{$game->goalies->count()}} Goalies</h5>
-                        {{-- @role('admin')
-                            <h5 class="col-auto m-0">${{$game->collected_game_cost}} of ${{$game->ice_cost}} | Collected for Game</h5>
-                        @endrole --}}
-                    </div>
-                </div>
-            @endif
-        @endforeach
-
-        @if (!$passedGamesExist)
-            <div class="alert alert-secondary" role="alert">
-                <h5 class="m-0">There Are No Previous Games!</h5>
+            <div class="flex gap-3">
+                @role ('admin')
+                    <a href="/admin/create_game" class="px-4 py-2 bg-ice-blue text-deep-navy rounded font-medium">Create Game</a>
+                @endrole
+                @if ($hasNotSignedUpForAllGames && isset($games) && $games->count())
+                    <a href="{{ route('seasons.accept-all', ['season' => $games->first()->season_id]) }}" class="px-4 py-2 border border-slate-600 text-ice rounded">Accept All</a>
+                @endif
             </div>
-        @endif
-        
+        </div>
+
+        <section>
+            <h3 class="text-lg font-semibold text-ice mb-3">Upcoming Games</h3>
+
+            @php $upcomingGamesExist = false; @endphp
+
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($games as $game)
+                    @if ($game->time > $currentTime)
+                        @php $upcomingGamesExist = true; @endphp
+
+                        <article class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
+                                    <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
+                                </div>
+                                <div class="text-right space-y-1">
+                                    @if(in_array($game->id, $gamesAttending))
+                                        @include('components.badge', ['status' => 'Attending'])
+                                    @else
+                                        @include('components.badge', ['status' => 'Not Yet Attending'])
+                                    @endif
+                                    <div class="text-sm text-slate-300">${{$game->price}}</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex items-center justify-between">
+                                <div class="text-sm text-slate-300">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
+                                <a href="/game/{{$game->id}}" class="px-3 py-1 bg-ice-blue text-deep-navy rounded">See details</a>
+                            </div>
+                        </article>
+
+                    @endif
+                @endforeach
+            </div>
+
+            @if (!$upcomingGamesExist)
+                <div class="mt-4 p-4 rounded bg-slate-700 text-slate-200">There Are No Upcoming Games... Yet!</div>
+            @endif
+        </section>
+
+        <section>
+            <h3 class="text-lg font-semibold text-ice mb-3">Previous Games</h3>
+
+            @php $passedGamesExist = false; @endphp
+
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($games as $game)
+                    @if ($game->time < $currentTime)
+                        @php $passedGamesExist = true; @endphp
+                        <article class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-lg text-ice">{{$game->title}}</h4>
+                                    <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
+                                </div>
+                                <div class="text-sm text-slate-300">${{$game->price}}</div>
+                            </div>
+                        </article>
+                    @endif
+                @endforeach
+            </div>
+
+            @if (!$passedGamesExist)
+                <div class="mt-4 p-4 rounded bg-slate-700 text-slate-200">There Are No Previous Games!</div>
+            @endif
+        </section>
     </div>
 
-<!-- </div> -->
 @endsection
+
+@push('scripts')
+<script>
+    // If URL contains ?startTour=1 then start intro.js tour
+    (function(){
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('startTour') === '1') {
+            if (typeof introJs !== 'undefined') {
+                try {
+                    introJs().start();
+                } catch(e) {
+                    console.warn('intro.js start failed', e);
+                }
+            }
+            // remove param so refreshing doesn't restart
+            params.delete('startTour');
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    })();
+</script>
+@endpush
