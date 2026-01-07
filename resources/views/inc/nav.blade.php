@@ -1,6 +1,6 @@
 <header class="fixed top-0 left-0 right-0 bg-slate-800 z-50 relative h-16">
     <div class="absolute left-4 inset-y-0 flex items-center">
-        <a href="/" class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3 no-underline">
             <img src="{{ asset('photos/Pickup Puck Logo.png') }}" alt="Pickup Puck Logo" class="h-10 ml-4 w-auto">
             <!-- <span class="text-ice-blue font-semibold text-lg ml-2 hidden md:inline">Pickup Puck</span> -->
             <span class="text-sm text-slate-300 hidden md:inline">— Pickup hockey scheduling made simple</span>
@@ -12,11 +12,8 @@
             @guest
                 <a href="/login" class="px-3 py-1 rounded bg-ice-blue text-deep-navy font-medium hover:text-deep-navy hover:bg-ice-blue">Login / Register</a>
             @else
-                <a href="/profile" class="text-slate-200">Profile</a>
-                @role ('admin')
-                    <a href="/admin/user" class="text-slate-200">Players</a>
-                @endrole
-                <button onclick="document.getElementById('logout-form').submit();" class="ml-2 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
+                <span class="text-slate-200 m-0 leading-none">{{ Auth::user()->name }}</span>
+                <button onclick="document.getElementById('logout-form').submit();" class="ml-3 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
             @endguest
         </div>
     </div>

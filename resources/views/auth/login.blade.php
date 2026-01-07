@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="min-h-screen flex items-center justify-center p-4">
+<div class="parent-container d-flex align-items-center justify-content-center h-100">
     <div x-data="{ tab: 'login' }" class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <div class="hidden md:flex flex-col justify-center bg-slate-800 p-8 rounded-lg">

@@ -83,6 +83,9 @@
                 src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{$game->location}}&amp;z=14&amp;output=embed"
                 id="gameMap">
             </iframe>
+            <div class="mt-2 text-center">
+                <button id="retryMapBtn" type="button" class="px-3 py-1 bg-slate-700 text-ice rounded hidden">Retry Map</button>
+            </div>
         </div>
 
         <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
@@ -158,6 +161,42 @@
         </div>
         {{-- This script is to show the gestNames --}}
         <script>
+            // Map retry logic: avoid infinite reloads by tracking attempts in sessionStorage
+            (function(){
+                const iframe = document.getElementById('gameMap');
+                const retryBtn = document.getElementById('retryMapBtn');
+                const key = 'game_map_attempts_{{ $game->id }}';
+                const maxAttempts = 3;
+
+                function showRetry() {
+                    retryBtn.classList.remove('hidden');
+                }
+
+                function hideRetry() {
+                    retryBtn.classList.add('hidden');
+                }
+
+                function attempts() {
+                    return parseInt(sessionStorage.getItem(key) || '0', 10);
+                }
+
+                // If iframe doesn't load within 3s, show Retry (but limit attempts)
+                let loaded = false;
+                iframe.addEventListener('load', function(){ loaded = true; hideRetry(); sessionStorage.removeItem(key); });
+
+                setTimeout(function(){ if (!loaded && attempts() < maxAttempts) { showRetry(); } }, 3000);
+
+                retryBtn && retryBtn.addEventListener('click', function(){
+                    const a = attempts() + 1;
+                    sessionStorage.setItem(key, a);
+                    if (a >= maxAttempts) {
+                        retryBtn.textContent = 'Retry (final)';
+                    }
+                    // Force reload iframe src
+                    iframe.src = iframe.src;
+                    setTimeout(function(){ if (!loaded && attempts() < maxAttempts) showRetry(); }, 3000);
+                });
+            })();
 
             $(document).ready(function() {
                 $("#guestNameDiv input").focus(function() {
@@ -191,6 +230,102 @@
                     document.getElementById("guestName").value = value;
                     $('#guestList').html('');
                 })
+            });
+        </script>
+
+        <script>
+            document.addEventListener('click', function (e) {
+                // Change guest role
+                if (e.target && e.target.classList.contains('admin-change-guest')) {
+                    const li = e.target.closest('li[data-guest-id]');
+                    if (!li) return;
+                    const guestId = li.getAttribute('data-guest-id') || '';
+                    const select = li.querySelector('.admin-guest-role-select');
+                    const newRole = select ? select.value : null;
+                    if (!newRole) return alert('Select a role');
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('gameRole', newRole);
+                    body.append('guestId', guestId);
+
+                    fetch(`/admin/game/{{ $game->id }}/guest/${guestId}/role`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && json.success) {
+                            location.reload();
+                        } else {
+                            alert('Unable to update guest');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
+
+                // Remove guest
+                if (e.target && e.target.classList.contains('admin-remove-guest')) {
+                    const li = e.target.closest('li[data-guest-id]');
+                    if (!li) return;
+                    const guestId = li.getAttribute('data-guest-id') || '';
+                    if (!confirm('Remove this guest?')) return;
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('guestId', guestId);
+
+                    fetch(`/admin/game/{{ $game->id }}/guest/${guestId}/remove`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && json.success) {
+                            location.reload();
+                        } else {
+                            alert('Unable to remove guest');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
+            });
+        </script>
+
+        <script>
+            // Player options toggle and admin role change
+            document.addEventListener('click', function (e) {
+                // Toggle menu
+                if (e.target && e.target.classList.contains('player-options-btn')) {
+                    const wrapper = e.target.closest('.relative');
+                    const menu = wrapper.querySelector('.player-options-menu');
+                    if (menu) menu.classList.toggle('hidden');
+                    return;
+                }
+
+                // Click outside should close any open menus
+                if (!e.target.closest || !e.target.closest('.player-options-menu')) {
+                    document.querySelectorAll('.player-options-menu').forEach(m => m.classList.add('hidden'));
+                }
+
+                // Change player role (admin)
+                if (e.target && e.target.classList.contains('change-player-role')) {
+                    const userId = e.target.getAttribute('data-user-id');
+                    const newRole = e.target.getAttribute('data-role');
+                    if (!userId || !newRole) return alert('Missing data');
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('gameRole', newRole);
+
+                    fetch(`/admin/game/{{ $game->id }}/${userId}/role`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && (json.success || json.message)) {
+                            location.reload();
+                        } else {
+                            alert('Unable to change role');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
             });
         </script>
 
@@ -229,30 +364,81 @@
 
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                    <h4 class="text-sm text-slate-300 mb-2">Players</h4>
+                    <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
                     <ul class="space-y-2">
-                        @foreach($players as $player_id => $player_name)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between">
-                                <span class="text-ice">{{$player_name}}</span>
-                                {{-- Admin payment actions could go here --}}
+                        @php
+                            $goalieCount = 0;
+                        @endphp
+                        @foreach($goalies as $goalie)
+                            @php $goalieCount++; @endphp
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ array_search($goalie, $players) ?: '' }}">
+                                <span class="text-ice">{{$goalie}}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="relative inline-block text-left">
+                                        <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋯</button>
+                                        <div class="player-options-menu hidden absolute right-0 mt-1 w-40 bg-slate-900 border border-slate-700 rounded shadow">
+                                            <button data-user-id="{{ array_search($goalie, $players) ?: '' }}" data-role="player" class="w-full text-left px-3 py-2 change-player-role">Make Player</button>
+                                        </div>
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
 
-                        @foreach($guestPlayers as $guestPlayer)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300">{{$guestPlayer}}</li>
+                        @foreach($guestGoalies as $guest)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
+                                <span>{{ $guest->name ?? $guest }}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="flex items-center gap-2">
+                                        <select class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-ice admin-guest-role-select">
+                                            @foreach($GAME_ROLES as $g)
+                                                <option value="{{ $g->value ?? $g }}">{{ $g->name ?? $g }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="px-2 py-1 bg-amber-500 text-deep-navy rounded admin-change-guest">Change</button>
+                                        <button type="button" class="px-2 py-1 bg-red-600 text-white rounded admin-remove-guest">Remove</button>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
+
+                        @for ($i = $goalieCount; $i < 2; $i++)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-500">Empty Net</li>
+                        @endfor
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
+                    <h4 class="text-sm text-slate-300 mb-2">Players</h4>
                     <ul class="space-y-2">
-                        @foreach($goalies as $goalie)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-ice">{{$goalie}}</li>
+                        @foreach($players as $player_id => $player_name)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $player_id }}">
+                                <span class="text-ice">{{$player_name}}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="relative inline-block text-left">
+                                        <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋯</button>
+                                        <div class="player-options-menu hidden absolute right-0 mt-1 w-40 bg-slate-900 border border-slate-700 rounded shadow">
+                                            <button data-user-id="{{ $player_id }}" data-role="goalie" class="w-full text-left px-3 py-2 change-player-role">Make Goalie</button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
 
-                        @foreach($guestGoalies as $guestGoalie)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300">{{$guestGoalie}}</li>
+                        @foreach($guestPlayers as $guest)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
+                                <span>{{ $guest->name ?? $guest }}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="flex items-center gap-2">
+                                        <select class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-ice admin-guest-role-select">
+                                            @foreach($GAME_ROLES as $g)
+                                                <option value="{{ $g->value ?? $g }}">{{ $g->name ?? $g }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="px-2 py-1 bg-amber-500 text-deep-navy rounded admin-change-guest">Change</button>
+                                        <button type="button" class="px-2 py-1 bg-red-600 text-white rounded admin-remove-guest">Remove</button>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
                 </div>

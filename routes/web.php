@@ -65,9 +65,8 @@ Route::middleware('auth')->group(function () {
         return view('seasons.index');
     })->name('seasons.index');
 
-    Route::get('/settings', function () {
-        return view('settings.index');
-    })->name('settings.index');
+    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
     Route::get('/seasons/{season}/accept-all', [HomeController::class, 'acceptAllGamesInSeason'])->name('seasons.accept-all');
 
@@ -79,6 +78,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/game/{game}/payment', [GameDetailController::class, 'payment'])->name('game_detail_pay.game_id');
     Route::post('/admin/game/{game}/{player_id}/payment', [GameDetailController::class, 'adminPayment'])->name('admin_game_detail_pay.game_id.player_id');
     Route::get('/game/{game}/generateTeams', [GameDetailController::class, 'generateTeams'])->name('game_detail_generateTeams.game_id');
+    // Admin guest management (admin can change guest role or remove guest)
+    Route::post('/admin/game/{game}/guest/{guest_id}/role', [GameDetailController::class, 'adminUpdateGuest'])->name('admin_game_detail_update_guest');
+    Route::post('/admin/game/{game}/guest/{guest_id}/remove', [GameDetailController::class, 'adminRemoveGuest'])->name('admin_game_detail_remove_guest');
     Route::get('clear_cache', function () {
 
         \Illuminate\Support\Facades\Artisan::call('pp:generate-teams');
