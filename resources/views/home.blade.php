@@ -10,7 +10,7 @@
             </div>
             <div class="flex gap-3">
                 @role ('admin')
-                    <a href="/admin/create_game" class="px-4 py-2 bg-ice-blue text-deep-navy rounded font-medium">Create Game</a>
+                    <a href="/admin/create_game" class="px-4 py-2 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-medium">Create Game</a>
                 @endrole
                 @if ($hasNotSignedUpForAllGames && isset($games) && $games->count())
                     <a href="{{ route('seasons.accept-all', ['season' => $games->first()->season_id]) }}" class="px-4 py-2 border border-slate-600 text-ice rounded">Accept All</a>
@@ -46,7 +46,7 @@
 
                             <div class="mt-4 flex items-center justify-between">
                                 <div class="text-sm text-slate-300">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
-                                <a href="/game/{{$game->id}}" class="px-3 py-1 bg-ice-blue text-deep-navy rounded">See details</a>
+                                <a href="/game/{{$game->id}}" class="px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded">See details</a>
                             </div>
                         </article>
 

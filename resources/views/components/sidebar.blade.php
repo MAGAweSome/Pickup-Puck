@@ -1,4 +1,4 @@
-<aside class="hidden md:block w-64 bg-slate-800 text-ice h-full p-4">
+<aside class="hidden md:block w-64 bg-slate-800 text-ice min-h-[calc(100vh-4rem)] overflow-y-auto p-4">
     @php
         use App\Models\Season;
         use App\Models\Games\Game;
@@ -62,7 +62,7 @@
 
         <div class="mt-3">
             @if($nextGame)
-                <a href="{{ route('game_detail.game_id', ['game' => $nextGame->id]) }}" class="block text-lg font-semibold text-ice-blue truncate text-center">{{ $nextTitle ?? ($nextGame->time ? $nextGame->time->format('M j \@ g:ia') : 'Upcoming Game') }}</a>
+                <a href="{{ route('game_detail.game_id', ['game' => $nextGame->id]) }}" class="block text-lg font-semibold text-ice-blue truncate text-center no-underline hover:text-ice-blue">{{ $nextTitle ?? ($nextGame->time ? $nextGame->time->format('M j \@ g:ia') : 'Upcoming Game') }}</a>
 
                 <div class="mt-3 grid grid-cols-2 gap-2 text-center">
                     <div>
@@ -93,16 +93,16 @@
     </div>
 
     <nav class="space-y-2 px-2 pt-4 border-t border-slate-700">
-        <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
+        <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
             <i class="fa-solid fa-house text-ice-blue w-4"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
+        <a href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
             <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
             <span>Games</span>
         </a>
         @if(auth()->check() && auth()->user()->hasRole('admin'))
-            <a href="{{ route('user_list') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
+            <a href="{{ route('user_list') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
                 <i class="fa-solid fa-users text-ice-blue w-4"></i>
                 <span>Players</span>
             </a>
@@ -114,12 +114,12 @@
                 <i class="fa-solid fa-hourglass-half text-ice-blue w-4"></i>
                 <span>Seasons</span>
             </a> -->
-            <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
+            <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
                 <i class="fa-solid fa-gear text-ice-blue w-4"></i>
                 <span>Settings</span>
             </a>
         @endif
-        <a href="{{ route('profile') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
+        <a href="{{ route('profile') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
             <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
             <span>Profile</span>
         </a>
