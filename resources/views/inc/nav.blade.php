@@ -12,12 +12,11 @@
             @guest
                 <a href="/login" class="px-3 py-1 rounded bg-ice-blue text-deep-navy font-medium hover:text-deep-navy hover:bg-ice-blue">Login / Register</a>
             @else
-                <!-- <a href="/profile" class="text-slate-200">Profile</a>
-                @role ('admin')
-                    <a href="/admin/user" class="text-slate-200">Players</a>
-                @endrole -->
-                <h1>{{ Auth::user()->name }}</h2>
-                <button onclick="document.getElementById('logout-form').submit();" class="ml-2 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
+                <a href="/profile" class="text-slate-200">{{ Auth::user()->name }}</a>
+                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                    <a href="/admin/user" class="ml-3 text-slate-200">Players</a>
+                @endif
+                <button onclick="document.getElementById('logout-form').submit();" class="ml-3 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
             @endguest
         </div>
     </div>

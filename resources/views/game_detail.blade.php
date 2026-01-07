@@ -83,6 +83,9 @@
                 src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{$game->location}}&amp;z=14&amp;output=embed"
                 id="gameMap">
             </iframe>
+            <div class="mt-2 text-center">
+                <button id="retryMapBtn" type="button" class="px-3 py-1 bg-slate-700 text-ice rounded hidden">Retry Map</button>
+            </div>
         </div>
 
         <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
@@ -158,6 +161,42 @@
         </div>
         {{-- This script is to show the gestNames --}}
         <script>
+            // Map retry logic: avoid infinite reloads by tracking attempts in sessionStorage
+            (function(){
+                const iframe = document.getElementById('gameMap');
+                const retryBtn = document.getElementById('retryMapBtn');
+                const key = 'game_map_attempts_{{ $game->id }}';
+                const maxAttempts = 3;
+
+                function showRetry() {
+                    retryBtn.classList.remove('hidden');
+                }
+
+                function hideRetry() {
+                    retryBtn.classList.add('hidden');
+                }
+
+                function attempts() {
+                    return parseInt(sessionStorage.getItem(key) || '0', 10);
+                }
+
+                // If iframe doesn't load within 3s, show Retry (but limit attempts)
+                let loaded = false;
+                iframe.addEventListener('load', function(){ loaded = true; hideRetry(); sessionStorage.removeItem(key); });
+
+                setTimeout(function(){ if (!loaded && attempts() < maxAttempts) { showRetry(); } }, 3000);
+
+                retryBtn && retryBtn.addEventListener('click', function(){
+                    const a = attempts() + 1;
+                    sessionStorage.setItem(key, a);
+                    if (a >= maxAttempts) {
+                        retryBtn.textContent = 'Retry (final)';
+                    }
+                    // Force reload iframe src
+                    iframe.src = iframe.src;
+                    setTimeout(function(){ if (!loaded && attempts() < maxAttempts) showRetry(); }, 3000);
+                });
+            })();
 
             $(document).ready(function() {
                 $("#guestNameDiv input").focus(function() {
