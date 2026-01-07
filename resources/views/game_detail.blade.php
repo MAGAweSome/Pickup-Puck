@@ -288,6 +288,47 @@
             });
         </script>
 
+        <script>
+            // Player options toggle and admin role change
+            document.addEventListener('click', function (e) {
+                // Toggle menu
+                if (e.target && e.target.classList.contains('player-options-btn')) {
+                    const wrapper = e.target.closest('.relative');
+                    const menu = wrapper.querySelector('.player-options-menu');
+                    if (menu) menu.classList.toggle('hidden');
+                    return;
+                }
+
+                // Click outside should close any open menus
+                if (!e.target.closest || !e.target.closest('.player-options-menu')) {
+                    document.querySelectorAll('.player-options-menu').forEach(m => m.classList.add('hidden'));
+                }
+
+                // Change player role (admin)
+                if (e.target && e.target.classList.contains('change-player-role')) {
+                    const userId = e.target.getAttribute('data-user-id');
+                    const newRole = e.target.getAttribute('data-role');
+                    if (!userId || !newRole) return alert('Missing data');
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('gameRole', newRole);
+
+                    fetch(`/admin/game/{{ $game->id }}/${userId}/role`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && (json.success || json.message)) {
+                            location.reload();
+                        } else {
+                            alert('Unable to change role');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
+            });
+        </script>
+
         {{-- @if(!$user_is_a_goalie and $user_paid == false)
             <h1 id="pleasePay" class="mt-5">Please Pay</h1>
         
@@ -323,16 +364,27 @@
 
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                    <h4 class="text-sm text-slate-300 mb-2">Players</h4>
+                    <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
                     <ul class="space-y-2">
-                        @foreach($players as $player_id => $player_name)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between">
-                                <span class="text-ice">{{$player_name}}</span>
-                                {{-- Admin payment actions could go here --}}
+                        @php
+                            $goalieCount = 0;
+                        @endphp
+                        @foreach($goalies as $goalie)
+                            @php $goalieCount++; @endphp
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ array_search($goalie, $players) ?: '' }}">
+                                <span class="text-ice">{{$goalie}}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="relative inline-block text-left">
+                                        <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋯</button>
+                                        <div class="player-options-menu hidden absolute right-0 mt-1 w-40 bg-slate-900 border border-slate-700 rounded shadow">
+                                            <button data-user-id="{{ array_search($goalie, $players) ?: '' }}" data-role="player" class="w-full text-left px-3 py-2 change-player-role">Make Player</button>
+                                        </div>
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
 
-                        @foreach($guestPlayers as $guest)
+                        @foreach($guestGoalies as $guest)
                             <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
                                 <span>{{ $guest->name ?? $guest }}</span>
                                 @if(auth()->check() && auth()->user()->hasRole('admin'))
@@ -348,17 +400,31 @@
                                 @endif
                             </li>
                         @endforeach
+
+                        @for ($i = $goalieCount; $i < 2; $i++)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-500">Empty Net</li>
+                        @endfor
                     </ul>
                 </div>
 
                 <div>
-                    <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
+                    <h4 class="text-sm text-slate-300 mb-2">Players</h4>
                     <ul class="space-y-2">
-                        @foreach($goalies as $goalie)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-ice">{{$goalie}}</li>
+                        @foreach($players as $player_id => $player_name)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $player_id }}">
+                                <span class="text-ice">{{$player_name}}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="relative inline-block text-left">
+                                        <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋯</button>
+                                        <div class="player-options-menu hidden absolute right-0 mt-1 w-40 bg-slate-900 border border-slate-700 rounded shadow">
+                                            <button data-user-id="{{ $player_id }}" data-role="goalie" class="w-full text-left px-3 py-2 change-player-role">Make Goalie</button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
 
-                        @foreach($guestGoalies as $guest)
+                        @foreach($guestPlayers as $guest)
                             <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
                                 <span>{{ $guest->name ?? $guest }}</span>
                                 @if(auth()->check() && auth()->user()->hasRole('admin'))
