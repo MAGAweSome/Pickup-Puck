@@ -76,12 +76,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add cross-browser rules (appearance none) and ensure icon space; then wire openPicker on wrappers and inputs
     const style = document.createElement('style');
     style.innerHTML = `
+        /* remove native appearance but keep background so inputs match site styling */
         input[type="date"], input[type="time"] {
             -webkit-appearance: none;
             -moz-appearance: textfield;
             appearance: none;
-            background-color: transparent;
         }
+        /* hide the native picker icon for WebKit browsers */
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
         .input-with-icon { position: relative; }

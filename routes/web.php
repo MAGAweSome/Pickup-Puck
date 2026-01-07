@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/seasons', [CreateGameController::class, 'createSeason'])->name('season.create');
         Route::get('/edit_game/{game}', [EditGameController::class, 'index'])->name('edit_game');
         Route::post('/edit_game/{game}', [EditGameController::class, 'update'])->name('game_edit');
+        Route::post('/game/{game}/score', [App\Http\Controllers\GameDetailController::class, 'adminUpdateScore'])->name('admin_game_update_score');
         Route::get('/delete_game/{game}', [EditGameController::class, 'delete'])->name('delete_game');
     });
 });

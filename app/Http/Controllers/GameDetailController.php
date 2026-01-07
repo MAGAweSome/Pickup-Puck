@@ -336,4 +336,27 @@ class GameDetailController extends Controller
 
         return back()->with('success', 'You have successfully added your payment!');
     }
+
+    /**
+     * Admin: update the score for a game (dark and light)
+     */
+    public function adminUpdateScore(Request $request, Game $game)
+    {
+        $data = $request->validate([
+            'dark_score' => 'required|integer|min:0',
+            'light_score' => 'required|integer|min:0'
+        ]);
+
+        $game->dark_score = $data['dark_score'];
+        $game->light_score = $data['light_score'];
+        $saved = $game->save();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            if ($saved) return response()->json(['success' => true, 'dark_score' => $game->dark_score, 'light_score' => $game->light_score]);
+            return response()->json(['error' => 'Unable to save scores'], 422);
+        }
+
+        if ($saved) return back()->with('success', 'Scores updated');
+        return back()->with('error', 'Unable to save scores');
+    }
 }
