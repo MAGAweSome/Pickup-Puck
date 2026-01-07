@@ -214,10 +214,10 @@ document.addEventListener("DOMContentLoaded", function () {
         startProfileIntroTour();
     }
 
-    // Add an event listener to the button for manual tour triggering
-    document
-        .getElementById("start-tour")
-        .addEventListener("click", function () {
+    // Add an event listener to the button for manual tour triggering (if present on page)
+    const startTourButton = document.getElementById("start-tour");
+    if (startTourButton) {
+        startTourButton.addEventListener("click", function () {
             if (isHomePage()) {
                 startHomeIntroTour();
             } else if (isGamePage()) {
@@ -226,6 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 startProfileIntroTour();
             }
         });
+    }
 });
 
 // On the create game blade, this will highlight the season selector if it is not slected.

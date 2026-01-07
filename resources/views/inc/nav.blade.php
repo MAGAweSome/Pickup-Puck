@@ -13,7 +13,10 @@
                 <a href="/login" class="px-3 py-1 rounded bg-ice-blue text-deep-navy font-medium hover:text-deep-navy hover:bg-ice-blue">Login / Register</a>
             @else
                 <span class="text-slate-200 m-0 leading-none">{{ Auth::user()->name }}</span>
-                <button onclick="document.getElementById('logout-form').submit();" class="ml-3 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="ml-3 px-3 py-1 rounded border border-slate-700 text-slate-200">Logout</button>
+                </form>
             @endguest
         </div>
     </div>

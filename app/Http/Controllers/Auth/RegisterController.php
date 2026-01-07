@@ -52,12 +52,12 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            // Require a first name and a last name (last name at least 2 chars)
-            'name' => ['required', 'string', 'max:255', "regex:/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '\-][A-Za-zÀ-ÖØ-öø-ÿ]+)*\s+[A-Za-zÀ-ÖØ-öø-ÿ]{2,}(?:[ '\-][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/"],
+            // Require a first name and a last name (last name at least 2 chars) per requested pattern
+            'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z]+ [A-Za-z]{2,}$/'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
-            'name.regex' => 'Please enter your full name (first and last). Last name must be at least 2 letters.'
+            'name.regex' => 'Please enter first and last name'
         ]);
     }
 
