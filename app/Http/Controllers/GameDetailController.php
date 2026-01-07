@@ -42,15 +42,17 @@ class GameDetailController extends Controller
         $user_paid = $game->gamePayments()->wherePivot('user_id', Auth::user()->id)->exists();
 
         $players = $game->players->pluck('name', 'id')->toArray();
-        $goalies = $game->goalies->pluck('name');
+        // goalies as id => name so we can reference the user id in views
+        $goalies = $game->goalies->pluck('name', 'id');
         $user_is_a_goalie = False;
         $users = User::all();
         $guests = Guest::all();
 
         $currentTime = Carbon::now();
 
-        $guestPlayers = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'player')->get()->pluck('name');
-        $guestGoalies = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->get()->pluck('name');
+        // return guest records so we have ids and names available for admin actions
+        $guestPlayers = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'player')->get();
+        $guestGoalies = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->get();
 
         $lightTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get()->pluck('name');
         $darkTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get()->pluck('name');
@@ -61,10 +63,10 @@ class GameDetailController extends Controller
             array_push($players_attending, $player);
         }
         
-        foreach ($goalies as $goalie){
-            array_push($players_attending, $goalie);
+        foreach ($goalies as $goalie_id => $goalie_name){
+            array_push($players_attending, $goalie_name);
 
-            if (Auth::user()->name == $goalie){
+            if (Auth::user()->name == $goalie_name){
                 $user_is_a_goalie = TRUE;
             }
         }
@@ -86,17 +88,28 @@ class GameDetailController extends Controller
             'lightTeamPlayers' => $lightTeamPlayers,
             'darkTeamPlayers' => $darkTeamPlayers,
             'currentTime' => $currentTime,
+            'currentSeason' => $game->season,
             'guestPlayers' => $guestPlayers,
             'guestGoalies' => $guestGoalies
         ]);
+
     }
 
     public function update(UserAcceptGameRequest $request, Game $game) {
-        
+        $role = $request->input('gameRole');
+
+        // Enforce max 2 goalies per game
+        if ($role === 'goalie') {
+            $goalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            if ($goalieCount >= 2) {
+                return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Remove a goalie first.']);
+            }
+        }
+
         GamePlayer::create([
             'user_id' => $request->user()->id,
             'game_id' => $game->id,
-            'role' => $request['gameRole']
+            'role' => $role
         ]);
 
         return back()->with('success', 'You have successfully added your game!');
@@ -148,14 +161,42 @@ class GameDetailController extends Controller
     }
 
     public function adminUpdate(UserAcceptGameRequest $request, Game $game, $user_id) {
-        
-        GamePlayer::create([
-            'user_id' => $user_id,
-            'game_id' => $game->id,
-            'role' => $request['gameRole']
-        ]);
+        $role = $request->input('gameRole');
 
-        return back()->with('success', 'You have successfully added your game!');
+        // If switching to goalie, enforce max 2 goalies (unless this user is already a goalie)
+        if ($role === 'goalie') {
+            $existing = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $user_id);
+            $userIsCurrentlyGoalie = $existing->exists() && $existing->first()->role === 'goalie';
+            $goalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            if (!$userIsCurrentlyGoalie && $goalieCount >= 2) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'There are already two goalies for this game. Remove a goalie first.'], 422);
+                }
+                return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Remove a goalie first.']);
+            }
+        }
+
+        // If a player record exists for this user/game, update the role. Otherwise insert.
+        $existing = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $user_id);
+        if ($existing->exists()) {
+            $updated = $existing->update(['role' => $role]);
+        } else {
+            $inserted = DB::table('game_players')->insert([
+                'user_id' => $user_id,
+                'game_id' => $game->id,
+                'role' => $role
+            ]);
+            $updated = (bool) $inserted;
+        }
+
+        // Return JSON for AJAX requests, otherwise redirect back
+        if ($request->expectsJson() || $request->ajax()) {
+            if ($updated) return response()->json(['success' => true]);
+            return response()->json(['error' => 'Unable to update player role'], 422);
+        }
+
+        if ($updated) return back()->with('success', 'Player role updated');
+        return back()->with('error', 'Unable to update player role');
     }
 
     /**
@@ -178,10 +219,30 @@ class GameDetailController extends Controller
             return response()->json(['error' => 'guest id required'], 422);
         }
 
+        $newRole = $request->input('gameRole');
+
+        // Enforce max 2 goalies per game when changing a guest to goalie
+        if ($newRole === 'goalie') {
+            $existingGuest = DB::table('game_players_guests')->where('id', $guestId)->where('game_id', $game->id)->first();
+            $guestIsCurrentlyGoalie = $existingGuest && $existingGuest->role === 'goalie';
+
+            $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
+
+            // If this guest is not currently a goalie, then adding them would increase guestGoalieCount
+            $projectedTotal = $userGoalieCount + $guestGoalieCount + ($guestIsCurrentlyGoalie ? 0 : 1);
+            if ($projectedTotal >= 3) { // >=3 means already 2 or more, can't add
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'There are already two goalies for this game. Remove a goalie first.'], 422);
+                }
+                return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Remove a goalie first.']);
+            }
+        }
+
         $updated = DB::table('game_players_guests')
             ->where('id', $guestId)
             ->where('game_id', $game->id)
-            ->update(['role' => $request->input('gameRole')]);
+            ->update(['role' => $newRole]);
 
         if ($updated) {
             return response()->json(['success' => true]);
@@ -208,6 +269,34 @@ class GameDetailController extends Controller
 
         $deleted = DB::table('game_players_guests')
             ->where('id', $guestId)
+            ->where('game_id', $game->id)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 422);
+    }
+
+    /**
+     * Admin: remove a player (user) from a game
+     */
+    public function adminRemovePlayer(Request $request, Game $game, $user_id = null)
+    {
+        \Log::info('adminRemovePlayer.payload', ['route_user_id' => $user_id, 'body' => $request->all()]);
+
+        $uid = $user_id;
+        if (empty($uid) && $request->has('userId')) {
+            $uid = $request->input('userId');
+        }
+
+        if (empty($uid)) {
+            return response()->json(['error' => 'user id required'], 422);
+        }
+
+        $deleted = DB::table('game_players')
+            ->where('user_id', $uid)
             ->where('game_id', $game->id)
             ->delete();
 

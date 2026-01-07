@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
     Route::post('/game/{game}/name/role', [GameDetailController::class, 'updateGuest'])->name('game_detail_update_guest.game_id');
     Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])->name('admin_game_detail_update.game_id.user_id');
+    Route::post('/admin/game/{game}/{user_id}/remove', [GameDetailController::class, 'adminRemovePlayer'])->name('admin_game_detail_remove_player');
     Route::post('/game/{game}/payment', [GameDetailController::class, 'payment'])->name('game_detail_pay.game_id');
     Route::post('/admin/game/{game}/{player_id}/payment', [GameDetailController::class, 'adminPayment'])->name('admin_game_detail_pay.game_id.player_id');
     Route::get('/game/{game}/generateTeams', [GameDetailController::class, 'generateTeams'])->name('game_detail_generateTeams.game_id');

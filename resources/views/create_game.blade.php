@@ -2,7 +2,8 @@
 
 @section('content')
 
-<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="h-full flex items-center">
+    <div class="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
     <div class="hidden md:flex flex-col justify-center bg-slate-800 p-8 rounded-lg">
         <h3 class="text-2xl font-semibold text-ice-blue mb-2">Create Game</h3>
         <p class="text-slate-300">Add a new pickup game — set time, location, price and season. Use the form to the right to create.</p>
@@ -10,16 +11,22 @@
 
     <div class="md:col-span-2 bg-slate-900 border border-slate-700 rounded-lg shadow-md px-6 py-8">
         <style>
-            /* Hide native date/time picker icons in WebKit browsers but keep inputs clickable */
+            /* Hide native date/time picker indicators across browsers and keep inputs clickable */
+            input[type="date"], input[type="time"] {
+                -webkit-appearance: none;
+                -moz-appearance: textfield;
+                appearance: none;
+                background-color: transparent;
+            }
             input[type="date"]::-webkit-calendar-picker-indicator,
             input[type="time"]::-webkit-calendar-picker-indicator {
-                -webkit-appearance: none;
-                appearance: none;
                 display: none;
             }
             /* Ensure extra space for our custom icon */
+            .input-with-icon { position: relative; }
             .input-with-icon input { padding-right: 2.75rem; }
-            .input-with-icon .input-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+            .input-with-icon .input-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: inherit; }
+            .input-with-icon .input-icon svg { display:block; }
         </style>
         <form method="POST" action="{{ route('game_create') }}" class="space-y-6">
             @csrf
@@ -38,9 +45,9 @@
                     <div class="relative input-with-icon mt-1">
                         <input name="date" type="date" value="{{ old('date') }}" required
                             class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue">
-                        <span class="input-icon text-slate-300">
-                            <!-- calendar svg -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <span class="input-icon text-ice">
+                            <!-- calendar svg (white) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current text-ice" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                 <line x1="16" y1="2" x2="16" y2="6"></line>
                                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -56,9 +63,9 @@
                     <div class="relative input-with-icon mt-1">
                         <input name="time" type="time" value="{{ old('time', isset($defaults['time']) ? \Carbon\Carbon::parse($defaults['time'])->format('H:i') : '') }}" required
                             class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue">
-                        <span class="input-icon text-slate-300">
-                            <!-- clock svg -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <span class="input-icon text-ice">
+                            <!-- clock svg (white) -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current text-ice" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
                                 <circle cx="12" cy="12" r="9"></circle>
                                 <polyline points="12 7 12 12 15 15"></polyline>
                             </svg>
@@ -145,6 +152,7 @@
         </div>
     </div>
 
+    </div>
 </div>
 
 @endsection
@@ -152,20 +160,40 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const inputs = document.querySelectorAll('input[type="date"], input[type="time"]');
-    inputs.forEach(function (el) {
+    // Inject cross-browser CSS to hide native indicators and reserve icon space
+    const style = document.createElement('style');
+    style.innerHTML = `
+        input[type="date"], input[type="time"] {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            appearance: none;
+            background-color: transparent;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+        .input-with-icon { position: relative; }
+        .input-with-icon input { padding-right: 2.75rem; }
+        .input-with-icon .input-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: inherit; }
+    `;
+    document.head.appendChild(style);
+
+    const wrappers = document.querySelectorAll('.input-with-icon');
+    wrappers.forEach(function(wrapper){
+        const el = wrapper.querySelector('input[type="date"], input[type="time"]');
+        if (!el) return;
         // Make cursor indicate clickable
         el.style.cursor = 'pointer';
 
-        // If browser supports showPicker(), call it on click/focus so the native picker opens
         const openPicker = function () {
             if (typeof el.showPicker === 'function') {
                 try { el.showPicker(); } catch (e) { /* ignore */ }
-            } else {
-                // fallback: focus the element
-                el.focus();
-            }
+            } else { el.focus(); }
         };
+
+        wrapper.addEventListener('click', function(e){
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.closest('input'))) return;
+            openPicker();
+        });
 
         el.addEventListener('click', openPicker);
         el.addEventListener('focus', openPicker);

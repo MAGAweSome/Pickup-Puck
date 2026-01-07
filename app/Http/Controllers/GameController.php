@@ -12,10 +12,18 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        // Determine current season by highest season_number, fallback to latest id
-        $currentSeason = Season::orderBy('season_number', 'desc')->first();
-        if (! $currentSeason) {
-            $currentSeason = Season::latest('id')->first();
+        // Load all seasons for dropdown
+        $seasons = Season::orderBy('season_number', 'desc')->get();
+
+        // Determine selected season from query or default to latest
+        $selectedSeasonId = $request->query('season');
+        if ($selectedSeasonId) {
+            $currentSeason = Season::find($selectedSeasonId);
+        } else {
+            $currentSeason = Season::orderBy('season_number', 'desc')->first();
+            if (! $currentSeason) {
+                $currentSeason = Season::latest('id')->first();
+            }
         }
 
         $games = collect();
@@ -23,6 +31,6 @@ class GameController extends Controller
             $games = $currentSeason->games()->orderBy('time', 'asc')->get();
         }
 
-        return view('games.index', compact('games', 'currentSeason'));
+        return view('games.index', compact('games', 'currentSeason', 'seasons'));
     }
 }

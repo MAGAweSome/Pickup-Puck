@@ -14,6 +14,8 @@ return new class extends Migration
     {
 
         Schema::create('game_players_guests', function (Blueprint $table) {
+            // add primary id so guest-game rows can be referenced directly
+            $table->id();
             $table->string('name');
             $table->unsignedBigInteger('game_id');
             $table->enum('role', array_column(GameRoles::cases(), 'value'));

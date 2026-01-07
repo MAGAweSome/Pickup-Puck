@@ -13,7 +13,7 @@
                     <a href="/admin/create_game" class="px-4 py-2 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-medium">Create Game</a>
                 @endrole
                 @if ($hasNotSignedUpForAllGames && isset($games) && $games->count())
-                    <a href="{{ route('seasons.accept-all', ['season' => $games->first()->season_id]) }}" class="px-4 py-2 border border-slate-600 text-ice rounded">Accept All</a>
+                    <a href="{{ route('seasons.accept-all', ['season' => $games->first()->season_id]) }}" class="px-4 py-2 border border-slate-600 text-ice hover:text-ice rounded">Accept All</a>
                 @endif
             </div>
         </div>

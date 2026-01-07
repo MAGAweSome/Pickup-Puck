@@ -22,8 +22,8 @@
                     </div>
 
                     <div class="mt-4 flex gap-2">
-                        <a class="w-full text-center px-3 py-2 bg-ice-blue text-deep-navy rounded" href="/admin/user/{{$user->id}}/history">Game History</a>
-                        <a class="w-full text-center px-3 py-2 border border-slate-600 rounded" href="/admin/user/{{$user->id}}">View</a>
+                        <a class="w-full text-center px-3 py-2 bg-ice-blue text-deep-navy hover:text-deep-navy rounded" href="/admin/user/{{$user->id}}/history">Game History</a>
+                        <a class="w-full text-center px-3 py-2 border border-slate-600 hover:text-white rounded" href="/admin/user/{{$user->id}}">View</a>
                     </div>
                 </div>
             @endforeach

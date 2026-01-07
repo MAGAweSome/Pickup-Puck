@@ -24,8 +24,8 @@
                     <label class="block text-slate-300 text-sm">Default Time</label>
                     <div class="relative input-with-icon mt-1">
                         <input type="time" id="default_time" name="default_time" value="{{ old('default_time', isset($defaults['time']) ? \Carbon\Carbon::parse($defaults['time'])->format('H:i') : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
-                        <span class="input-icon text-slate-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <span class="input-icon text-ice">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current text-ice" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
                                 <circle cx="12" cy="12" r="9"></circle>
                                 <polyline points="12 7 12 12 15 15"></polyline>
                             </svg>
@@ -73,32 +73,42 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Hide native picker indicators via CSS (for WebKit)
+    // Add cross-browser rules (appearance none) and ensure icon space; then wire openPicker on wrappers and inputs
     const style = document.createElement('style');
     style.innerHTML = `
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
+        input[type="date"], input[type="time"] {
             -webkit-appearance: none;
+            -moz-appearance: textfield;
             appearance: none;
-            display: none;
+            background-color: transparent;
         }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+        .input-with-icon { position: relative; }
         .input-with-icon input { padding-right: 2.75rem; }
-        .input-with-icon .input-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        .input-with-icon .input-icon { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: inherit; }
     `;
     document.head.appendChild(style);
 
-    const inputs = document.querySelectorAll('input[type="date"], input[type="time"]');
-    inputs.forEach(function (el) {
+    const wrappers = document.querySelectorAll('.input-with-icon');
+    wrappers.forEach(function(wrapper){
+        const el = wrapper.querySelector('input[type="date"], input[type="time"]');
+        if (!el) return;
         // Make cursor indicate clickable
         el.style.cursor = 'pointer';
 
         const openPicker = function () {
             if (typeof el.showPicker === 'function') {
                 try { el.showPicker(); } catch (e) { el.focus(); }
-            } else {
-                el.focus();
-            }
+            } else { el.focus(); }
         };
+
+        // Click on wrapper (including on icon area) opens picker
+        wrapper.addEventListener('click', function(e){
+            // Ignore if clicking and interacting with other controls
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.closest('input'))) return;
+            openPicker();
+        });
 
         el.addEventListener('click', openPicker);
         el.addEventListener('focus', openPicker);
