@@ -194,6 +194,61 @@
             });
         </script>
 
+        <script>
+            document.addEventListener('click', function (e) {
+                // Change guest role
+                if (e.target && e.target.classList.contains('admin-change-guest')) {
+                    const li = e.target.closest('li[data-guest-id]');
+                    if (!li) return;
+                    const guestId = li.getAttribute('data-guest-id') || '';
+                    const select = li.querySelector('.admin-guest-role-select');
+                    const newRole = select ? select.value : null;
+                    if (!newRole) return alert('Select a role');
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('gameRole', newRole);
+                    body.append('guestId', guestId);
+
+                    fetch(`/admin/game/{{ $game->id }}/guest/${guestId}/role`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && json.success) {
+                            location.reload();
+                        } else {
+                            alert('Unable to update guest');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
+
+                // Remove guest
+                if (e.target && e.target.classList.contains('admin-remove-guest')) {
+                    const li = e.target.closest('li[data-guest-id]');
+                    if (!li) return;
+                    const guestId = li.getAttribute('data-guest-id') || '';
+                    if (!confirm('Remove this guest?')) return;
+
+                    const body = new URLSearchParams();
+                    body.append('_token', '{{ csrf_token() }}');
+                    body.append('guestId', guestId);
+
+                    fetch(`/admin/game/{{ $game->id }}/guest/${guestId}/remove`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: body
+                    }).then(r => r.json()).then(json => {
+                        if (json && json.success) {
+                            location.reload();
+                        } else {
+                            alert('Unable to remove guest');
+                        }
+                    }).catch(err => { console.error(err); alert('Request failed'); });
+                }
+            });
+        </script>
+
         {{-- @if(!$user_is_a_goalie and $user_paid == false)
             <h1 id="pleasePay" class="mt-5">Please Pay</h1>
         
@@ -238,8 +293,21 @@
                             </li>
                         @endforeach
 
-                        @foreach($guestPlayers as $guestPlayer)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300">{{$guestPlayer}}</li>
+                        @foreach($guestPlayers as $guest)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
+                                <span>{{ $guest->name ?? $guest }}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="flex items-center gap-2">
+                                        <select class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-ice admin-guest-role-select">
+                                            @foreach($GAME_ROLES as $g)
+                                                <option value="{{ $g->value ?? $g }}">{{ $g->name ?? $g }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="px-2 py-1 bg-amber-500 text-deep-navy rounded admin-change-guest">Change</button>
+                                        <button type="button" class="px-2 py-1 bg-red-600 text-white rounded admin-remove-guest">Remove</button>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
                 </div>
@@ -251,8 +319,21 @@
                             <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-ice">{{$goalie}}</li>
                         @endforeach
 
-                        @foreach($guestGoalies as $guestGoalie)
-                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300">{{$guestGoalie}}</li>
+                        @foreach($guestGoalies as $guest)
+                            <li class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-name="{{ $guest->name ?? $guest }}" data-guest-id="{{ $guest->id ?? '' }}">
+                                <span>{{ $guest->name ?? $guest }}</span>
+                                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                                    <div class="flex items-center gap-2">
+                                        <select class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-ice admin-guest-role-select">
+                                            @foreach($GAME_ROLES as $g)
+                                                <option value="{{ $g->value ?? $g }}">{{ $g->name ?? $g }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="button" class="px-2 py-1 bg-amber-500 text-deep-navy rounded admin-change-guest">Change</button>
+                                        <button type="button" class="px-2 py-1 bg-red-600 text-white rounded admin-remove-guest">Remove</button>
+                                    </div>
+                                @endif
+                            </li>
                         @endforeach
                     </ul>
                 </div>

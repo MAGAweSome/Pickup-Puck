@@ -158,6 +158,66 @@ class GameDetailController extends Controller
         return back()->with('success', 'You have successfully added your game!');
     }
 
+    /**
+     * Admin: update a guest's role on a game (by guest id)
+     */
+    public function adminUpdateGuest(Request $request, Game $game, $guest_id = null)
+    {
+        \Log::info('adminUpdateGuest.payload', ['route_guest_id' => $guest_id, 'body' => $request->all()]);
+
+        $guestId = $guest_id;
+        if (empty($guestId) && $request->has('guestId')) {
+            $guestId = $request->input('guestId');
+        }
+
+        $request->validate([
+            'gameRole' => 'required|string'
+        ]);
+
+        if (empty($guestId)) {
+            return response()->json(['error' => 'guest id required'], 422);
+        }
+
+        $updated = DB::table('game_players_guests')
+            ->where('id', $guestId)
+            ->where('game_id', $game->id)
+            ->update(['role' => $request->input('gameRole')]);
+
+        if ($updated) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 422);
+    }
+
+    /**
+     * Admin: remove a guest from a game
+     */
+    public function adminRemoveGuest(Request $request, Game $game, $guest_id = null)
+    {
+        \Log::info('adminRemoveGuest.payload', ['route_guest_id' => $guest_id, 'body' => $request->all()]);
+
+        $guestId = $guest_id;
+        if (empty($guestId) && $request->has('guestId')) {
+            $guestId = $request->input('guestId');
+        }
+
+        if (empty($guestId)) {
+            return response()->json(['error' => 'guest id required'], 422);
+        }
+
+        $deleted = DB::table('game_players_guests')
+            ->where('id', $guestId)
+            ->where('game_id', $game->id)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 422);
+    }
+
     public function payment(UserAcceptGamePayment $request, Game $game) {
 
         $game->collected_game_cost += $request['gamePayment'];
