@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
@@ -51,9 +52,12 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            // Require a first name and a last name (last name at least 2 chars)
+            'name' => ['required', 'string', 'max:255', "regex:/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '\-][A-Za-zÀ-ÖØ-öø-ÿ]+)*\s+[A-Za-zÀ-ÖØ-öø-ÿ]{2,}(?:[ '\-][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/"],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'name.regex' => 'Please enter your full name (first and last). Last name must be at least 2 letters.'
         ]);
     }
 
@@ -65,15 +69,36 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        // Normalize the name to Title Case and trim whitespace before saving
+        $name = trim($data['name']);
+        if (function_exists('mb_convert_case')) {
+            $name = mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
+        } else {
+            $name = ucwords(strtolower($name));
+        }
 
-        if (DB::table('guests')->where('name', $data['name'])->exists()) {
-            DB::table('guests')->where('name', $data['name'])->delete();
+        if (DB::table('guests')->where('name', $name)->exists()) {
+            DB::table('guests')->where('name', $name)->delete();
         }
 
         return User::create([
-            'name' => $data['name'],
+            'name' => $name,
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+    }
+
+    /**
+     * AJAX: Check whether an email is already registered.
+     */
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email']
+        ]);
+
+        $exists = User::where('email', $request->input('email'))->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 }

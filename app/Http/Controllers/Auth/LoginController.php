@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -36,5 +39,32 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    /**
+     * Override failed login response to provide a clearer message when the
+     * submitted email does not exist in our system.
+     */
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $username = $this->username();
+
+        $user = User::where($username, $request->input($username))->first();
+
+        if (! $user) {
+            // Flash the form indicator so the login error only shows on the login tab
+            $request->session()->flashInput(array_merge($request->only($username), ['form' => 'login']));
+
+            throw ValidationException::withMessages([
+                $username => ['This account has not yet been created.']
+            ]);
+        }
+
+        // Flash form indicator for failed login attempt
+        $request->session()->flashInput(array_merge($request->only($username), ['form' => 'login']));
+
+        throw ValidationException::withMessages([
+            $username => [trans('auth.failed')]
+        ]);
     }
 }

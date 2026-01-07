@@ -44,6 +44,9 @@ Route::get('/', function () {
 
 Auth::routes(['verify' => true]);
 
+// AJAX endpoint for registration email availability (usable by guests)
+Route::post('/register/check-email', [App\Http\Controllers\Auth\RegisterController::class, 'checkEmail'])->name('register.check_email');
+
 // Route::middleware('verified')->group(function () {
 // Must have a verified account to access
 
