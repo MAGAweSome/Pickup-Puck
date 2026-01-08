@@ -12,6 +12,7 @@ use App\Http\Controllers\UserGameHistoryController;
 use App\Http\Controllers\UserListController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
@@ -64,6 +65,14 @@ Route::middleware('auth')->group(function () {
     // Onboarding (regular users)
     Route::get('/onboarding/game-details', [OnboardingController::class, 'gameDetailsDemo'])->name('onboarding.game-details');
     Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
+
+    // One-time setup: elevate current user to admin
+    Route::get('/setup/elevate-me-puck-admin', [SetupController::class, 'showElevateMePuckAdmin'])
+        ->middleware('throttle:10,1')
+        ->name('setup.elevate-me-puck-admin');
+    Route::post('/setup/elevate-me-puck-admin', [SetupController::class, 'elevateMePuckAdmin'])
+        ->middleware('throttle:10,1')
+        ->name('setup.elevate-me-puck-admin.submit');
 
     Route::get('/payments', function () {
         return view('payments.index');
