@@ -127,6 +127,50 @@
             </div>
         </aside>
 
+        @role('admin')
+            <!-- Not Yet Attending (admin only) -->
+            <div class="lg:col-span-3">
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
+                        <span class="text-sm text-slate-300">{{ isset($notAttendingUsers) ? $notAttendingUsers->count() : 0 }}</span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-300">Add a player to this game (admin only).</p>
+
+                    @if(!isset($notAttendingUsers) || $notAttendingUsers->isEmpty())
+                        <div class="mt-3 text-slate-400 text-sm">Everyone is already attending.</div>
+                    @else
+                        <div class="mt-3 max-h-72 overflow-auto rounded border border-slate-700 bg-slate-900">
+                            <ul class="divide-y divide-slate-800">
+                                @foreach($notAttendingUsers as $u)
+                                    <li class="px-3 py-2 flex items-center justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="text-ice truncate">{{ $u->name }}</div>
+                                            <div class="text-xs text-slate-400 truncate">{{ $u->email }}</div>
+                                        </div>
+
+                                        <form class="flex items-center gap-2" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}">
+                                            @csrf
+                                            <select name="gameRole" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-ice text-sm">
+                                                @foreach ($GAME_ROLES as $gamerole)
+                                                    @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
+                                                    <option value="{{ $gamerole }}" @if($gamerole == App\Enums\Games\GameRoles::Player) selected @endif @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>
+                                                        {{ $gamerole->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="px-3 py-1.5 bg-ice-blue text-deep-navy rounded text-sm font-semibold">Add</button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
+                    @endif
+                </div>
+            </div>
+        @endrole
+
         <!-- Full width row: Roster + Teams (span to sidebar edge) -->
         <div class="lg:col-span-3 space-y-4">
             <!-- Roster -->
@@ -155,7 +199,6 @@
                                     @endif
                                 </li>
                             @endforeach
-
                             @foreach($guestGoalies as $guest)
                                 <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-id="{{ $guest->id ?? '' }}">
                                     <span>{{ $guest->name ?? $guest }}</span>

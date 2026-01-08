@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 
 class GameTeamsService
 {
+    private function pickTeamByCount(int $team1Count, int $team2Count): int
+    {
+        if ($team1Count < $team2Count) return 1;
+        if ($team2Count < $team1Count) return 2;
+        // Tie => truly random team
+        return random_int(0, 1) === 0 ? 1 : 2;
+    }
+
     /**
      * Ensures teams are persisted and team assignments are stable.
      *
@@ -90,7 +98,10 @@ class GameTeamsService
                 $skaterPool = $skaterPool->shuffle()->values();
 
                 foreach ($skaterPool as $m) {
-                    $teamNo = (count($teamUsers[1]) + count($teamGuests[1])) <= (count($teamUsers[2]) + count($teamGuests[2])) ? 1 : 2;
+                    $teamNo = $this->pickTeamByCount(
+                        count($teamUsers[1]) + count($teamGuests[1]),
+                        count($teamUsers[2]) + count($teamGuests[2])
+                    );
                     if ($m['type'] === 'user') $teamUsers[$teamNo][] = $m['id'];
                     else $teamGuests[$teamNo][] = $m['id'];
                 }
@@ -134,7 +145,12 @@ class GameTeamsService
             // Add missing goalies first, preferring any team that doesn't yet have one.
             $missingUserGoalies = $missingUserIds->intersect($goalieIds)->shuffle()->values();
             foreach ($missingUserGoalies as $uid) {
-                $targetTeam = !$teamHasGoalie[1] ? 1 : (!$teamHasGoalie[2] ? 2 : (($teamCount(1) <= $teamCount(2)) ? 1 : 2));
+                $targetTeam = !$teamHasGoalie[1]
+                    ? 1
+                    : (!$teamHasGoalie[2]
+                        ? 2
+                        : $this->pickTeamByCount($teamCount(1), $teamCount(2))
+                    );
                 GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
                 $teamHasGoalie[$targetTeam] = true;
                 $missingUserIds = $missingUserIds->diff([(int) $uid])->values();
@@ -142,7 +158,12 @@ class GameTeamsService
 
             $missingGuestGoalies = $missingGuestIds->intersect($guestGoalieIds)->shuffle()->values();
             foreach ($missingGuestGoalies as $gid) {
-                $targetTeam = !$teamHasGoalie[1] ? 1 : (!$teamHasGoalie[2] ? 2 : (($teamCount(1) <= $teamCount(2)) ? 1 : 2));
+                $targetTeam = !$teamHasGoalie[1]
+                    ? 1
+                    : (!$teamHasGoalie[2]
+                        ? 2
+                        : $this->pickTeamByCount($teamCount(1), $teamCount(2))
+                    );
                 GameTeamsGuest::create(['game_id' => $game->id, 'guest_id' => (int) $gid, 'team' => $targetTeam]);
                 $teamHasGoalie[$targetTeam] = true;
                 $missingGuestIds = $missingGuestIds->diff([(int) $gid])->values();
@@ -150,12 +171,12 @@ class GameTeamsService
 
             // Add remaining missing skaters/attendees to the smaller team.
             foreach ($missingUserIds->shuffle()->values() as $uid) {
-                $targetTeam = $teamCount(1) <= $teamCount(2) ? 1 : 2;
+                $targetTeam = $this->pickTeamByCount($teamCount(1), $teamCount(2));
                 GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
             }
 
             foreach ($missingGuestIds->shuffle()->values() as $gid) {
-                $targetTeam = $teamCount(1) <= $teamCount(2) ? 1 : 2;
+                $targetTeam = $this->pickTeamByCount($teamCount(1), $teamCount(2));
                 GameTeamsGuest::create(['game_id' => $game->id, 'guest_id' => (int) $gid, 'team' => $targetTeam]);
             }
         });

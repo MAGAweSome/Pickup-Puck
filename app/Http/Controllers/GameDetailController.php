@@ -53,6 +53,19 @@ class GameDetailController extends Controller
         $users = User::all();
         $guests = Guest::all();
 
+        $attendingUserIds = DB::table('game_players')
+            ->where('game_id', $game->id)
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $notAttendingUsers = User::query()
+            ->whereNotIn('id', $attendingUserIds)
+            ->orderBy('name')
+            ->get();
+
         $currentTime = Carbon::now()->setTimezone('America/Toronto');
 
         $teamsRevealAt = $game->time->copy()->subMinutes(30);
@@ -175,7 +188,8 @@ class GameDetailController extends Controller
             'currentUserTeam' => $currentUserTeam,
             'currentSeason' => $game->season,
             'guestPlayers' => $guestPlayers,
-            'guestGoalies' => $guestGoalies
+            'guestGoalies' => $guestGoalies,
+            'notAttendingUsers' => $notAttendingUsers,
         ]);
 
     }
@@ -185,7 +199,9 @@ class GameDetailController extends Controller
 
         // Enforce max 2 goalies per game
         if ($role === 'goalie') {
-            $goalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $goalieCount = $userGoalieCount + $guestGoalieCount;
             if ($goalieCount >= 2) {
                 return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Remove a goalie first.']);
             }
@@ -216,6 +232,17 @@ class GameDetailController extends Controller
         $guestName = preg_replace('/\s+/', ' ', $guestName) ?? $guestName;
         $guestName = Str::title(Str::lower($guestName));
 
+        $role = (string) $request->input('gameRole');
+
+        // Enforce max 2 goalies per game (users + guests)
+        if ($role === 'goalie') {
+            $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            if (($userGoalieCount + $guestGoalieCount) >= 2) {
+                return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Add them as a player instead.']);
+            }
+        }
+
         $alreadyAttending = GamePlayersGuest::where('game_id', $game->id)
             ->where('name', $guestName)
             ->exists();
@@ -228,7 +255,7 @@ class GameDetailController extends Controller
             GamePlayersGuest::create([
                 'name' => $guestName,
                 'game_id' => $game->id,
-                'role' => $request->input('gameRole')
+                'role' => $role
             ]);
         } catch (QueryException $e) {
             // In case two requests race, the DB unique index will throw here.
@@ -280,7 +307,9 @@ class GameDetailController extends Controller
         if ($role === 'goalie') {
             $existing = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $user_id);
             $userIsCurrentlyGoalie = $existing->exists() && $existing->first()->role === 'goalie';
-            $goalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
+            $goalieCount = $userGoalieCount + $guestGoalieCount;
             if (!$userIsCurrentlyGoalie && $goalieCount >= 2) {
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json(['error' => 'There are already two goalies for this game. Remove a goalie first.'], 422);
@@ -303,6 +332,9 @@ class GameDetailController extends Controller
         }
 
         // Return JSON for AJAX requests, otherwise redirect back
+        $now = Carbon::now()->setTimezone('America/Toronto');
+        (new GameTeamsService())->ensureLockedTeams($game, $now);
+
         if ($request->expectsJson() || $request->ajax()) {
             if ($updated) return response()->json(['success' => true]);
             return response()->json(['error' => 'Unable to update player role'], 422);
@@ -342,9 +374,9 @@ class GameDetailController extends Controller
             $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
             $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
 
-            // If this guest is not currently a goalie, then adding them would increase guestGoalieCount
+            // If this guest isn't currently a goalie, switching to goalie would add +1.
             $projectedTotal = $userGoalieCount + $guestGoalieCount + ($guestIsCurrentlyGoalie ? 0 : 1);
-            if ($projectedTotal >= 3) { // >=3 means already 2 or more, can't add
+            if ($projectedTotal > 2) {
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json(['error' => 'There are already two goalies for this game. Remove a goalie first.'], 422);
                 }

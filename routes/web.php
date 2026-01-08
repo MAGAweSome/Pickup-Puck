@@ -91,17 +91,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/game/{game}/search', [GameDetailController::class, 'searchGuestList'])->name('game_detail_search_guest.game_id');
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
     Route::post('/game/{game}/name/role', [GameDetailController::class, 'updateGuest'])->name('game_detail_update_guest.game_id');
-    Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])->name('admin_game_detail_update.game_id.user_id');
+    Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])
+        ->middleware(['role:admin'])
+        ->name('admin_game_detail_update.game_id.user_id');
     Route::post('/admin/game/{game}/teams/move', [GameDetailController::class, 'adminMoveTeamMember'])
         ->middleware(['role:admin'])
         ->name('admin_game_team_move');
-    Route::post('/admin/game/{game}/{user_id}/remove', [GameDetailController::class, 'adminRemovePlayer'])->name('admin_game_detail_remove_player');
+    Route::post('/admin/game/{game}/{user_id}/remove', [GameDetailController::class, 'adminRemovePlayer'])
+        ->middleware(['role:admin'])
+        ->name('admin_game_detail_remove_player');
     Route::post('/game/{game}/payment', [GameDetailController::class, 'payment'])->name('game_detail_pay.game_id');
-    Route::post('/admin/game/{game}/{player_id}/payment', [GameDetailController::class, 'adminPayment'])->name('admin_game_detail_pay.game_id.player_id');
+    Route::post('/admin/game/{game}/{player_id}/payment', [GameDetailController::class, 'adminPayment'])
+        ->middleware(['role:admin'])
+        ->name('admin_game_detail_pay.game_id.player_id');
     Route::get('/game/{game}/generateTeams', [GameDetailController::class, 'generateTeams'])->name('game_detail_generateTeams.game_id');
     // Admin guest management (admin can change guest role or remove guest)
-    Route::post('/admin/game/{game}/guest/{guest_id}/role', [GameDetailController::class, 'adminUpdateGuest'])->name('admin_game_detail_update_guest');
-    Route::post('/admin/game/{game}/guest/{guest_id}/remove', [GameDetailController::class, 'adminRemoveGuest'])->name('admin_game_detail_remove_guest');
+    Route::post('/admin/game/{game}/guest/{guest_id}/role', [GameDetailController::class, 'adminUpdateGuest'])
+        ->middleware(['role:admin'])
+        ->name('admin_game_detail_update_guest');
+    Route::post('/admin/game/{game}/guest/{guest_id}/remove', [GameDetailController::class, 'adminRemoveGuest'])
+        ->middleware(['role:admin'])
+        ->name('admin_game_detail_remove_guest');
     Route::get('clear_cache', function () {
 
         \Illuminate\Support\Facades\Artisan::call('pp:generate-teams');
