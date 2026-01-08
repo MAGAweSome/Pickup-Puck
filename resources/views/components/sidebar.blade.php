@@ -1,4 +1,4 @@
-<aside class="hidden md:block w-64 bg-slate-800 text-ice min-h-[calc(100vh-4rem)] overflow-y-auto p-4">
+<aside class="hidden md:block w-64 flex-shrink-0 bg-slate-800 text-ice h-[calc(100vh-var(--nav-height))] overflow-y-auto p-4">
     @php
         use App\Models\Season;
         use App\Models\Games\Game;

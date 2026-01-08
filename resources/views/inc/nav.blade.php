@@ -1,4 +1,4 @@
-<header id="navigationBar" class="fixed top-0 left-0 right-0 bg-slate-800 z-50 relative h-16">
+<header id="navigationBar" class="fixed top-0 left-0 right-0 bg-slate-800 z-50 h-16">
     <div class="absolute left-4 inset-y-0 flex items-center">
         <a href="/" class="flex items-center gap-3 no-underline">
             <img src="{{ asset('photos/Pickup Puck Logo.png') }}" alt="Pickup Puck Logo" class="h-10 ml-4 w-auto">

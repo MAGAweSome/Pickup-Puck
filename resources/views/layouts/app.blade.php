@@ -54,15 +54,17 @@
     </style>
 </head>
 
-<body class="min-h-screen bg-deep-navy text-ice antialiased font-sans m-0">
+<body class="min-h-screen bg-deep-navy text-ice antialiased font-sans m-0 overflow-hidden">
 
     @include('inc.nav')
 
-    <div class="flex">
+    <div class="flex h-[calc(100vh-var(--nav-height))] mt-[var(--nav-height)]">
         @include('components.sidebar')
 
-        <main class="flex-1 p-6 md:p-10 app-container mx-auto w-full bg-deep-navy min-h-[calc(100vh-4rem)]">
-            @yield('content')
+        <main class="flex-1 overflow-y-auto bg-deep-navy">
+            <div class="p-6 md:p-10 app-container mx-auto w-full">
+                @yield('content')
+            </div>
         </main>
     </div>
 
