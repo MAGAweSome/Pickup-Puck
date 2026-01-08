@@ -43,7 +43,6 @@ class ProfileController extends Controller
             $user->role_preference = $request['role'];
         }
         $user->save();
-        // return back()->with('message','Profile Updated');
-        return view('profile');
+        return back()->with('message', 'Profile updated successfully.');
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UpdatePasswordController;
 use App\Http\Controllers\UpdateProfileController;
 use App\Http\Controllers\UserGameHistoryController;
+use App\Http\Controllers\GuestGameHistoryController;
 use App\Http\Controllers\UserListController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\OnboardingController;
@@ -122,6 +123,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->middleware(['role:admin'])->group(function () {
         Route::get('/user', [UserListController::class, 'index'])->name('user_list');
         Route::get('/user/{user}/history', [UserGameHistoryController::class, 'index'])->name('user_game_history');
+        Route::get('/guest/{guest}/history', [GuestGameHistoryController::class, 'index'])->name('guest_game_history');
         Route::get('/user/{user}', [UserRoleController::class, 'index'])->name('user_role.user_id');
         Route::post('/user/{user}',[UserRoleController::class, 'update'])->name('user_role_update.user_id');
         Route::get('/create_game', [CreateGameController::class, 'index'])->name('create_game');

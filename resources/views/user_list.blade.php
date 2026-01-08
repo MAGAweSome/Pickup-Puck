@@ -28,6 +28,31 @@
                 </div>
             @endforeach
         </div>
+
+        <div class="mt-10">
+            <h2 class="text-2xl font-semibold text-ice mb-4">Guest List</h2>
+
+            @if(!isset($guests) || $guests->isEmpty())
+                <div class="p-4 rounded bg-slate-700 text-slate-200">There are no guests yet.</div>
+            @else
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach($guests as $guest)
+                        <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-ice text-lg font-medium">{{ $guest->name }}</div>
+                                    <div class="text-sm text-slate-300">Guest #{{ $guest->id }}</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex gap-2">
+                                <a class="w-full text-center px-3 py-2 bg-ice-blue text-deep-navy hover:text-deep-navy rounded" href="{{ route('guest_game_history', ['guest' => $guest->id]) }}">Game History</a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
     </div>
 
 @endsection

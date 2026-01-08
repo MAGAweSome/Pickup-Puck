@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Guest;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,8 @@ class UserListController extends Controller
      */
     public function index()
     {
-        $users = User::all();
-        return view('user_list', ['users' => $users]);
+        $users = User::query()->orderBy('name')->get();
+        $guests = Guest::query()->orderBy('name')->get();
+        return view('user_list', ['users' => $users, 'guests' => $guests]);
     }
 }

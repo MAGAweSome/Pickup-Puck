@@ -16,8 +16,8 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('user_list') }}" class="text-sm text-white/70 hover:text-white underline">All Users</a>
-                <a href="{{ route('user_game_history', ['user' => $user->id]) }}" class="text-sm text-white/70 hover:text-white underline">Game History</a>
+                <a href="{{ route('user_list') }}" class="inline-flex items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition">All Users</a>
+                <a href="{{ route('user_game_history', ['user' => $user->id]) }}" class="inline-flex items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition">Game History</a>
             </div>
         </div>
 

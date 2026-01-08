@@ -36,7 +36,13 @@
                                 </svg>
                                 <a class="text-ice-blue ml-1" href="https://maps.google.com/?q={{ urlencode($game->location) }}" target="_blank">{{ $game->location }}</a>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-300"><span class="text-ice ml-1">${{ $game->price }}</span></div>
+                            @php
+                                $showPrice = auth()->check()
+                                    && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
+                            @endphp
+                            @if($showPrice)
+                                <div class="flex items-center gap-2 text-slate-300"><span class="text-ice ml-1">${{ $game->price }}</span></div>
+                            @endif
                         </div>
                     </div>
 
@@ -101,7 +107,9 @@
                 <div class="mt-2 text-ice text-sm space-y-2">
                     <div class="flex justify-between"><span class="text-slate-300">Players</span><span>{{ count($players) + count($guestPlayers) }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-300">Goalies</span><span>{{ count($goalies) + count($guestGoalies) }}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-300">Price</span><span>${{ $game->price }}</span></div>
+                    @if($showPrice)
+                        <div class="flex justify-between"><span class="text-slate-300">Price</span><span>${{ $game->price }}</span></div>
+                    @endif
                     <div class="flex justify-between"><span class="text-slate-300">Season</span><span>{{ isset($currentSeason) && $currentSeason ? $currentSeason->season_number : '—' }}</span></div>
                 </div>
             </div>

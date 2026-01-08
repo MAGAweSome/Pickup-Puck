@@ -64,7 +64,13 @@
                                     @else
                                         @include('components.badge', ['status' => 'Not Yet Attending'])
                                     @endif
-                                    <div class="text-sm text-slate-300">${{$game->price}}</div>
+                                    @php
+                                        $showPrice = auth()->check()
+                                            && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
+                                    @endphp
+                                    @if($showPrice)
+                                        <div class="text-sm text-slate-300">${{ $game->price }}</div>
+                                    @endif
                                 </div>
                             </div>
 

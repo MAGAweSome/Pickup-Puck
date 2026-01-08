@@ -42,7 +42,13 @@
                         <th class="px-6 py-3 text-left text-sm text-slate-400">Date & Time</th>
                         <th class="px-6 py-3 text-left text-sm text-slate-400">Title</th>
                         <th class="px-6 py-3 text-left text-sm text-slate-400">Location</th>
-                        <th class="px-6 py-3 text-left text-sm text-slate-400">Price</th>
+                        @php
+                            $showPrice = auth()->check()
+                                && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
+                        @endphp
+                        @if($showPrice)
+                            <th class="px-6 py-3 text-left text-sm text-slate-400">Price</th>
+                        @endif
                         <th class="px-6 py-3 text-left text-sm text-slate-400">Score <span class="text-slate-400 text-xs"><br>(Dark - Light)</span></th>
                         <th class="px-6 py-3 text-right text-sm text-slate-400">{{ $isAdmin ? 'Actions' : 'Details' }}</th>
                     </tr>
@@ -66,7 +72,9 @@
                             <td class="px-6 py-4 text-sm text-slate-300">{{ $game->time->format('M d, Y g:i A') }}</td>
                             <td class="px-6 py-4 text-sm text-ice">{{ $game->title }}</td>
                             <td class="px-6 py-4 text-sm text-slate-300">{{ $game->location }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-300">${{ number_format($game->price, 2) }}</td>
+                            @if($showPrice)
+                                <td class="px-6 py-4 text-sm text-slate-300">${{ number_format($game->price, 2) }}</td>
+                            @endif
                             <td class="px-6 py-4 text-sm text-slate-300">{{ $game->dark_score }} - {{ $game->light_score }}</td>
                             <td class="px-6 py-4 text-right text-sm">
                                 @if($isAdmin)
