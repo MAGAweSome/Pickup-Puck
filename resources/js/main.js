@@ -1,231 +1,143 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Function to check if the current page is the home page
-    function isHomePage() {
-        return window.location.pathname === "/home";
+document.addEventListener('DOMContentLoaded', function () {
+    function hasIntro() {
+        return typeof introJs !== 'undefined';
     }
 
-    // Function to check if the current page is the game page
-    function isGamePage() {
-        const re = /game\/\d+/gm;
-        return re.test(window.location.pathname);
-    }
-
-    // Function to check if the current page is the profile page
-    function isProfilePage() {
-        return window.location.pathname === "/profile";
-    }
-
-    // Function to start the Intro.js tour for the home page
-    function startHomeIntroTour() {
-        const tour = introJs();
-        var gameHref = document.querySelector("#gameMoreDetails").href;
-
-        // Define the tour steps
-        let tourSteps = [
-            {
-                title: "Welcome!",
-                intro: "Let me show you how to navigate the site.",
-            },
-            {
-                element: document.querySelector("#gameCard"),
-                title: "Games",
-                intro: "This is what an upcoming game will look like. It will show you what game it is, when it is, if you are currently attending or not, and will tell you the cost for that game.",
-            },
-            {
-                element: document.querySelector("#gameLocation_Players"),
-                title: "Games",
-                intro: "Here will show you the location of the game and the current number of players and goalies signed up for the game. A map of the game location will be shown on the next page!",
-            },
-            {
-                element: document.querySelector("#gameMoreDetails"),
-                title: "Game Details",
-                intro: "Please click here to see more details about the game and to accept the game!",
-            },
-        ];
-
-        // Attach the oncomplete callback only if the user is seeing the page for the first time
-        if (!localStorage.getItem("homeIntroCompleted") && isHomePage()) {
-            tour.onbeforeexit(function () {
-                if (tour._currentStep < tour._introItems.length - 1) {
-                    // Show a message to finish the guide if not the last step
-                    alert("Please finish the tour before exiting.");
-                    return false; // Prevent the user from skipping the tour
-                }
-            });
-
-            tour.oncomplete(function () {
-                // Save that the home page tour is completed
-                localStorage.setItem("homeIntroCompleted", "true");
-                // Redirect to the game page and start the game tour
-                window.location.href = gameHref;
-            });
+    function isOnboardingActive() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('onboarding') === '1';
+        } catch (e) {
+            return false;
         }
-
-        // Set the Intro.js options with the specified steps
-        tour.setOptions({
-            steps: tourSteps,
-        });
-
-        // Start the tour
-        tour.start();
     }
 
-    // Function to start the Intro.js tour for the game page
-    function startGameIntroTour() {
+    function withOnboarding(url) {
+        const u = new URL(url, window.location.origin);
+        u.searchParams.set('onboarding', '1');
+        return u.pathname + '?' + u.searchParams.toString();
+    }
+
+    function startTour(steps, onCompleteRedirectUrl) {
+        if (!hasIntro()) return;
+
         const tour = introJs();
-
-        // Define the tour steps
-        let tourSteps = [
-            {
-                title: "Game Detail Page",
-                intro: "This is the page that will show you more details about a game.",
-            },
-            {
-                element: document.querySelector("#gameMap"),
-                title: "Game Location",
-                intro: "This is the location of the desired game. You can click and drag to move the map around and resize.",
-            },
-            {
-                element: document.querySelector("#gameDetailTable"),
-                title: "This is quick Game Details",
-                intro: "You will be able to see the game time, the location address, how long the game is scheduled for, and the price of the game.",
-            },
-            {
-                element: document.querySelector("#acceptGameDiv"),
-                title: "Accepting A Game",
-                intro: "This will automatically put in your default role for games as set in your profile. If you want to change your position to goalie for one game, you may click the dropdown and change it before you click the Accept Game button.",
-            },
-            {
-                element: document.querySelector("#attendingGuestsDiv"),
-                title: "Bringing A Guest",
-                intro: "If you want to bring a guest to a game, please enter their full name, select the dropdown to change their role (Default role will be player), and then submit!",
-            },
-            {
-                element: document.querySelector("#gameSkaters"),
-                title: "Game Skaters",
-                intro: "This will show the current players that are signed up for the game. The players will be on the left and the goalies will be on the right.",
-            },
-            {
-                element: document.querySelector("#gameTeam"),
-                title: "Teams",
-                intro: "This is where you can see your team for the desired game. The team will only be made 30 minutes before the game.",
-            },
-            {
-                element: document.querySelector("#navigationBar"),
-                // element: document.querySelector("#navDropdown"),
-                title: "Nav Dropdown",
-                intro: "This is where you can view your profile by activating this dropdown and click profile.",
-            },
-        ];
-
-        // Set the Intro.js options with the specified steps
         tour.setOptions({
-            steps: tourSteps,
+            steps: steps,
+            showProgress: true,
+            scrollToElement: true,
+            tooltipClass: 'pp-intro',
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            nextLabel: 'Next',
+            prevLabel: 'Back',
+            doneLabel: 'Next',
         });
 
-        // Attach the oncomplete callback only if the user is seeing the page for the first time
-        if (!localStorage.getItem("gameIntroCompleted") && isGamePage()) {
-            tour.onbeforeexit(function () {
-                if (tour._currentStep < tour._introItems.length - 1) {
-                    // Show a message to finish the guide if not the last step
-                    alert("Please finish the tour before exiting.");
-                    return false; // Prevent the user from skipping the tour
-                }
-            });
-
-            tour.oncomplete(function () {
-                // Save that the game page tour is completed
-                localStorage.setItem("gameIntroCompleted", "true");
-                // Redirect to the profile page and start the profile tour
-                window.location.href = "/profile"; // Replace with the actual profile page URL
-            });
-        }
-
-        // Set the Intro.js options with the specified steps
-        tour.setOptions({
-            steps: tourSteps,
-        });
-
-        // Start the tour
-        tour.start();
-    }
-
-    // Function to start the Intro.js tour for the profile page
-    function startProfileIntroTour() {
-        const tour = introJs();
-
-        // Define the tour steps
-        let tourSteps = [
-            {
-                title: "This is your Profile",
-                intro: "This is the profile page. Here you can see your information like Name, eMail, and your desired role for games.",
-            },
-            {
-                element: document.querySelector("#playerDesiredRole"),
-                title: "Your Desired Game Role",
-                intro: "This will show you your desired role for when you accept games. The default is player, but if you would like to accept games as goalie by default this can be changed.",
-            },
-            {
-                element: document.querySelector("#updateProfile"),
-                title: "Update Profile",
-                intro: "This is where you will go to change any account information or if you want to change your role to be the default goalie. <br><br>Click me if you would like to see the update page!",
-            },
-        ];
-
-        // Attach the oncomplete callback only if the user is seeing the page for the first time
-        if (!localStorage.getItem("profileIntroCompleted") && isProfilePage()) {
-            tour.onbeforeexit(function () {
-                if (tour._currentStep < tour._introItems.length - 1) {
-                    // Show a message to finish the guide if not the last step
-                    alert("Please finish the tour before exiting.");
-                    return false; // Prevent the user from skipping the tour
-                }
-            });
-
-            tour.oncomplete(function () {
-                // Save that the profile page tour is completed
-                localStorage.setItem("profileIntroCompleted", "true");
-                // Redirect back to the home page and start the home page tour
-                window.location.href = "/home"; // Replace with the actual home page URL
-            });
-        }
-
-        // Set the Intro.js options with the specified steps
-        tour.setOptions({
-            steps: tourSteps,
-        });
-
-        // Start the tour
-        tour.start();
-    }
-
-    // Check if the home page tour has already been completed
-    if (!localStorage.getItem("homeIntroCompleted") && isHomePage()) {
-        startHomeIntroTour();
-    }
-
-    // Check if the game page tour has already been completed
-    if (!localStorage.getItem("gameIntroCompleted") && isGamePage()) {
-        startGameIntroTour();
-    }
-
-    // Check if the profile page tour has already been completed
-    if (!localStorage.getItem("profileIntroCompleted") && isProfilePage()) {
-        startProfileIntroTour();
-    }
-
-    // Add an event listener to the button for manual tour triggering (if present on page)
-    const startTourButton = document.getElementById("start-tour");
-    if (startTourButton) {
-        startTourButton.addEventListener("click", function () {
-            if (isHomePage()) {
-                startHomeIntroTour();
-            } else if (isGamePage()) {
-                startGameIntroTour();
-            } else if (isProfilePage()) {
-                startProfileIntroTour();
+        // Hide Back button on the first step only.
+        tour.onafterchange(function () {
+            const prevBtn = document.querySelector('.introjs-prevbutton');
+            if (!prevBtn) return;
+            if (tour._currentStep === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = '';
             }
         });
+
+        tour.oncomplete(function () {
+            if (onCompleteRedirectUrl) {
+                window.location.href = onCompleteRedirectUrl;
+            }
+        });
+
+        // If this run was manually started as a restart, cancelling/closing should
+        // return the user to the real dashboard (and remove onboarding params).
+        tour.onexit(function () {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const isRestart = params.get('restart') === '1';
+                if (!isRestart) return;
+
+                // Always land on /home with no query params so onboarding won't auto-start again.
+                window.location.href = '/home';
+            } catch (e) {
+                // ignore
+            }
+        });
+
+        tour.start();
+    }
+
+    if (!isOnboardingActive()) {
+        return;
+    }
+
+    const path = window.location.pathname;
+
+    // 1) Home -> Games
+    if (path === '/home') {
+        const sidebarGamesLink = document.querySelector('#sidebarGamesLink');
+        const steps = [
+            { title: 'Welcome to Pickup Puck', intro: 'A quick tour to get you comfortable.' },
+            { element: document.querySelector('#gameCard'), title: 'Upcoming games', intro: 'Game cards show the time, status, and price.' },
+            { element: document.querySelector('#gameLocation_Players'), title: 'Roster snapshot', intro: 'See the location and how many players/goalies are in.' },
+            { element: sidebarGamesLink || document.querySelector('#gameMoreDetails'), title: 'Next stop: Games', intro: 'Use the Games link in the sidebar to browse all games.' },
+        ].filter(s => !s.element || s.element);
+
+        startTour(steps, withOnboarding('/games'));
+        return;
+    }
+
+    // 2) Games -> Profile
+    if (path === '/games') {
+        const detailsLink = document.querySelector('#onbGameDetailsLink');
+        const steps = [
+            { title: 'Games list', intro: 'Browse games by season and open details.' },
+            { element: detailsLink || document.querySelector('table'), title: 'Open details', intro: 'Use “Details” to view a game, accept, and manage guests.' },
+        ].filter(s => !s.element || s.element);
+
+        startTour(steps, withOnboarding('/profile'));
+        return;
+    }
+
+    // 3) Profile -> Demo Game Details
+    if (path === '/profile') {
+        const steps = [
+            { title: 'Your profile', intro: 'Set your default position and keep your account info current.' },
+            { element: document.querySelector('#playerDesiredRole'), title: 'Default position', intro: 'This will pre-select your role when you accept games.' },
+            { element: document.querySelector('#updateProfile'), title: 'Update', intro: 'Save changes any time.' },
+        ].filter(s => !s.element || s.element);
+
+        startTour(steps, withOnboarding('/onboarding/game-details'));
+        return;
+    }
+
+    // 4) Demo Game Details -> user clicks Finish button (server marks completion)
+    if (path === '/onboarding/game-details') {
+        const steps = [
+            { title: 'Game details', intro: 'Here’s what you’ll see when you open a game.' },
+            { element: document.querySelector('#gameMap'), title: 'Location', intro: 'Quickly open the rink location in Maps.' },
+            { element: document.querySelector('#acceptGameDiv'), title: 'Accept the game', intro: 'Pick a role and join the roster.' },
+            { element: document.querySelector('#attendingGuestsDiv'), title: 'Bring a guest', intro: 'Add a friend to the roster if needed.' },
+            { element: document.querySelector('#onbFinish'), title: 'All set', intro: 'Click Finish to complete onboarding.' },
+        ].filter(s => !s.element || s.element);
+
+        // On the last step we let Intro.js close; completion is persisted by clicking the page Finish button.
+        if (!hasIntro()) return;
+        const tour = introJs();
+        tour.setOptions({
+            steps: steps,
+            showProgress: true,
+            scrollToElement: true,
+            tooltipClass: 'pp-intro',
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            nextLabel: 'Next',
+            prevLabel: 'Back',
+            doneLabel: 'Close',
+        });
+        tour.start();
     }
 });
 

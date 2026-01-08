@@ -7,6 +7,96 @@ body {
     min-height: 100vh;
 }
 
+// Intro.js (Onboarding) theme: match Pickup Puck dark UI and ensure readable contrast.
+.introjs-overlay {
+    background: rgba(0, 0, 0, 0.70) !important;
+}
+
+.introjs-tooltip.pp-intro {
+    background: #0b1f35;
+    border: 1px solid rgba(167, 233, 255, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
+.introjs-tooltip.pp-intro * {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.introjs-tooltip.pp-intro .introjs-title {
+    color: #f2fbff;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+}
+
+.introjs-tooltip.pp-intro .introjs-tooltiptext {
+    color: rgba(242, 251, 255, 0.88);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.introjs-tooltip.pp-intro .introjs-skipbutton {
+    color: rgba(242, 251, 255, 0.80);
+    opacity: 0.95;
+}
+
+.introjs-tooltip.pp-intro .introjs-skipbutton:hover {
+    color: #f2fbff;
+    opacity: 1;
+}
+
+.introjs-tooltip.pp-intro .introjs-bullets ul li a {
+    background: rgba(242, 251, 255, 0.25);
+}
+
+.introjs-tooltip.pp-intro .introjs-bullets ul li a.active {
+    background: #a7e9ff;
+}
+
+.introjs-tooltip.pp-intro .introjs-progress {
+    background: rgba(242, 251, 255, 0.18);
+}
+
+.introjs-tooltip.pp-intro .introjs-progressbar {
+    background: #a7e9ff;
+}
+
+.introjs-tooltip.pp-intro .introjs-button {
+    border-radius: 10px;
+    font-weight: 700;
+    text-shadow: none;
+    box-shadow: none;
+    padding: 8px 14px;
+}
+
+.introjs-tooltip.pp-intro .introjs-prevbutton {
+    background: rgba(242, 251, 255, 0.06);
+    border: 1px solid rgba(242, 251, 255, 0.20);
+    color: rgba(242, 251, 255, 0.90);
+}
+
+.introjs-tooltip.pp-intro .introjs-prevbutton:hover {
+    background: rgba(242, 251, 255, 0.10);
+}
+
+.introjs-tooltip.pp-intro .introjs-nextbutton,
+.introjs-tooltip.pp-intro .introjs-donebutton {
+    background: #a7e9ff;
+    border: 1px solid rgba(167, 233, 255, 0.30);
+    color: #051426;
+}
+
+.introjs-tooltip.pp-intro .introjs-nextbutton:hover,
+.introjs-tooltip.pp-intro .introjs-donebutton:hover {
+    filter: brightness(0.98);
+}
+
+/* Arrow colors */
+.introjs-tooltip.pp-intro .introjs-arrow.top { border-bottom-color: #0b1f35; }
+.introjs-tooltip.pp-intro .introjs-arrow.bottom { border-top-color: #0b1f35; }
+.introjs-tooltip.pp-intro .introjs-arrow.left { border-right-color: #0b1f35; }
+.introjs-tooltip.pp-intro .introjs-arrow.right { border-left-color: #0b1f35; }
+
 // Hide browser-provided password controls (Edge/Chromium) so we can use a custom, stylable eye icon.
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {

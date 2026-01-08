@@ -42,6 +42,22 @@ class LoginController extends Controller
     }
 
     /**
+     * After successful login, send regular users into onboarding until completed.
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+            return redirect()->intended($this->redirectPath());
+        }
+
+        if (!($user->completed_onboarding ?? false)) {
+            return redirect()->route('home', ['onboarding' => 1]);
+        }
+
+        return redirect()->intended($this->redirectPath());
+    }
+
+    /**
      * Override failed login response to provide a clearer message when the
      * submitted email does not exist in our system.
      */

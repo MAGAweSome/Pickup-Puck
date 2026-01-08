@@ -2,6 +2,10 @@
 
 @section('content')
 
+    @php
+        $isOnboarding = request()->boolean('onboarding');
+    @endphp
+
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <div>
@@ -20,6 +24,26 @@
 
         <section>
             <h3 class="text-lg font-semibold text-ice mb-3">Upcoming Games</h3>
+
+            @if($isOnboarding)
+                <article id="gameCard" class="bg-slate-800 border border-ice-blue/30 rounded-lg p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h4 class="text-xl text-ice font-semibold">Example Pickup Game</h4>
+                            <p class="text-sm text-slate-300">Fri 9:30 PM • 123 Example Arena</p>
+                        </div>
+                        <div class="text-right space-y-1 text-center">
+                            @include('components.badge', ['status' => 'Not Yet Attending'])
+                            <div class="text-sm text-slate-300">$20</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between">
+                        <div id="gameLocation_Players" class="text-sm text-slate-300">123 Example Arena • 10 Players • 2 Goalies</div>
+                        <a id="gameMoreDetails" href="{{ route('games.index', ['onboarding' => 1]) }}" class="px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded">See details</a>
+                    </div>
+                </article>
+            @endif
 
             @php $upcomingGamesExist = false; @endphp
 

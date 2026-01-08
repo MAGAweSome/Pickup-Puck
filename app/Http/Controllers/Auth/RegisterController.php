@@ -44,6 +44,24 @@ class RegisterController extends Controller
     }
 
     /**
+     * After a user is registered, redirect into onboarding for regular users.
+     *
+     * Note: completion is only recorded when the user finishes the onboarding flow.
+     */
+    protected function registered(Request $request, $user)
+    {
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('admin')) {
+            return redirect($this->redirectPath());
+        }
+
+        if (!($user->completed_onboarding ?? false)) {
+            return redirect()->route('home', ['onboarding' => 1]);
+        }
+
+        return redirect($this->redirectPath());
+    }
+
+    /**
      * Get a validator for an incoming registration request.
      *
      * @param  array  $data

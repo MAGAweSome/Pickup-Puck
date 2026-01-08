@@ -30,7 +30,7 @@
 
                 <div>
                     <label class="block text-slate-300 text-sm">Preferred Position</label>
-                    <select name="role" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
+                    <select id="playerDesiredRole" name="role" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
                         <option value="" disabled {{ old('role', Auth::user()->role_preference) ? '' : 'selected' }}>Select Position</option>
                         @foreach (App\Enums\Games\GameRoles::cases() as $roleOption)
                             <option value="{{ $roleOption->value }}" {{ old('role', Auth::user()->role_preference) == $roleOption->value ? 'selected' : '' }}>{{ \Illuminate\Support\Str::title(str_replace('_', ' ', $roleOption->name)) }}</option>
@@ -40,7 +40,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit" class="px-4 py-2 bg-ice-blue text-deep-navy rounded font-medium">Update Profile</button>
+                    <button id="updateProfile" type="submit" class="px-4 py-2 bg-ice-blue text-deep-navy rounded font-medium">Update Profile</button>
 
                     <button type="button" id="start-tour-btn" class="px-4 py-2 border border-slate-600 rounded text-ice">Start Tour</button>
                 </div>
@@ -52,8 +52,8 @@
                 var btn = document.getElementById('start-tour-btn');
                 if (!btn) return;
                 btn.addEventListener('click', function(){
-                    // Redirect to dashboard and request tour start
-                    window.location.href = '/home?startTour=1';
+                    // Restart onboarding flow from the dashboard
+                    window.location.href = '/home?onboarding=1&restart=1';
                 });
             });
         </script>

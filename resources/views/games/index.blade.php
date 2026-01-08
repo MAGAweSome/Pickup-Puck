@@ -5,6 +5,17 @@
         $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
     @endphp
     <div class="max-w-6xl mx-auto">
+        @php
+            $isOnboarding = request()->boolean('onboarding');
+        @endphp
+
+        @if($isOnboarding)
+            <div class="mb-6 rounded-lg border border-ice-blue/30 bg-slate-800 p-4">
+                <h1 class="text-xl font-semibold text-ice">Onboarding: Games</h1>
+                <p class="mt-1 text-sm text-slate-300">This list can show demo content so onboarding works even before any games are created.</p>
+            </div>
+        @endif
+
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-bold">Games</h1>
 
@@ -37,6 +48,19 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-700">
+                    @if($isOnboarding && (!isset($games) || $games->isEmpty()))
+                        <tr class="bg-transparent hover:bg-slate-800">
+                            <td class="px-6 py-4 text-sm text-slate-300">Fri, Jan 9 9:30 PM</td>
+                            <td class="px-6 py-4 text-sm text-ice">Example Pickup Game</td>
+                            <td class="px-6 py-4 text-sm text-slate-300">123 Example Arena</td>
+                            <td class="px-6 py-4 text-sm text-slate-300">$20.00</td>
+                            <td class="px-6 py-4 text-sm text-slate-300">—</td>
+                            <td class="px-6 py-4 text-right text-sm">
+                                <a id="onbGameDetailsLink" href="{{ route('onboarding.game-details', ['onboarding' => 1]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
+                            </td>
+                        </tr>
+                    @endif
+
                     @forelse($games as $game)
                         <tr class="bg-transparent hover:bg-slate-800">
                             <td class="px-6 py-4 text-sm text-slate-300">{{ $game->time->format('M d, Y g:i A') }}</td>

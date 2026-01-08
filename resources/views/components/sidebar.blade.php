@@ -98,7 +98,7 @@
                 <i class="fa-solid fa-house text-ice-blue w-4"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+            <a id="sidebarGamesLink" href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
                 <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
                 <span>Games</span>
             </a>

@@ -11,6 +11,7 @@ use App\Http\Controllers\UpdateProfileController;
 use App\Http\Controllers\UserGameHistoryController;
 use App\Http\Controllers\UserListController;
 use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
@@ -59,6 +60,10 @@ Route::middleware('auth')->group(function () {
 
     // Structural pages (sidebar links)
     Route::get('/games', [GameController::class, 'index'])->name('games.index');
+
+    // Onboarding (regular users)
+    Route::get('/onboarding/game-details', [OnboardingController::class, 'gameDetailsDemo'])->name('onboarding.game-details');
+    Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
     Route::get('/payments', function () {
         return view('payments.index');
