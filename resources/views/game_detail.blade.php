@@ -41,16 +41,12 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <!-- <a href="{{ route('games.index') }}" class="px-3 py-1 border border-slate-700 rounded text-slate-200">Back</a> -->
-                        @can('update', $game)
-                            <a href="{{ route('game_edit', ['game' => $game->id]) }}" class="px-3 py-1 bg-slate-700 text-ice rounded">Edit</a>
-                        @endcan
-                        @can('delete', $game)
-                            <form action="{{ route('delete_game', ['game' => $game->id]) }}" method="POST" onsubmit="return confirm('Delete this game?');">
-                                @csrf
-                                <button type="submit" class="px-3 py-1 bg-rose-600 text-white rounded">Delete</button>
-                            </form>
-                        @endcan
+                        @role('admin')
+                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-semibold">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>Edit Game</span>
+                            </a>
+                        @endrole
                     </div>
                 </div>
             </div>
@@ -114,7 +110,10 @@
                 <h4 class="text-sm text-slate-300">Bring a Guest</h4>
                 <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col">
                     @csrf
-                    <input type="text" id="guestName" name="guestName" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice" placeholder="Guest full name" minlength="4" required>
+                    <div class="relative">
+                        <input type="text" id="guestName" name="guestName" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice" placeholder="Guest full name" minlength="4" required>
+                        <div id="guestList" class="hidden absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded shadow-lg max-h-48 overflow-auto"></div>
+                    </div>
                     <select required name="gameRole" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
                         <option value="" selected disabled hidden>Position</option>
                         @foreach ($GAME_ROLES as $gamerole)
@@ -124,7 +123,6 @@
                     </select>
                     <button type="submit" class="w-full mt-2 px-4 py-2 bg-ice-blue text-deep-navy rounded">Add</button>
                     @error('guestName') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
-                    <div id="guestList" class="mt-2"></div>
                 </form>
             </div>
         </aside>
@@ -246,9 +244,18 @@
                                     @endphp
                                     <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
                                         <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
-                                        @if($isCurrentUser)
-                                            <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                        @endif
+                                        <span class="flex items-center gap-2">
+                                            @if($isCurrentUser)
+                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                            @endif
+                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
+                                                <button type="button"
+                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
+                                                    data-member-type="{{ $m['type'] }}"
+                                                    data-member-id="{{ $m['id'] }}"
+                                                    data-target-team="2">Move → Light</button>
+                                            @endif
+                                        </span>
                                     </li>
                                 @empty
                                     <li class="text-slate-400">Teams not generated yet.</li>
@@ -267,9 +274,18 @@
                                     @endphp
                                     <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
                                         <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
-                                        @if($isCurrentUser)
-                                            <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                        @endif
+                                        <span class="flex items-center gap-2">
+                                            @if($isCurrentUser)
+                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                            @endif
+                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
+                                                <button type="button"
+                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
+                                                    data-member-type="{{ $m['type'] }}"
+                                                    data-member-id="{{ $m['id'] }}"
+                                                    data-target-team="1">Move → Dark</button>
+                                            @endif
+                                        </span>
                                     </li>
                                 @empty
                                     <li class="text-slate-400">Teams not generated yet.</li>
@@ -293,8 +309,18 @@
     // Guest search and list (uses existing endpoints)
     $(document).ready(function(){
         $('#guestName').on('keyup', function(){
-            var value = $(this).val();
-            $.ajax({ url: "{{$game->id}}/search", type: "GET", data: {'guestName':value}, success: function(data){ $('#guestList').html(data); } });
+            var value = ($(this).val() || '').trim();
+            if (value.length === 0) {
+                $('#guestList').addClass('hidden').html('');
+                return;
+            }
+            $.ajax({ url: "{{$game->id}}/search", type: "GET", data: {'guestName':value}, success: function(data){
+                if (data && data.trim().length > 0) {
+                    $('#guestList').removeClass('hidden').html(data);
+                } else {
+                    $('#guestList').addClass('hidden').html('');
+                }
+            } });
         });
 
         // Only handle clicks on search result items inside #guestList
@@ -302,7 +328,18 @@
             e.stopPropagation();
             var value = $(this).text().trim();
             $('#guestName').val(value);
-            $('#guestList').html('');
+            $('#guestList').addClass('hidden').html('');
+        });
+
+        // Clicking outside the input/suggestion dropdown closes it
+        $(document).on('click', function(e){
+            const target = e.target;
+            if (!target) return;
+            const isInDropdown = $(target).closest('#guestList').length > 0;
+            const isInInput = $(target).closest('#guestName').length > 0;
+            if (!isInDropdown && !isInInput) {
+                $('#guestList').addClass('hidden');
+            }
         });
     });
 
@@ -435,6 +472,28 @@
                     try { json = await r.json(); } catch (err) { console.warn('non-json response', err); }
                     if (r.ok && json && json.success) return location.reload();
                     const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to remove guest';
+                    alert(msg);
+                }).catch(err => { console.error(err); alert('Request failed'); });
+            return;
+        }
+
+        const adminMoveTeamBtn = e.target.closest ? e.target.closest('.admin-move-team') : null;
+        if (adminMoveTeamBtn) {
+            const memberType = adminMoveTeamBtn.getAttribute('data-member-type');
+            const memberId = adminMoveTeamBtn.getAttribute('data-member-id');
+            const targetTeam = adminMoveTeamBtn.getAttribute('data-target-team');
+            if (!memberType || !memberId || !targetTeam) return alert('Missing data');
+            const body = new URLSearchParams();
+            body.append('_token', '{{ csrf_token() }}');
+            body.append('memberType', memberType);
+            body.append('memberId', memberId);
+            body.append('team', targetTeam);
+            fetch(`/admin/game/{{ $game->id }}/teams/move`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+                .then(async r => {
+                    let json = null;
+                    try { json = await r.json(); } catch (err) { /* ignore */ }
+                    if (r.ok && json && json.success) return location.reload();
+                    const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to move team member';
                     alert(msg);
                 }).catch(err => { console.error(err); alert('Request failed'); });
             return;

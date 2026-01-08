@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
@@ -40,6 +41,11 @@ class Game extends Model
     public function gameTeamsPlayers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'game_teams_players')->withPivot('team');
+    }
+
+    public function teams(): HasMany
+    {
+        return $this->hasMany(GameTeam::class);
     }
 
     protected function players(): Attribute
