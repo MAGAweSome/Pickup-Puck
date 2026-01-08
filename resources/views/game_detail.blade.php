@@ -102,15 +102,34 @@
 
         <!-- Sidebar: quick stats -->
         <aside id="sidebarCol" class="space-y-3 lg:self-stretch lg:flex lg:flex-col lg:gap-4 lg:col-span-1">
-            <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 mb-1">
-                <h4 class="text-sm text-slate-300">Quick Info</h4>
-                <div class="mt-2 text-ice text-sm space-y-2">
-                    <div class="flex justify-between"><span class="text-slate-300">Players</span><span>{{ count($players) + count($guestPlayers) }}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-300">Goalies</span><span>{{ count($goalies) + count($guestGoalies) }}</span></div>
+            <div class="bg-slate-800/80 border border-ice-blue/25 rounded-xl p-4 shadow-lg shadow-black/20 ring-1 ring-white/5">
+                <div class="flex items-center justify-between gap-3">
+                    <h4 class="text-base font-semibold text-ice">Quick Info</h4>
+                    <span class="text-[11px] uppercase tracking-wide text-slate-400">This game</span>
+                </div>
+
+                <div class="mt-3 text-sm">
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-slate-300">Players</span>
+                        <span class="font-semibold text-ice">{{ count($players) + count($guestPlayers) }}</span>
+                    </div>
+                    <div class="h-px bg-slate-700/60"></div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-slate-300">Goalies</span>
+                        <span class="font-semibold text-ice">{{ count($goalies) + count($guestGoalies) }}</span>
+                    </div>
                     @if($showPrice)
-                        <div class="flex justify-between"><span class="text-slate-300">Price</span><span>${{ $game->price }}</span></div>
+                        <div class="h-px bg-slate-700/60"></div>
+                        <div class="flex items-center justify-between py-2">
+                            <span class="text-slate-300">Price</span>
+                            <span class="font-semibold text-ice">${{ $game->price }}</span>
+                        </div>
                     @endif
-                    <div class="flex justify-between"><span class="text-slate-300">Season</span><span>{{ isset($currentSeason) && $currentSeason ? $currentSeason->season_number : '—' }}</span></div>
+                    <div class="h-px bg-slate-700/60"></div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-slate-300">Season</span>
+                        <span class="font-semibold text-ice">{{ isset($currentSeason) && $currentSeason ? $currentSeason->season_number : '—' }}</span>
+                    </div>
                 </div>
             </div>
 

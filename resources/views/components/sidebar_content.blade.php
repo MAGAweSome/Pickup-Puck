@@ -28,6 +28,8 @@
     $upcomingCount = $sidebarUpcomingCount ?? null;
     $nextGamePlayers = 0;
     $nextGameGoalies = 0;
+    $nextGameGuestPlayers = 0;
+    $nextGameGuestGoalies = 0;
     if (is_null($nextGame) && class_exists(Game::class)) {
         try {
             $now = Carbon::now()->setTimezone('America/Toronto');
@@ -38,9 +40,28 @@
         }
     }
     if ($nextGame) {
-        // `players` and `goalies` are attribute accessors returning collections
+        // `players` and `goalies` are attribute accessors returning collections (registered users)
         $nextGamePlayers = is_countable($nextGame->players) ? $nextGame->players->count() : 0;
         $nextGameGoalies = is_countable($nextGame->goalies) ? $nextGame->goalies->count() : 0;
+
+        // Guests (match GameDetailController / Quick Info logic)
+        try {
+            $nextGameGuestPlayers = DB::table('game_players_guests')
+                ->where('game_id', $nextGame->id)
+                ->where('role', 'player')
+                ->count();
+            $nextGameGuestGoalies = DB::table('game_players_guests')
+                ->where('game_id', $nextGame->id)
+                ->where('role', 'goalie')
+                ->count();
+        } catch (\Exception $e) {
+            $nextGameGuestPlayers = 0;
+            $nextGameGuestGoalies = 0;
+        }
+
+        // Total counts (users + guests)
+        $nextGamePlayers += $nextGameGuestPlayers;
+        $nextGameGoalies += $nextGameGuestGoalies;
     }
 @endphp
 

@@ -3,6 +3,8 @@
 @section('content')
     @php
         $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+        $showPrice = auth()->check()
+            && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
     @endphp
     <div class="max-w-6xl mx-auto">
         @php
@@ -16,10 +18,10 @@
             </div>
         @endif
 
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
             <h1 class="text-3xl font-bold">Games</h1>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 sm:justify-end">
                 @if(isset($seasons) && $seasons->count() > 0)
                     <form method="GET" action="{{ route('games.index') }}">
                         <label for="season_select" class="sr-only">Season</label>
@@ -35,75 +37,55 @@
             </div>
         </div>
 
-        <div class="bg-slate-800 border border-slate-700 rounded-lg overflow-visible">
-            <table class="min-w-full divide-y divide-slate-700">
-                <thead class="bg-slate-900">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-sm text-slate-400">Date & Time</th>
-                        <th class="px-6 py-3 text-left text-sm text-slate-400">Title</th>
-                        <th class="px-6 py-3 text-left text-sm text-slate-400">Location</th>
-                        @php
-                            $showPrice = auth()->check()
-                                && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
-                        @endphp
+        {{-- Cards (all screen sizes) --}}
+        <div class="grid gap-4 md:grid-cols-2">
+            @if($isOnboarding && (!isset($games) || $games->isEmpty()))
+                <article class="bg-slate-800 border border-ice-blue/30 rounded-lg p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-lg text-ice font-semibold">Example Pickup Game</h3>
+                            <p class="mt-1 text-sm text-slate-300">Fri, Jan 9 9:30 PM • 123 Example Arena</p>
+                        </div>
                         @if($showPrice)
-                            <th class="px-6 py-3 text-left text-sm text-slate-400">Price</th>
+                            <div class="text-sm text-slate-300 flex-shrink-0">$20.00</div>
                         @endif
-                        <th class="px-6 py-3 text-left text-sm text-slate-400">Score <span class="text-slate-400 text-xs"><br>(Dark - Light)</span></th>
-                        <th class="px-6 py-3 text-right text-sm text-slate-400">{{ $isAdmin ? 'Actions' : 'Details' }}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-700">
-                    @if($isOnboarding && (!isset($games) || $games->isEmpty()))
-                        <tr class="bg-transparent hover:bg-slate-800">
-                            <td class="px-6 py-4 text-sm text-slate-300">Fri, Jan 9 9:30 PM</td>
-                            <td class="px-6 py-4 text-sm text-ice">Example Pickup Game</td>
-                            <td class="px-6 py-4 text-sm text-slate-300">123 Example Arena</td>
-                            <td class="px-6 py-4 text-sm text-slate-300">$20.00</td>
-                            <td class="px-6 py-4 text-sm text-slate-300">—</td>
-                            <td class="px-6 py-4 text-right text-sm">
-                                <a id="onbGameDetailsLink" href="{{ route('onboarding.game-details', ['onboarding' => 1]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
-                            </td>
-                        </tr>
-                    @endif
+                    </div>
 
-                    @forelse($games as $game)
-                        <tr class="bg-transparent hover:bg-slate-800">
-                            <td class="px-6 py-4 text-sm text-slate-300">{{ $game->time->format('M d, Y g:i A') }}</td>
-                            <td class="px-6 py-4 text-sm text-ice">{{ $game->title }}</td>
-                            <td class="px-6 py-4 text-sm text-slate-300">{{ $game->location }}</td>
-                            @if($showPrice)
-                                <td class="px-6 py-4 text-sm text-slate-300">${{ number_format($game->price, 2) }}</td>
+                    <div class="mt-3 flex items-center justify-between">
+                        <div class="text-sm text-slate-300">Score: —</div>
+                        <a id="onbGameDetailsLink" href="{{ route('onboarding.game-details', ['onboarding' => 1]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
+                    </div>
+                </article>
+            @endif
+
+            @forelse($games as $game)
+                <article class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-lg text-ice font-semibold break-words">{{ $game->title }}</h3>
+                            <p class="mt-1 text-sm text-slate-300 break-words">
+                                {{ $game->time->format('M d, Y g:i A') }} • {{ $game->location }}
+                            </p>
+                        </div>
+                        @if($showPrice)
+                            <div class="text-sm text-slate-300 flex-shrink-0">${{ number_format($game->price, 2) }}</div>
+                        @endif
+                    </div>
+
+                    <div class="mt-3 flex flex-col gap-3">
+                        <div class="text-sm text-slate-300">Score: {{ $game->dark_score }} - {{ $game->light_score }}</div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ route('game_detail.game_id', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
+                            @if($isAdmin)
+                                <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-amber-300 hover:text-amber-300 hover:bg-slate-600 no-underline">Edit</a>
+                                <a href="{{ route('delete_game', ['game' => $game->id]) }}" onclick="return confirm('Are you sure you want to delete this game?');" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-rose-400 hover:text-rose-400 hover:bg-slate-600 no-underline">Delete</a>
                             @endif
-                            <td class="px-6 py-4 text-sm text-slate-300">{{ $game->dark_score }} - {{ $game->light_score }}</td>
-                            <td class="px-6 py-4 text-right text-sm">
-                                @if($isAdmin)
-                                    <div x-data="{open:false}" class="relative inline-block">
-                                        <button @click="open = !open" class="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-700 text-slate-200 hover:bg-slate-600">
-                                            Actions
-                                            <svg class="h-4 w-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-
-                                        <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-40 bg-slate-800 border border-slate-700 rounded shadow-lg z-50">
-                                            <a href="{{ route('game_detail.game_id', ['game' => $game->id]) }}" class="block px-3 py-2 text-sm text-ice hover:text-ice hover:bg-slate-700">Details</a>
-                                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="block px-3 py-2 text-sm text-amber-300 hover:text-amber-300 hover:bg-slate-700">Edit</a>
-                                            <a href="{{ route('delete_game', ['game' => $game->id]) }}" onclick="return confirm('Are you sure you want to delete this game?');" class="block px-3 py-2 text-sm text-rose-400 hover:text-rose-400 hover:bg-slate-700">Delete</a>
-                                        </div>
-                                    </div>
-                                @else
-                                    <a href="{{ route('game_detail.game_id', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-slate-300">No games scheduled for this season yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="md:col-span-2 p-4 rounded bg-slate-700 text-slate-200">No games scheduled for this season yet.</div>
+            @endforelse
         </div>
     </div>
 @endsection
