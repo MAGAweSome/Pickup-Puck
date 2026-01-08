@@ -50,7 +50,6 @@ class UserGameHistoryController extends Controller
             'users' => $users,
             'gamesAttending' => $gamesAttending,
             'user' => $user,
-            'goalies' => $goalies
         ]);
     }
 }
