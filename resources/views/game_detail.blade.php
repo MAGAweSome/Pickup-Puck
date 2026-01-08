@@ -219,6 +219,73 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Teams (shown 30 minutes before start) -->
+            <div id="gameTeam" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-ice mb-3">Teams</h3>
+
+                @if(!empty($teamsReady) && $teamsReady)
+                    @if(!empty($currentUserTeam))
+                        <div class="mb-3 text-sm">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/20 px-3 py-1 text-emerald-200">
+                                <span class="font-semibold">You</span>
+                                <span class="text-emerald-200/90">are on</span>
+                                <span class="font-extrabold">{{ $currentUserTeam }}</span>
+                            </span>
+                        </div>
+                    @endif
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900 border border-slate-700 rounded p-3">
+                            <div class="text-sm text-slate-300">Dark</div>
+                            <ul class="mt-2 space-y-1 text-ice">
+                                @forelse(($darkTeamMembers ?? collect()) as $m)
+                                    @php
+                                        $isGoalie = !empty($m['is_goalie']);
+                                        $isEmptyNet = !empty($m['is_empty_net']);
+                                        $isCurrentUser = !empty($m['is_current_user']);
+                                    @endphp
+                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
+                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        @if($isCurrentUser)
+                                            <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                        @endif
+                                    </li>
+                                @empty
+                                    <li class="text-slate-400">Teams not generated yet.</li>
+                                @endforelse
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-700 rounded p-3">
+                            <div class="text-sm text-slate-300">Light</div>
+                            <ul class="mt-2 space-y-1 text-ice">
+                                @forelse(($lightTeamMembers ?? collect()) as $m)
+                                    @php
+                                        $isGoalie = !empty($m['is_goalie']);
+                                        $isEmptyNet = !empty($m['is_empty_net']);
+                                        $isCurrentUser = !empty($m['is_current_user']);
+                                    @endphp
+                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
+                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        @if($isCurrentUser)
+                                            <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                        @endif
+                                    </li>
+                                @empty
+                                    <li class="text-slate-400">Teams not generated yet.</li>
+                                @endforelse
+                            </ul>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-sm text-slate-300">
+                        Teams will be generated 30 minutes before puck drop.
+                        @if(!empty($teamsRevealAt))
+                            <span class="text-slate-400">(Opens at {{ $teamsRevealAt->format('g:i A') }})</span>
+                        @endif
+                    </div>
+                @endif
+            </div>
         
 
 @push('scripts')

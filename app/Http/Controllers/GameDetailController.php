@@ -10,6 +10,8 @@ use App\Models\Games\Game;
 use App\Models\Games\GamePayment;
 use App\Models\Games\GamePlayer;
 use App\Models\Games\GamePlayersGuest;
+use App\Models\Games\GameTeamsPlayer;
+use App\Models\Games\GameTeamsGuest;
 use App\Models\User;
 use App\Models\Guest;
 use Carbon\Carbon;
@@ -48,14 +50,91 @@ class GameDetailController extends Controller
         $users = User::all();
         $guests = Guest::all();
 
-        $currentTime = Carbon::now();
+        $currentTime = Carbon::now()->setTimezone('America/Toronto');
+
+        $teamsRevealAt = $game->time->copy()->subMinutes(30);
+        $teamsReady = $currentTime->greaterThanOrEqualTo($teamsRevealAt);
+
+        $currentUserTeam = null;
+        if (Auth::check() && $teamsReady) {
+            $row = DB::table('game_teams_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', Auth::id())
+                ->first();
+            if ($row && isset($row->team)) {
+                $currentUserTeam = ((int) $row->team) === 1 ? 'Dark' : (((int) $row->team) === 2 ? 'Light' : null);
+            }
+        }
+
+        if ($teamsReady) {
+            $this->ensureTeamsGeneratedWithGoalies($game);
+        }
 
         // return guest records so we have ids and names available for admin actions
         $guestPlayers = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'player')->get();
         $guestGoalies = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->get();
 
-        $lightTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get()->pluck('name');
-        $darkTeamPlayers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get()->pluck('name');
+        $darkTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get();
+        $lightTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get();
+
+        $darkTeamGuests = DB::table('game_teams_guests')
+            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
+            ->where('game_teams_guests.game_id', $game->id)
+            ->where('game_teams_guests.team', 1)
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role']);
+
+        $lightTeamGuests = DB::table('game_teams_guests')
+            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
+            ->where('game_teams_guests.game_id', $game->id)
+            ->where('game_teams_guests.team', 2)
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role']);
+
+        // Goalies are stored as id => name; keep ids for (G) labeling in teams
+        $goalieUserIds = $goalies->keys()->map(fn ($id) => (int) $id)->values()->all();
+
+        $buildOrderedTeamMembers = function ($teamUsers, $teamGuests) use ($goalieUserIds) {
+            $goaliesFirst = collect();
+            $skaters = collect();
+
+            foreach ($teamUsers as $u) {
+                $isGoalie = in_array((int) $u->id, $goalieUserIds, true);
+                $isCurrentUser = Auth::check() && ((int) $u->id === (int) Auth::id());
+                $item = [
+                    'type' => 'user',
+                    'id' => (int) $u->id,
+                    'name' => $u->name,
+                    'is_goalie' => $isGoalie,
+                    'is_empty_net' => false,
+                    'is_current_user' => $isCurrentUser,
+                ];
+                if ($isGoalie) $goaliesFirst->push($item);
+                else $skaters->push($item);
+            }
+
+            foreach ($teamGuests as $g) {
+                $isGoalie = ($g->role === 'goalie');
+                $item = [
+                    'type' => 'guest',
+                    'id' => (int) $g->id,
+                    'name' => $g->name,
+                    'is_goalie' => $isGoalie,
+                    'is_empty_net' => false,
+                    'is_current_user' => false,
+                ];
+                if ($isGoalie) $goaliesFirst->push($item);
+                else $skaters->push($item);
+            }
+
+            if ($goaliesFirst->isEmpty()) {
+                // Always show a goalie slot first, even if it's an Empty Net
+                $goaliesFirst->push(['type' => 'empty', 'id' => null, 'name' => 'Empty Net', 'is_goalie' => true, 'is_empty_net' => true, 'is_current_user' => false]);
+            }
+
+            return $goaliesFirst->concat($skaters)->values();
+        };
+
+        $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
+        $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
 
         $players_attending = array();
 
@@ -85,9 +164,12 @@ class GameDetailController extends Controller
             'guests' => $guests,
             'players_attending' => $players_attending,
             'user_is_a_goalie' => $user_is_a_goalie,
-            'lightTeamPlayers' => $lightTeamPlayers,
-            'darkTeamPlayers' => $darkTeamPlayers,
+            'darkTeamMembers' => $darkTeamMembers,
+            'lightTeamMembers' => $lightTeamMembers,
             'currentTime' => $currentTime,
+            'teamsRevealAt' => $teamsRevealAt,
+            'teamsReady' => $teamsReady,
+            'currentUserTeam' => $currentUserTeam,
             'currentSeason' => $game->season,
             'guestPlayers' => $guestPlayers,
             'guestGoalies' => $guestGoalies
@@ -120,6 +202,174 @@ class GameDetailController extends Controller
         Artisan::call('pp:generate-teams');
 
         return back()->with('success', 'You have successfully generated teams!');
+    }
+
+    private function ensureTeamsGeneratedWithGoalies(Game $game): void
+    {
+        $goalieIds = $game->goalies->pluck('id')->values();
+        $playerIds = $game->players->pluck('id')->values();
+
+        $guestGoalieIds = DB::table('game_players_guests')
+            ->where('game_id', $game->id)
+            ->where('role', 'goalie')
+            ->pluck('id')
+            ->values();
+        $guestPlayerIds = DB::table('game_players_guests')
+            ->where('game_id', $game->id)
+            ->where('role', 'player')
+            ->pluck('id')
+            ->values();
+
+        $allUserIds = $playerIds->merge($goalieIds)->unique()->values();
+        $allGuestIds = $guestPlayerIds->merge($guestGoalieIds)->unique()->values();
+        if ($allUserIds->isEmpty() && $allGuestIds->isEmpty()) {
+            return;
+        }
+
+        DB::transaction(function () use ($game, $goalieIds, $playerIds, $allUserIds, $guestGoalieIds, $guestPlayerIds, $allGuestIds) {
+            $existingUsers = DB::table('game_teams_players')
+                ->where('game_id', $game->id)
+                ->get(['user_id', 'team']);
+            $existingGuests = DB::table('game_teams_guests')
+                ->where('game_id', $game->id)
+                ->get(['guest_id', 'team']);
+
+            if ($existingUsers->isEmpty() && $existingGuests->isEmpty()) {
+                // Fresh generate: randomize all attendees and place one goalie per team when possible
+                $teamUsers = [1 => [], 2 => []];
+                $teamGuests = [1 => [], 2 => []];
+
+                $goaliePool = collect();
+                foreach ($goalieIds->all() as $id) $goaliePool->push(['type' => 'user', 'id' => (int) $id]);
+                foreach ($guestGoalieIds->all() as $id) $goaliePool->push(['type' => 'guest', 'id' => (int) $id]);
+                $goaliePool = $goaliePool->shuffle()->values();
+
+                $assignGoalie = function (int $teamNo, array $goalie) use (&$teamUsers, &$teamGuests) {
+                    if ($goalie['type'] === 'user') $teamUsers[$teamNo][] = $goalie['id'];
+                    else $teamGuests[$teamNo][] = $goalie['id'];
+                };
+
+                if ($goaliePool->count() >= 1) $assignGoalie(1, $goaliePool[0]);
+                if ($goaliePool->count() >= 2) $assignGoalie(2, $goaliePool[1]);
+
+                $skaterPool = collect();
+                foreach ($playerIds->all() as $id) $skaterPool->push(['type' => 'user', 'id' => (int) $id]);
+                foreach ($guestPlayerIds->all() as $id) $skaterPool->push(['type' => 'guest', 'id' => (int) $id]);
+                $skaterPool = $skaterPool->shuffle()->values();
+
+                foreach ($skaterPool as $m) {
+                    $teamNo = (count($teamUsers[1]) + count($teamGuests[1])) <= (count($teamUsers[2]) + count($teamGuests[2])) ? 1 : 2;
+                    if ($m['type'] === 'user') $teamUsers[$teamNo][] = $m['id'];
+                    else $teamGuests[$teamNo][] = $m['id'];
+                }
+
+                foreach ($teamUsers as $teamNo => $ids) {
+                    foreach ($ids as $uid) {
+                        GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => $uid, 'team' => $teamNo]);
+                    }
+                }
+                foreach ($teamGuests as $teamNo => $ids) {
+                    foreach ($ids as $gid) {
+                        GameTeamsGuest::create(['game_id' => $game->id, 'guest_id' => $gid, 'team' => $teamNo]);
+                    }
+                }
+
+                return;
+            }
+
+            $assignedUserIds = $existingUsers->pluck('user_id')->unique();
+            $assignedGuestIds = $existingGuests->pluck('guest_id')->unique();
+            $missingUserIds = $allUserIds->diff($assignedUserIds)->values();
+            $missingGuestIds = $allGuestIds->diff($assignedGuestIds)->values();
+
+            $teamCount = function (int $teamNo) use ($game) {
+                $u = (int) DB::table('game_teams_players')->where('game_id', $game->id)->where('team', $teamNo)->count();
+                $g = (int) DB::table('game_teams_guests')->where('game_id', $game->id)->where('team', $teamNo)->count();
+                return $u + $g;
+            };
+
+            // Rebalance goalies across BOTH user+guest team tables
+            $combinedGoalies = collect();
+            foreach ($goalieIds->all() as $id) $combinedGoalies->push(['type' => 'user', 'id' => (int) $id]);
+            foreach ($guestGoalieIds->all() as $id) $combinedGoalies->push(['type' => 'guest', 'id' => (int) $id]);
+
+            if ($combinedGoalies->count() >= 2) {
+                $team1Goalies = 0;
+                $team2Goalies = 0;
+
+                foreach ($combinedGoalies as $g) {
+                    if ($g['type'] === 'user') {
+                        $row = $existingUsers->firstWhere('user_id', $g['id']);
+                        if ($row && (int) $row->team === 1) $team1Goalies++;
+                        if ($row && (int) $row->team === 2) $team2Goalies++;
+                    } else {
+                        $row = $existingGuests->firstWhere('guest_id', $g['id']);
+                        if ($row && (int) $row->team === 1) $team1Goalies++;
+                        if ($row && (int) $row->team === 2) $team2Goalies++;
+                    }
+                }
+
+                if ($team1Goalies >= 2) {
+                    $toMove = $combinedGoalies->first(function ($g) use ($existingUsers, $existingGuests) {
+                        $row = $g['type'] === 'user' ? $existingUsers->firstWhere('user_id', $g['id']) : $existingGuests->firstWhere('guest_id', $g['id']);
+                        return $row && (int) $row->team === 1;
+                    });
+                    if ($toMove) {
+                        $table = $toMove['type'] === 'user' ? 'game_teams_players' : 'game_teams_guests';
+                        $col = $toMove['type'] === 'user' ? 'user_id' : 'guest_id';
+                        DB::table($table)->where('game_id', $game->id)->where($col, $toMove['id'])->update(['team' => 2]);
+                    }
+                } elseif ($team2Goalies >= 2) {
+                    $toMove = $combinedGoalies->first(function ($g) use ($existingUsers, $existingGuests) {
+                        $row = $g['type'] === 'user' ? $existingUsers->firstWhere('user_id', $g['id']) : $existingGuests->firstWhere('guest_id', $g['id']);
+                        return $row && (int) $row->team === 2;
+                    });
+                    if ($toMove) {
+                        $table = $toMove['type'] === 'user' ? 'game_teams_players' : 'game_teams_guests';
+                        $col = $toMove['type'] === 'user' ? 'user_id' : 'guest_id';
+                        DB::table($table)->where('game_id', $game->id)->where($col, $toMove['id'])->update(['team' => 1]);
+                    }
+                }
+            }
+
+            // Track whether each team already has a goalie (across both users+guests)
+            $teamHasGoalie = [1 => false, 2 => false];
+            foreach ($goalieIds->all() as $uid) {
+                $row = DB::table('game_teams_players')->where('game_id', $game->id)->where('user_id', (int) $uid)->first();
+                if ($row) $teamHasGoalie[(int) $row->team] = true;
+            }
+            foreach ($guestGoalieIds->all() as $gid) {
+                $row = DB::table('game_teams_guests')->where('game_id', $game->id)->where('guest_id', (int) $gid)->first();
+                if ($row) $teamHasGoalie[(int) $row->team] = true;
+            }
+
+            // Add missing goalies first (users, then guests) to fill goalie-less team if possible
+            $missingUserGoalies = $missingUserIds->intersect($goalieIds)->shuffle()->values();
+            foreach ($missingUserGoalies as $uid) {
+                $targetTeam = !$teamHasGoalie[1] ? 1 : (!$teamHasGoalie[2] ? 2 : (($teamCount(1) <= $teamCount(2)) ? 1 : 2));
+                GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
+                $teamHasGoalie[$targetTeam] = true;
+                $missingUserIds = $missingUserIds->diff([(int) $uid])->values();
+            }
+
+            $missingGuestGoalies = $missingGuestIds->intersect($allGuestIds)->intersect($guestGoalieIds)->shuffle()->values();
+            foreach ($missingGuestGoalies as $gid) {
+                $targetTeam = !$teamHasGoalie[1] ? 1 : (!$teamHasGoalie[2] ? 2 : (($teamCount(1) <= $teamCount(2)) ? 1 : 2));
+                GameTeamsGuest::create(['game_id' => $game->id, 'guest_id' => (int) $gid, 'team' => $targetTeam]);
+                $teamHasGoalie[$targetTeam] = true;
+                $missingGuestIds = $missingGuestIds->diff([(int) $gid])->values();
+            }
+
+            // Add remaining missing skaters/attendees to the smaller team
+            foreach ($missingUserIds->shuffle()->values() as $uid) {
+                $targetTeam = $teamCount(1) <= $teamCount(2) ? 1 : 2;
+                GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
+            }
+            foreach ($missingGuestIds->shuffle()->values() as $gid) {
+                $targetTeam = $teamCount(1) <= $teamCount(2) ? 1 : 2;
+                GameTeamsGuest::create(['game_id' => $game->id, 'guest_id' => (int) $gid, 'team' => $targetTeam]);
+            }
+        });
     }
 
     public function updateGuest(UserAcceptGameRequestGuest $request, Game $game) {
