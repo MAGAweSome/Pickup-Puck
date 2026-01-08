@@ -93,35 +93,36 @@
     </div>
 
     <nav class="space-y-2 px-2 pt-4 border-t border-slate-700">
-        <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
-            <i class="fa-solid fa-house text-ice-blue w-4"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
-            <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
-            <span>Games</span>
-        </a>
-        @if(auth()->check() && auth()->user()->hasRole('admin'))
-            <a href="{{ route('user_list') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
-                <i class="fa-solid fa-users text-ice-blue w-4"></i>
-                <span>Players</span>
+        @if(auth()->check())
+            <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                <i class="fa-solid fa-house text-ice-blue w-4"></i>
+                <span>Dashboard</span>
             </a>
-            <!-- <a href="{{ route('payments.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
-                <i class="fa-solid fa-credit-card text-ice-blue w-4"></i>
-                <span>Payments</span>
-            </a> -->
-            <!-- <a href="{{ route('seasons.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 border-transparent shadow-none ring-0">
-                <i class="fa-solid fa-hourglass-half text-ice-blue w-4"></i>
-                <span>Seasons</span>
-            </a> -->
-            <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
-                <i class="fa-solid fa-gear text-ice-blue w-4"></i>
-                <span>Settings</span>
+            <a href="{{ route('games.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
+                <span>Games</span>
+            </a>
+            <a href="{{ route('profile') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                <i class="fa-solid fa-user text-ice-blue w-4"></i>
+                <span>Profile</span>
+            </a>
+
+            @if(auth()->user()->hasRole('admin'))
+                <div class="pt-2 mt-2 border-t border-slate-700"></div>
+                <a href="{{ route('user_list') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                    <i class="fa-solid fa-users text-ice-blue w-4"></i>
+                    <span>Players</span>
+                </a>
+                <a href="{{ route('settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                    <i class="fa-solid fa-gear text-ice-blue w-4"></i>
+                    <span>Settings</span>
+                </a>
+            @endif
+        @else
+            <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
+                <i class="fa-solid fa-right-to-bracket text-ice-blue w-4"></i>
+                <span>Login / Register</span>
             </a>
         @endif
-        <a href="{{ route('profile') }}" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-slate-700 text-slate-100 hover:text-slate-100 border-transparent shadow-none ring-0 no-underline">
-            <i class="fa-solid fa-calendar-days text-ice-blue w-4"></i>
-            <span>Profile</span>
-        </a>
     </nav>
 </aside>

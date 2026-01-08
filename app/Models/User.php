@@ -25,6 +25,7 @@ class User extends Authenticatable // implements MustVerifyEmail
         'email',
         'password',
         'is_admin',
+        'completed_onboarding',
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable // implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'completed_onboarding' => 'boolean',
     ];
 
     public function isAdministrator()

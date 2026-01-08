@@ -7,6 +7,16 @@ body {
     min-height: 100vh;
 }
 
+// Hide browser-provided password controls (Edge/Chromium) so we can use a custom, stylable eye icon.
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none;
+}
+
 // Navbar
 header {
     height: 60px;

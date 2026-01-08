@@ -19,14 +19,14 @@
             </div>
 
             <!-- Login Form -->
-            <form x-show="tab === 'login'" x-cloak method="POST" action="{{ route('login') }}" class="space-y-4">
+            <form x-show="tab === 'login'" x-cloak method="POST" action="{{ route('login') }}" class="space-y-4" x-data="{ showLoginPassword: false }">
                 @csrf
                 <input type="hidden" name="form" value="login">
 
                 <div>
                     <label for="email" class="block text-sm text-gray-100">{{ __('Email Address') }}</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
                     @if(old('form') === 'login')
                         @error('email') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
@@ -34,8 +34,15 @@
 
                 <div>
                     <label for="password" class="block text-sm text-gray-100">{{ __('Password') }}</label>
-                    <input id="password" type="password" name="password" required autocomplete="current-password"
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                    <div class="relative">
+                        <input id="password" type="password" :type="showLoginPassword ? 'text' : 'password'" name="password" required autocomplete="current-password"
+                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+
+                        <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                            <i x-show="!showLoginPassword" x-cloak class="fa-regular fa-eye"></i>
+                            <i x-show="showLoginPassword" x-cloak class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
                     @if(old('form') === 'login')
                         @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
@@ -75,7 +82,7 @@
                 <div>
                     <label for="name" class="block text-sm text-gray-100">{{ __('Name') }}</label>
                     <input id="name" type="text" name="name" x-model="name" @blur="onNameBlur()" required autocomplete="off" autocapitalize="words" spellcheck="false"
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
                         @error('name') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
@@ -85,7 +92,7 @@
                 <div>
                     <label for="reg_email" class="block text-sm text-gray-100">{{ __('Email Address') }}</label>
                     <input id="reg_email" type="email" name="email" x-model="regEmail" @input="onEmailInput()" @blur="checkEmail()" required autocomplete="email" autocapitalize="none"
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
                         @error('email') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
@@ -95,8 +102,15 @@
 
                 <div>
                     <label for="reg_password" class="block text-sm text-gray-100">{{ __('Password') }}</label>
-                    <input id="reg_password" type="password" name="password" x-model="password" @blur="passwordTouched = true" @input="passwordTouched = true" required autocomplete="new-password"
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                    <div class="relative">
+                        <input id="reg_password" type="password" :type="showPassword ? 'text' : 'password'" name="password" x-model="password" @blur="passwordTouched = true" @input="passwordTouched = true" required autocomplete="new-password"
+                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+
+                        <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                            <i x-show="!showPassword" x-cloak class="fa-regular fa-eye"></i>
+                            <i x-show="showPassword" x-cloak class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
                         @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
@@ -105,8 +119,15 @@
 
                 <div>
                     <label for="password-confirm" class="block text-sm text-gray-100">{{ __('Confirm Password') }}</label>
-                    <input id="password-confirm" type="password" name="password_confirmation" x-model="password_confirmation" @input="passwordTouched = true" required autocomplete="new-password"
-                        class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                    <div class="relative">
+                        <input id="password-confirm" type="password" :type="showPasswordConfirmation ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" @input="passwordTouched = true" required autocomplete="new-password"
+                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+
+                        <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                            <i x-show="!showPasswordConfirmation" x-cloak class="fa-regular fa-eye"></i>
+                            <i x-show="showPasswordConfirmation" x-cloak class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
                     <div x-show="password_confirmation.length > 0" x-cloak
                          :class="password === password_confirmation ? 'text-green-400' : 'text-red-400'"
                          class="text-sm mt-1"
@@ -131,6 +152,8 @@
             regEmail: initialEmail || '',
             password: '',
             password_confirmation: '',
+            showPassword: false,
+            showPasswordConfirmation: false,
             nameBlurred: false,
             passwordTouched: false,
             emailChecking: false,
