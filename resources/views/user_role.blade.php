@@ -3,21 +3,20 @@
 @section('content')
 
     <div class="max-w-3xl mx-auto">
-        <div class="flex items-start justify-between gap-4">
-            <div>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 w-full text-center sm:text-left">
                 <h1 class="text-3xl font-extrabold text-white">
                     {{ $user->name }}@if(substr($user->name, -1) != 's')'s @endif Profile
                 </h1>
                 <p class="mt-2 text-sm text-white/70">
-                    Admin view of this player's account settings.
-                    <span class="text-white/80">User #{{ $user->id }}</span>
-                    · <span class="text-white/80">{{ $user->email }}</span>
+                    <span class="block">Admin view of this player's account settings.</span>
+                    <span class="block text-white/80">User #{{ $user->id }} · {{ $user->email }}</span>
                 </p>
             </div>
 
-            <div class="flex items-center gap-3">
-                <a href="{{ route('user_list') }}" class="inline-flex items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition">All Users</a>
-                <a href="{{ route('user_game_history', ['user' => $user->id]) }}" class="inline-flex items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition">Game History</a>
+            <div class="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
+                <a href="{{ route('user_list') }}" class="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition sm:flex-none">All Users</a>
+                <a href="{{ route('user_game_history', ['user' => $user->id]) }}" class="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-800/60 ring-1 ring-white/10 px-3 py-2 text-sm font-semibold text-ice hover:text-ice hover:bg-slate-700/60 transition sm:flex-none">Game History</a>
             </div>
         </div>
 
@@ -94,7 +93,7 @@
                             @if (old('adminCheck', $user->hasRole('admin') ? '1' : null)) checked @endif
                         />
                         <span class="text-sm font-semibold text-white">Admin</span>
-                        <span class="text-xs text-white/60">(Grants access to admin pages)</span>
+                        <span class="text-xs text-white/60">(Grants Admin Privileges)</span>
                     </label>
                 </div>
 

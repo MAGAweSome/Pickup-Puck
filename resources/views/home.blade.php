@@ -102,25 +102,25 @@
                 <div class="grid gap-4 md:grid-cols-2">
                     @foreach ($pastGames as $game)
                         <article class="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:ring-1 hover:ring-slate-600 transition-shadow duration-150 w-full {{ $isSinglePast ? 'md:col-span-2' : '' }}">
-                            <div class="flex items-center justify-between gap-4">
-                                <h4 class="text-lg text-ice font-semibold truncate">{{$game->title}}</h4>
+                            <div class="flex items-start justify-between gap-3">
+                                <h4 class="min-w-0 flex-1 text-xl text-ice font-semibold leading-tight break-words">{{$game->title}}</h4>
 
                                 <div class="flex-shrink-0">
                                     @role('admin')
-                                    <button type="button" class="inline-flex items-center rounded-full bg-slate-700/40 ring-1 ring-slate-600 px-4 py-2 gap-6 score-pill" data-game-id="{{$game->id}}">
+                                    <button type="button" class="inline-flex items-center rounded-full bg-slate-700/40 ring-1 ring-slate-600 px-2.5 py-1 gap-3 sm:px-4 sm:py-2 sm:gap-6 score-pill" data-game-id="{{$game->id}}">
                                     @else
-                                    <div class="inline-flex items-center rounded-full bg-slate-700/40 ring-1 ring-slate-600 px-4 py-2 gap-6">
+                                    <div class="inline-flex items-center rounded-full bg-slate-700/40 ring-1 ring-slate-600 px-2.5 py-1 gap-3 sm:px-4 sm:py-2 sm:gap-6">
                                     @endrole
-                                        <div class="flex flex-col items-center">
-                                            <span class="text-xs text-slate-300 underline">Dark</span>
-                                            <span class="text-lg font-semibold text-ice" data-score-part="dark">{{$game->dark_score}}</span>
+                                        <div class="flex items-baseline gap-1 sm:flex-col sm:items-center sm:gap-0">
+                                            <span class="text-xs text-slate-300 sm:underline">Dark:</span>
+                                            <span class="text-base font-semibold text-ice sm:text-lg" data-score-part="dark">{{$game->dark_score}}</span>
                                         </div>
 
-                                        <div class="w-px h-8 bg-slate-600/50" aria-hidden="true"></div>
+                                        <div class="w-px h-4 bg-slate-600/50 sm:h-8" aria-hidden="true"></div>
 
-                                        <div class="flex flex-col items-center">
-                                            <span class="text-xs text-slate-300 underline">Light</span>
-                                            <span class="text-lg font-semibold text-ice" data-score-part="light">{{$game->light_score}}</span>
+                                        <div class="flex items-baseline gap-1 sm:flex-col sm:items-center sm:gap-0">
+                                            <span class="text-xs text-slate-300 sm:underline">Light:</span>
+                                            <span class="text-base font-semibold text-ice sm:text-lg" data-score-part="light">{{$game->light_score}}</span>
                                         </div>
                                     @role('admin')
                                     </button>
@@ -130,12 +130,13 @@
                                 </div>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm text-slate-300">
-                                <div class="flex items-center gap-3">
-                                    <div class="truncate">{{$game->game_time}}</div>
+                            <div class="mt-3 flex flex-col gap-2 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="min-w-0">
+                                    <div class="break-words">{{$game->game_time}}</div>
+                                    <div class="mt-1 text-xs text-slate-300 sm:hidden">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
                                 </div>
 
-                                <div class="flex items-center gap-2">
+                                <div class="hidden sm:flex items-center gap-2">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs">{{$game->players->count()}} Players</span>
                                     <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs">{{$game->goalies->count()}} Goalies</span>
                                 </div>
