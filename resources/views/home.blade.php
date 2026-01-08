@@ -105,14 +105,14 @@
                                     @endrole
                                         <div class="flex flex-col items-center">
                                             <span class="text-xs text-slate-300 underline">Dark</span>
-                                            <span class="text-lg font-semibold text-ice">{{$game->dark_score}}</span>
+                                            <span class="text-lg font-semibold text-ice" data-score-part="dark">{{$game->dark_score}}</span>
                                         </div>
 
                                         <div class="w-px h-8 bg-slate-600/50" aria-hidden="true"></div>
 
                                         <div class="flex flex-col items-center">
                                             <span class="text-xs text-slate-300 underline">Light</span>
-                                            <span class="text-lg font-semibold text-ice">{{$game->light_score}}</span>
+                                            <span class="text-lg font-semibold text-ice" data-score-part="light">{{$game->light_score}}</span>
                                         </div>
                                     @role('admin')
                                     </button>
@@ -232,8 +232,8 @@
                     e.preventDefault();
                     const gameId = btn.getAttribute('data-game-id');
                     // find current scores from the pill
-                    const dark = btn.querySelector('div:first-child span:nth-child(2)')?.textContent.trim() || '0';
-                    const light = btn.querySelector('div:last-child span:nth-child(2)')?.textContent.trim() || '0';
+                    const dark = btn.querySelector('[data-score-part="dark"]')?.textContent.trim() || '0';
+                    const light = btn.querySelector('[data-score-part="light"]')?.textContent.trim() || '0';
                     openModal(gameId, dark, light);
                 }
             });
@@ -286,8 +286,8 @@
                     // update pill UI with new values
                     const pill = document.querySelector(`.score-pill[data-game-id="${gameId}"]`);
                     if (pill) {
-                        const darkEl = pill.querySelector('div:first-child span:nth-child(2)');
-                        const lightEl = pill.querySelector('div:last-child span:nth-child(2)');
+                        const darkEl = pill.querySelector('[data-score-part="dark"]');
+                        const lightEl = pill.querySelector('[data-score-part="light"]');
                         if (darkEl) darkEl.textContent = data.dark_score;
                         if (lightEl) lightEl.textContent = data.light_score;
                     }
