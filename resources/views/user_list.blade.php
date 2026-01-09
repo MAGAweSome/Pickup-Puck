@@ -5,7 +5,7 @@
     <div>
         <h1 class="text-2xl font-semibold text-ice mb-4">Player List</h1>
 
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             @foreach($users as $user)
                 <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                     <div class="flex items-center justify-between">
@@ -35,7 +35,7 @@
             @if(!isset($guests) || $guests->isEmpty())
                 <div class="p-4 rounded bg-slate-700 text-slate-200">There are no guests yet.</div>
             @else
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                     @foreach($guests as $guest)
                         <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                             <div class="flex items-center justify-between">

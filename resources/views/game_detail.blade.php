@@ -162,7 +162,7 @@
                         <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
                         <span class="text-sm text-slate-300">{{ isset($notAttendingUsers) ? $notAttendingUsers->count() : 0 }}</span>
                     </div>
-                    <p class="mt-1 text-sm text-slate-300">Add a player to this game (admin only).</p>
+                    <p class="mt-1 text-sm text-slate-300">Add a player to this game.</p>
 
                     @if(!isset($notAttendingUsers) || $notAttendingUsers->isEmpty())
                         <div class="mt-3 text-slate-400 text-sm">Everyone is already attending.</div>
@@ -203,15 +203,16 @@
             <!-- Roster -->
             <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                 <h3 class="text-lg font-semibold text-ice mb-3">Roster</h3>
-                <div class="grid md:grid-cols-2 gap-4">
+                @php
+                    // total goalie count includes both user goalies and guest goalies
+                    $totalGoalies = count($goalies) + count($guestGoalies);
+                @endphp
+
+                <div class="space-y-6">
                     <div>
                         <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
-                        @php
-                            // total goalie count includes both user goalies and guest goalies
-                            $totalGoalies = count($goalies) + count($guestGoalies);
-                        @endphp
 
-                        <ul class="space-y-2">
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             @foreach($goalies as $goalie_id => $goalie_name)
                                 <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $goalie_id }}">
                                     <span class="text-ice">{{ $goalie_name }}</span>
@@ -250,7 +251,7 @@
 
                     <div>
                         <h4 class="text-sm text-slate-300 mb-2">Players</h4>
-                        <ul class="space-y-2">
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                             @foreach($players as $player_id => $player_name)
                                 <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $player_id }}">
                                     <span class="text-ice">{{ $player_name }}</span>
@@ -311,21 +312,29 @@
                                         $isGoalie = !empty($m['is_goalie']);
                                         $isEmptyNet = !empty($m['is_empty_net']);
                                         $isCurrentUser = !empty($m['is_current_user']);
+                                        $canAdminMove = auth()->check()
+                                            && auth()->user()->hasRole('admin')
+                                            && empty($m['is_empty_net'])
+                                            && !empty($m['type'])
+                                            && in_array($m['type'], ['user','guest'])
+                                            && !empty($m['id']);
                                     @endphp
-                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
-                                        <span class="flex items-center gap-2">
-                                            @if($isCurrentUser)
-                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                            @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <button type="button"
-                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
-                                                    data-member-type="{{ $m['type'] }}"
-                                                    data-member-id="{{ $m['id'] }}"
-                                                    data-target-team="2">Move → Light</button>
-                                            @endif
-                                        </span>
+                                    <li class="rounded px-2 py-1 border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
+                                        <span class="break-words">{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        @if($isCurrentUser || $canAdminMove)
+                                            <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                                @if($isCurrentUser)
+                                                    <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                                @endif
+                                                @if($canAdminMove)
+                                                    <button type="button"
+                                                        class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
+                                                        data-member-type="{{ $m['type'] }}"
+                                                        data-member-id="{{ $m['id'] }}"
+                                                        data-target-team="2">Move → Light</button>
+                                                @endif
+                                            </span>
+                                        @endif
                                     </li>
                                 @empty
                                     <li class="text-slate-400">Teams not generated yet.</li>
@@ -341,21 +350,29 @@
                                         $isGoalie = !empty($m['is_goalie']);
                                         $isEmptyNet = !empty($m['is_empty_net']);
                                         $isCurrentUser = !empty($m['is_current_user']);
+                                        $canAdminMove = auth()->check()
+                                            && auth()->user()->hasRole('admin')
+                                            && empty($m['is_empty_net'])
+                                            && !empty($m['type'])
+                                            && in_array($m['type'], ['user','guest'])
+                                            && !empty($m['id']);
                                     @endphp
-                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
-                                        <span class="flex items-center gap-2">
-                                            @if($isCurrentUser)
-                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                            @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <button type="button"
-                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
-                                                    data-member-type="{{ $m['type'] }}"
-                                                    data-member-id="{{ $m['id'] }}"
-                                                    data-target-team="1">Move → Dark</button>
-                                            @endif
-                                        </span>
+                                    <li class="rounded px-2 py-1 border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
+                                        <span class="break-words">{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        @if($isCurrentUser || $canAdminMove)
+                                            <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                                @if($isCurrentUser)
+                                                    <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
+                                                @endif
+                                                @if($canAdminMove)
+                                                    <button type="button"
+                                                        class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
+                                                        data-member-type="{{ $m['type'] }}"
+                                                        data-member-id="{{ $m['id'] }}"
+                                                        data-target-team="1">Move → Dark</button>
+                                                @endif
+                                            </span>
+                                        @endif
                                     </li>
                                 @empty
                                     <li class="text-slate-400">Teams not generated yet.</li>
