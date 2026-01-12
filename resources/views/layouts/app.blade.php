@@ -61,7 +61,7 @@
     <!-- Mobile/Tablet Sidebar Drawer -->
     <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 lg:hidden" aria-hidden="true">
         <div class="absolute inset-0 bg-black/60" @click="sidebarOpen = false"></div>
-        <aside class="absolute left-0 top-[var(--nav-height)] h-[calc(100vh-var(--nav-height))] w-72 max-w-[85vw] bg-slate-800 text-ice border-r border-slate-700 overflow-y-auto p-4"
+        <aside class="absolute left-0 top-[var(--nav-height)] h-[calc(100dvh-var(--nav-height))] w-72 max-w-[85vw] bg-slate-800 text-ice border-r border-slate-700 overflow-y-auto p-4"
               @click.stop
               x-transition:enter="transition ease-out duration-200"
               x-transition:enter-start="-translate-x-full"
@@ -83,7 +83,7 @@
         </aside>
     </div>
 
-    <div class="flex h-[calc(100vh-var(--nav-height))] mt-[var(--nav-height)]">
+    <div class="flex h-[calc(100dvh-var(--nav-height))] mt-[var(--nav-height)]">
         @include('components.sidebar')
 
         <main class="flex-1 overflow-y-auto bg-deep-navy">
