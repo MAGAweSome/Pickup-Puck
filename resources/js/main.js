@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const tour = introJs();
         tour.setOptions({
             steps: steps,
-            showProgress: true,
+            showProgress: false,
             scrollToElement: true,
             tooltipClass: 'pp-intro',
             exitOnOverlayClick: false,
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // 2) Games -> Profile
+    // 2) Games -> Demo Game Details
     if (path === '/games') {
         const detailsLink = document.querySelector('#onbGameDetailsLink');
         const steps = [
@@ -97,23 +97,11 @@ document.addEventListener('DOMContentLoaded', function () {
             { element: detailsLink || document.querySelector('table'), title: 'Open details', intro: 'Use “Details” to view a game, accept, and manage guests.' },
         ].filter(s => !s.element || s.element);
 
-        startTour(steps, withOnboarding('/profile'));
-        return;
-    }
-
-    // 3) Profile -> Demo Game Details
-    if (path === '/profile') {
-        const steps = [
-            { title: 'Your profile', intro: 'Set your default position and keep your account info current.' },
-            { element: document.querySelector('#playerDesiredRole'), title: 'Default position', intro: 'This will pre-select your role when you accept games.' },
-            { element: document.querySelector('#updateProfile'), title: 'Update', intro: 'Save changes any time.' },
-        ].filter(s => !s.element || s.element);
-
         startTour(steps, withOnboarding('/onboarding/game-details'));
         return;
     }
 
-    // 4) Demo Game Details -> user clicks Finish button (server marks completion)
+    // 3) Demo Game Details -> user clicks Finish button (server marks completion)
     if (path === '/onboarding/game-details') {
         const steps = [
             { title: 'Game details', intro: 'Here’s what you’ll see when you open a game.' },
@@ -128,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const tour = introJs();
         tour.setOptions({
             steps: steps,
-            showProgress: true,
+            showProgress: false,
             scrollToElement: true,
             tooltipClass: 'pp-intro',
             exitOnOverlayClick: false,
