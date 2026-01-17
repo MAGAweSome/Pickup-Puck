@@ -59,32 +59,36 @@
 
                 <div class="grid gap-4 md:grid-cols-2">
                     @foreach ($upcomingGames as $game)
-                        <article class="bg-slate-800 border border-slate-700 rounded-lg p-4 w-full {{ $isSingleUpcoming ? 'md:col-span-2' : '' }}">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
-                                    <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
+                        <article class="bg-slate-800 border border-slate-700 rounded-lg w-full {{ $isSingleUpcoming ? 'md:col-span-2' : '' }} relative">
+                            <!-- Mobile/Tablet: Full card link -->
+                            <a href="/game/{{$game->id}}" class="block p-4 lg:pointer-events-none">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
+                                        <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
+                                    </div>
+                                    <div class="text-right space-y-1 text-center">
+                                        @if(in_array($game->id, $gamesAttending))
+                                            @include('components.badge', ['status' => 'Attending'])
+                                        @else
+                                            @include('components.badge', ['status' => 'Not Yet Attending'])
+                                        @endif
+                                        @php
+                                            $showPrice = auth()->check()
+                                                && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
+                                        @endphp
+                                        @if($showPrice)
+                                            <div class="text-sm text-slate-300">${{ $game->price }}</div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="text-right space-y-1 text-center">
-                                    @if(in_array($game->id, $gamesAttending))
-                                        @include('components.badge', ['status' => 'Attending'])
-                                    @else
-                                        @include('components.badge', ['status' => 'Not Yet Attending'])
-                                    @endif
-                                    @php
-                                        $showPrice = auth()->check()
-                                            && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
-                                    @endphp
-                                    @if($showPrice)
-                                        <div class="text-sm text-slate-300">${{ $game->price }}</div>
-                                    @endif
-                                </div>
-                            </div>
 
-                            <div class="mt-4 flex items-center justify-between">
-                                <div class="text-sm text-slate-300">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
-                                <a href="/game/{{$game->id}}" class="px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded">See details</a>
-                            </div>
+                                <div class="mt-4 flex items-center justify-between">
+                                    <div class="text-sm text-slate-300">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
+                                </div>
+                            </a>
+                            <!-- Desktop: See details button -->
+                            <a href="/game/{{$game->id}}" class="hidden lg:block absolute bottom-4 right-4 px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded pointer-events-auto z-10">See details</a>
                         </article>
                     @endforeach
                 </div>
