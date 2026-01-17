@@ -196,6 +196,17 @@ class GameDetailController extends Controller
 
     public function update(UserAcceptGameRequest $request, Game $game) {
         $role = $request->input('gameRole');
+        $userId = $request->user()->id;
+
+        // Check if user is already signed up for this game
+        $alreadySignedUp = DB::table('game_players')
+            ->where('game_id', $game->id)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if ($alreadySignedUp) {
+            return back()->withErrors(['gameRole' => 'You are already signed up for this game. Remove yourself first if you want to change your role.']);
+        }
 
         // Enforce max 2 goalies per game
         if ($role === 'goalie') {
@@ -208,7 +219,7 @@ class GameDetailController extends Controller
         }
 
         GamePlayer::create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'game_id' => $game->id,
             'role' => $role
         ]);
