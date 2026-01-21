@@ -6,6 +6,8 @@
     } elseif(strtolower($status) === 'attending') {
         // Show attending as a green pill with green text (preserve badge shape)
         $classes .= ' bg-slate-700 border border-green-400 text-green-400';
+    } elseif(strtolower($status) === 'not attending' || strtolower($status) === 'not_attending') {
+        $classes .= ' bg-red-600 text-white';
     } elseif(strtolower($status) === 'overdue' || strtolower($status) === 'not paid') {
         $classes .= ' bg-red-600 text-white';
     } else {

@@ -70,6 +70,8 @@
                                     <div class="text-right space-y-1 text-center">
                                         @if(in_array($game->id, $gamesAttending))
                                             @include('components.badge', ['status' => 'Attending'])
+                                        @elseif(isset($gamesDeclined) && in_array($game->id, $gamesDeclined))
+                                            @include('components.badge', ['status' => 'Not Attending'])
                                         @else
                                             @include('components.badge', ['status' => 'Not Yet Attending'])
                                         @endif

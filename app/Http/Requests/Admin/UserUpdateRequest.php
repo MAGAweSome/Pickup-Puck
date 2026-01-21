@@ -40,6 +40,12 @@ class UserUpdateRequest extends FormRequest
                 'nullable',
                 new Enum(GameRoles::class)
             ],
+            'level' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:5'
+            ],
         ];
     }
 }

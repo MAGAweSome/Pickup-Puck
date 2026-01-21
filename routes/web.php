@@ -91,6 +91,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/game/{game}', [GameDetailController::class, 'index'])->name('game_detail.game_id');
     Route::get('/game/{game}/search', [GameDetailController::class, 'searchGuestList'])->name('game_detail_search_guest.game_id');
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
+    Route::post('/game/{game}/cannot-attend', [GameDetailController::class, 'cannotAttend'])->name('game_detail_cannot_attend');
+    // Allow a user to remove themselves from a game
+    Route::post('/game/{game}/remove', [GameDetailController::class, 'removeSelf'])->name('game_remove_self');
     Route::post('/game/{game}/name/role', [GameDetailController::class, 'updateGuest'])->name('game_detail_update_guest.game_id');
     Route::post('/admin/game/{game}/{user_id}/role', [GameDetailController::class, 'adminUpdate'])
         ->middleware(['role:admin'])
@@ -106,6 +109,9 @@ Route::middleware('auth')->group(function () {
         ->middleware(['role:admin'])
         ->name('admin_game_detail_pay.game_id.player_id');
     Route::get('/game/{game}/generateTeams', [GameDetailController::class, 'generateTeams'])->name('game_detail_generateTeams.game_id');
+        Route::post('/game/{game}/teams/remove-assignment', [GameDetailController::class, 'adminRemoveTeamAssignment'])
+            ->middleware(['role:admin'])
+            ->name('admin_game_team_remove_assignment');
     // Admin guest management (admin can change guest role or remove guest)
     Route::post('/admin/game/{game}/guest/{guest_id}/role', [GameDetailController::class, 'adminUpdateGuest'])
         ->middleware(['role:admin'])

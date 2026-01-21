@@ -36,6 +36,10 @@ class UserRoleController extends Controller
             $user->role_preference = $request['gameRole'];
         }
 
+        if ($request->filled('level')) {
+            $user->level = (int) $request['level'];
+        }
+
         if (isset($_POST['adminCheck'])){
             $user->assignRole('admin');
         }else{

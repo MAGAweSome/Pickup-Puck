@@ -20,5 +20,6 @@ class GamePlayersGuest extends Model
         'name',
         'game_id',
         'role',
+        'level',
     ];
 }

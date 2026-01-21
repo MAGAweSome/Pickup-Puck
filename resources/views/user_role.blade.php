@@ -82,6 +82,30 @@
                     @enderror
                 </div>
 
+                <div>
+                    <label for="level" class="block text-sm font-semibold text-white">Player Level</label>
+                    <select
+                        id="level"
+                        name="level"
+                        class="mt-2 w-full rounded-xl bg-deep-navy/70 border border-white/10 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-ice-blue/60"
+                    >
+                        @php
+                            $levelDescriptions = [
+                                1 => 'Beginner / low rec',
+                                2 => 'Recreational',
+                                3 => 'Intermediate / competitive',
+                                4 => 'Advanced / high skill',
+                            ];
+                        @endphp
+                        @for ($i = 1; $i <= 4; $i++)
+                            <option value="{{ $i }}" {{ (int) old('level', $user->level ?? 3) === $i ? 'selected' : '' }}>{{ $i }} - {{ $levelDescriptions[$i] }}</option>
+                        @endfor
+                    </select>
+                    @error('level')
+                        <div class="text-red-300 text-sm mt-2">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="pt-2">
                     <label class="flex items-center gap-3 select-none">
                         <input

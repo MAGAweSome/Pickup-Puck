@@ -3,9 +3,37 @@
 @section('content')
 
 <div class="max-w-5xl mx-auto px-4 py-6">
+    <style>
+        /* Control map sizing responsively to avoid it growing too tall on narrow screens */
+        #mapWrap { min-height: 360px; }
+        #mapWrap iframe { width:100%; height:auto; min-height:360px; display:block; }
+        @media (min-width: 1024px) {
+            /* desktop: keep taller map but bounded */
+            #mapWrap { min-height: 640px; max-height: 900px; }
+            /* make the iframe fill the mapWrap height on desktop so the dark footer area is the iframe background */
+            #mapWrap iframe { height: 100%; }
+        }
+        @media (max-width: 1023px) {
+            /* smaller screens: increase min-height to reduce gap under the Map location footer */
+            /* ensure the iframe itself has a min-height so it fills the container */
+            #mapWrap { min-height: 560px; max-height: 760px; }
+            #mapWrap iframe { min-height: 560px; }
+        }
+        @media (max-width: 425px) {
+            /* Stack header action buttons (Edit / Remove) on very small phones */
+            .game-actions { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .game-actions a, .game-actions form { width: 100%; }
+            .game-actions .inline-flex, .game-actions button { width: 100%; }
+        }
+    </style>
     @php
         // global total goalies used by forms and admin buttons
         $totalGoalies = (isset($goalies) ? count($goalies) : 0) + (isset($guestGoalies) ? count($guestGoalies) : 0);
+        // whether the current user has marked 'cannot attend' for this game
+        $meCannotAttend = false;
+        if (auth()->check() && isset($cannotAttendingUsers)) {
+            $meCannotAttend = $cannotAttendingUsers->contains('id', auth()->id());
+        }
     @endphp
     @if(Session::has('success'))
         <div class="mb-4 p-3 rounded bg-emerald-600 text-white">{{ Session::get('success') }}</div>
@@ -46,13 +74,25 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 game-actions">
                         @role('admin')
                             <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-semibold">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span>Edit Game</span>
                             </a>
                         @endrole
+
+                        {{-- Non-admin attendees can remove themselves from the game. If the user marked cannot-attend, show non-clickable status. --}}
+                        @if(auth()->check())
+                            @if(!empty($user_registered) && $user_registered)
+                                <form method="POST" action="{{ route('game_remove_self', ['game' => $game->id]) }}">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded font-semibold">Remove Myself</button>
+                                </form>
+                            @elseif(!empty($meCannotAttend) && $meCannotAttend)
+                                <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded font-semibold">Not Attending</span>
+                            @endif
+                        @endif
                     </div>
                 </div>
             </div>
@@ -61,7 +101,7 @@
         <div class="lg:col-span-2 space-y-4">
             <div class="rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
                 <div id="mapWrap" class="w-full flex flex-col">
-                    <iframe id="gameMap" src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{ urlencode($game->location) }}&amp;z=14&amp;output=embed" class="w-full flex-1" frameborder="0" marginheight="0" marginwidth="0" loading="lazy"></iframe>
+                    <iframe id="gameMap" src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{ urlencode($game->location) }}&amp;z=14&amp;output=embed" class="w-full" frameborder="0" marginheight="0" marginwidth="0" loading="lazy"></iframe>
 
                     <div class="p-3 flex items-center justify-between">
                         <div class="text-sm text-slate-300">Map location</div>
@@ -74,24 +114,42 @@
             </div>
 
             <!-- Accept / Guest forms -->
-            <div class="grid md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 @if($user_registered == false)
                     <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <h3 class="text-lg font-semibold text-ice mb-2">Accept Game</h3>
-                        <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST">
-                            @csrf
-                            <div class="flex gap-2">
-                                <select required name="gameRole" id="gameRole" class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
-                                    <option value="" selected disabled hidden>Please Select</option>
-                                        @foreach ($GAME_ROLES as $gamerole)
-                                            @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
-                                            <option value="{{ $gamerole }}" {{ $gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference) ? 'selected' : '' }} @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>{{ $gamerole->name }}</option>
-                                        @endforeach
-                                </select>
-                                <button class="px-4 py-2 bg-ice-blue text-deep-navy rounded" type="submit" id="accept_game_submit_button" name="game">Accept</button>
-                            </div>
-                            @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
-                        </form>
+                        <div class="flex flex-wrap gap-2 items-center accept-controls">
+                            <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST" class="flex-1 min-w-0">
+                                @csrf
+                                <div class="flex gap-2">
+                                    <select required name="gameRole" id="gameRole" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
+                                        <option value="" selected disabled hidden>Please Select</option>
+                                            @foreach ($GAME_ROLES as $gamerole)
+                                                @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
+                                                <option value="{{ $gamerole }}" {{ $gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference) ? 'selected' : '' }} @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>{{ $gamerole->name }}</option>
+                                            @endforeach
+                                    </select>
+                                    <button class="px-4 py-2 bg-ice-blue text-deep-navy rounded whitespace-nowrap" type="submit" id="accept_game_submit_button" name="game">Accept</button>
+                                </div>
+                                @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
+                            </form>
+
+                            <form action="{{ route('game_detail_cannot_attend', ['game' => $game->id]) }}" method="POST" class="shrink-0">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-rose-600 text-white rounded whitespace-nowrap">Cannot Attend</button>
+                            </form>
+                    <style>
+                        @media (max-width: 560px) {
+                            /* Stack Accept Game controls vertically on very small screens */
+                            .accept-controls { flex-direction: column; align-items: stretch; }
+                            .accept-controls > form { width: 100%; }
+                            .accept-controls > form .flex { flex-direction: column; gap: 0.5rem; }
+                            .accept-controls select { width: 100%; }
+                            .accept-controls button { width: 100%; }
+                            .accept-controls .shrink-0 { width: 100%; }
+                        }
+                    </style>
+                        </div>
                     </div>
                 @endif
 
@@ -133,7 +191,7 @@
                 </div>
             </div>
 
-            <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+            <div id="bringGuestCard" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                 <h4 class="text-sm text-slate-300">Bring a Guest</h4>
                 <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col">
                     @csrf
@@ -148,6 +206,20 @@
                             <option value="{{ $gamerole }}" {{ $gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference) ? 'selected' : '' }} @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>{{ $gamerole->name }}</option>
                         @endforeach
                     </select>
+                    <label for="level" class="block text-sm font-semibold text-slate-300 mt-3">Guest Level</label>
+                    @php
+                        $levelDescriptions = [
+                            1 => 'Beginner / low rec',
+                            2 => 'Recreational',
+                            3 => 'Intermediate / competitive',
+                            4 => 'Advanced / high skill',
+                        ];
+                    @endphp
+                    <select name="level" id="level" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
+                        @for ($i = 1; $i <= 4; $i++)
+                            <option value="{{ $i }}" {{ (int) old('level', 2) === $i ? 'selected' : '' }}>{{ $i }} - {{ $levelDescriptions[$i] }}</option>
+                        @endfor
+                    </select>
                     <button type="submit" class="w-full mt-2 px-4 py-2 bg-ice-blue text-deep-navy rounded">Add</button>
                     @error('guestName') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
                 </form>
@@ -155,18 +227,16 @@
         </aside>
 
         @role('admin')
-            <!-- Not Yet Attending (admin only) -->
-            <div class="lg:col-span-3">
-                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
-                        <span class="text-sm text-slate-300">{{ isset($notAttendingUsers) ? $notAttendingUsers->count() : 0 }}</span>
-                    </div>
-                    <p class="mt-1 text-sm text-slate-300">Add a player to this game (admin only).</p>
+            @if(isset($notAttendingUsers) && $notAttendingUsers->isNotEmpty())
+                <!-- Not Yet Attending (admin only) -->
+                <div class="lg:col-span-3">
+                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
+                            <span class="text-sm text-slate-300">{{ $notAttendingUsers->count() }}</span>
+                        </div>
+                        <p class="mt-1 text-sm text-slate-300">Add a player to this game (admin only).</p>
 
-                    @if(!isset($notAttendingUsers) || $notAttendingUsers->isEmpty())
-                        <div class="mt-3 text-slate-400 text-sm">Everyone is already attending.</div>
-                    @else
                         <div class="mt-3 max-h-72 overflow-auto rounded border border-slate-700 bg-slate-900">
                             <ul class="divide-y divide-slate-800">
                                 @foreach($notAttendingUsers as $u)
@@ -193,9 +263,36 @@
                             </ul>
                         </div>
                         @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
-                    @endif
+                    </div>
                 </div>
-            </div>
+            @endif
+        @endrole
+
+        @role('admin')
+            @if(isset($cannotAttendingUsers) && $cannotAttendingUsers->isNotEmpty())
+                <div class="lg:col-span-3">
+                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mt-2">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-lg font-semibold text-ice">Cannot Attend</h3>
+                            <span class="text-sm text-slate-300">{{ $cannotAttendingUsers->count() }}</span>
+                        </div>
+                        <p class="mt-1 text-sm text-slate-400">Players who have indicated they cannot attend this game.</p>
+
+                        <div class="mt-3 max-h-56 overflow-auto rounded border border-slate-700 bg-slate-900">
+                            <ul class="divide-y divide-slate-800">
+                                @foreach($cannotAttendingUsers as $u)
+                                    <li class="px-3 py-2 flex items-center justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="text-ice truncate">{{ $u->name }}</div>
+                                            <div class="text-xs text-slate-400 truncate">{{ $u->email }}</div>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endrole
 
         <!-- Full width row: Roster + Teams (span to sidebar edge) -->
@@ -304,7 +401,12 @@
                     @endif
                     <div class="grid md:grid-cols-2 gap-4">
                         <div class="bg-slate-900 border border-slate-700 rounded p-3">
-                            <div class="text-sm text-slate-300">Dark</div>
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-slate-300">Dark</div>
+                                @role('admin')
+                                    <div class="text-xs text-slate-400">Team Level: <span class="font-semibold text-ice">{{ $darkTeamSkill ?? 0 }}</span></div>
+                                @endrole
+                            </div>
                             <ul class="mt-2 space-y-1 text-ice">
                                 @forelse(($darkTeamMembers ?? collect()) as $m)
                                     @php
@@ -313,17 +415,23 @@
                                         $isCurrentUser = !empty($m['is_current_user']);
                                     @endphp
                                     <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        <span>
+                                            {{ $m['name'] }}@if($isGoalie) (G) @endif
+                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']))
+                                                <span class="ml-2 inline-flex items-center text-xs rounded-full bg-slate-700/30 border border-white/10 px-2 py-0.5 text-slate-200">Lvl {{ $m['level'] ?? 3 }}</span>
+                                            @endif
+                                        </span>
                                         <span class="flex items-center gap-2">
                                             @if($isCurrentUser)
                                                 <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
                                             @endif
                                             @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <button type="button"
-                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
-                                                    data-member-type="{{ $m['type'] }}"
-                                                    data-member-id="{{ $m['id'] }}"
-                                                    data-target-team="2">Move → Light</button>
+                                                <div class="relative">
+                                                    <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
+                                                    <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
+                                                        <button data-member-type="{{ $m['type'] }}" data-member-id="{{ $m['id'] }}" data-target-team="2" class="w-full text-left px-3 py-2 admin-move-team">Move → Light</button>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </span>
                                     </li>
@@ -334,7 +442,12 @@
                         </div>
 
                         <div class="bg-slate-900 border border-slate-700 rounded p-3">
-                            <div class="text-sm text-slate-300">Light</div>
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-slate-300">Light</div>
+                                @role('admin')
+                                    <div class="text-xs text-slate-400">Team Level: <span class="font-semibold text-ice">{{ $lightTeamSkill ?? 0 }}</span></div>
+                                @endrole
+                            </div>
                             <ul class="mt-2 space-y-1 text-ice">
                                 @forelse(($lightTeamMembers ?? collect()) as $m)
                                     @php
@@ -343,17 +456,23 @@
                                         $isCurrentUser = !empty($m['is_current_user']);
                                     @endphp
                                     <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>{{ $m['name'] }}@if($isGoalie) (G) @endif</span>
+                                        <span>
+                                            {{ $m['name'] }}@if($isGoalie) (G) @endif
+                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']))
+                                                <span class="ml-2 inline-flex items-center text-xs rounded-full bg-slate-700/30 border border-white/10 px-2 py-0.5 text-slate-200">Lvl {{ $m['level'] ?? 3 }}</span>
+                                            @endif
+                                        </span>
                                         <span class="flex items-center gap-2">
                                             @if($isCurrentUser)
                                                 <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
                                             @endif
                                             @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <button type="button"
-                                                    class="text-xs rounded border border-slate-600 px-2 py-0.5 text-slate-200 hover:bg-slate-700 admin-move-team"
-                                                    data-member-type="{{ $m['type'] }}"
-                                                    data-member-id="{{ $m['id'] }}"
-                                                    data-target-team="1">Move → Dark</button>
+                                                <div class="relative">
+                                                    <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
+                                                    <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
+                                                        <button data-member-type="{{ $m['type'] }}" data-member-id="{{ $m['id'] }}" data-target-team="1" class="w-full text-left px-3 py-2 admin-move-team">Move → Dark</button>
+                                                    </div>
+                                                </div>
                                             @endif
                                         </span>
                                     </li>
@@ -397,7 +516,12 @@
         $(document).on('click', '#guestList li', function(e){
             e.stopPropagation();
             var value = $(this).text().trim();
+            var level = $(this).data('level');
             $('#guestName').val(value);
+            if (typeof level !== 'undefined' && level !== null) {
+                // Prefill the Guest Level select with the previously saved level
+                $('#level').val(level);
+            }
             $('#guestList').addClass('hidden').html('');
         });
 
@@ -568,6 +692,8 @@
                 }).catch(err => { console.error(err); alert('Request failed'); });
             return;
         }
+
+        
     });
 
     // Match map height to sidebar (guest + quick info) on large screens
@@ -577,8 +703,16 @@
         function matchHeight(){
             if (!mapWrap || !sidebar) return;
             if (window.innerWidth >= 1024) {
-                const h = Math.round(sidebar.getBoundingClientRect().height);
-                mapWrap.style.height = h + 'px';
+                const bringCard = document.getElementById('bringGuestCard');
+                if (bringCard) {
+                    const mapTop = Math.round(mapWrap.getBoundingClientRect().top);
+                    const bringBottom = Math.round(bringCard.getBoundingClientRect().bottom);
+                    const h = Math.max(360, bringBottom - mapTop);
+                    mapWrap.style.height = h + 'px';
+                } else {
+                    const h = Math.round(sidebar.getBoundingClientRect().height);
+                    mapWrap.style.height = h + 'px';
+                }
             } else {
                 mapWrap.style.height = '';
             }

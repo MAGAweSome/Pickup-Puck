@@ -61,8 +61,36 @@ class GameDetailController extends Controller
             ->values()
             ->all();
 
+        // Users who explicitly marked 'cannot' for this game
+        $cannotAttendingIds = DB::table('game_player_responses')
+            ->where('game_id', $game->id)
+            ->where('status', 'cannot')
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        // Exclude both attending users and users who have indicated they cannot attend
+        $excludedIds = array_unique(array_merge($attendingUserIds, $cannotAttendingIds));
+
         $notAttendingUsers = User::query()
-            ->whereNotIn('id', $attendingUserIds)
+            ->whereNotIn('id', $excludedIds)
+            ->orderBy('name')
+            ->get();
+
+        // Users who explicitly marked 'cannot' for this game
+        $cannotAttendingIds = DB::table('game_player_responses')
+            ->where('game_id', $game->id)
+            ->where('status', 'cannot')
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $cannotAttendingUsers = User::query()
+            ->whereIn('id', $cannotAttendingIds)
             ->orderBy('name')
             ->get();
 
@@ -97,13 +125,13 @@ class GameDetailController extends Controller
             ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
             ->where('game_teams_guests.game_id', $game->id)
             ->where('game_teams_guests.team', 1)
-            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role']);
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
 
         $lightTeamGuests = DB::table('game_teams_guests')
             ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
             ->where('game_teams_guests.game_id', $game->id)
             ->where('game_teams_guests.team', 2)
-            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role']);
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
 
         // Goalies are stored as id => name; keep ids for (G) labeling in teams
         $goalieUserIds = $goalies->keys()->map(fn ($id) => (int) $id)->values()->all();
@@ -112,13 +140,14 @@ class GameDetailController extends Controller
             $goaliesFirst = collect();
             $skaters = collect();
 
-            foreach ($teamUsers as $u) {
+                foreach ($teamUsers as $u) {
                 $isGoalie = in_array((int) $u->id, $goalieUserIds, true);
                 $isCurrentUser = Auth::check() && ((int) $u->id === (int) Auth::id());
                 $item = [
                     'type' => 'user',
                     'id' => (int) $u->id,
-                    'name' => $u->name,
+                        'name' => $u->name,
+                        'level' => $u->level ?? 3,
                     'is_goalie' => $isGoalie,
                     'is_empty_net' => false,
                     'is_current_user' => $isCurrentUser,
@@ -133,6 +162,7 @@ class GameDetailController extends Controller
                     'type' => 'guest',
                     'id' => (int) $g->id,
                     'name' => $g->name,
+                    'level' => $g->level ?? 3,
                     'is_goalie' => $isGoalie,
                     'is_empty_net' => false,
                     'is_current_user' => false,
@@ -151,6 +181,23 @@ class GameDetailController extends Controller
 
         $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
         $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
+
+        // Compute team level totals (sum of levels for users + guests)
+        $darkTeamSkill = 0;
+        foreach ($darkTeamUsers as $u) {
+            $darkTeamSkill += (int) ($u->level ?? 3);
+        }
+        foreach ($darkTeamGuests as $g) {
+            $darkTeamSkill += (int) ($g->level ?? 3);
+        }
+
+        $lightTeamSkill = 0;
+        foreach ($lightTeamUsers as $u) {
+            $lightTeamSkill += (int) ($u->level ?? 3);
+        }
+        foreach ($lightTeamGuests as $g) {
+            $lightTeamSkill += (int) ($g->level ?? 3);
+        }
 
         $players_attending = array();
 
@@ -182,6 +229,8 @@ class GameDetailController extends Controller
             'user_is_a_goalie' => $user_is_a_goalie,
             'darkTeamMembers' => $darkTeamMembers,
             'lightTeamMembers' => $lightTeamMembers,
+            'darkTeamSkill' => $darkTeamSkill,
+            'lightTeamSkill' => $lightTeamSkill,
             'currentTime' => $currentTime,
             'teamsRevealAt' => $teamsRevealAt,
             'teamsReady' => $teamsReady,
@@ -190,6 +239,7 @@ class GameDetailController extends Controller
             'guestPlayers' => $guestPlayers,
             'guestGoalies' => $guestGoalies,
             'notAttendingUsers' => $notAttendingUsers,
+            'cannotAttendingUsers' => $cannotAttendingUsers,
         ]);
 
     }
@@ -224,10 +274,42 @@ class GameDetailController extends Controller
             'role' => $role
         ]);
 
+        // If the user previously marked 'cannot' for this game, remove that response now that they've accepted.
+        DB::table('game_player_responses')
+            ->where('game_id', $game->id)
+            ->where('user_id', $userId)
+            ->delete();
+
         $now = Carbon::now()->setTimezone('America/Toronto');
         (new GameTeamsService())->ensureLockedTeams($game, $now);
 
         return back()->with('success', 'You have successfully added your game!');
+    }
+
+    /**
+     * Mark current user as cannot attend this game.
+     */
+    public function cannotAttend(Request $request, Game $game)
+    {
+        if (!Auth::check()) abort(403);
+
+        $userId = Auth::id();
+
+        // If user already signed up for this game, don't allow cannot-attend here
+        $already = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $userId)->exists();
+        if ($already) {
+            if ($request->expectsJson() || $request->ajax()) return response()->json(['error' => 'You are already attending this game. Remove yourself first.'], 422);
+            return back()->withErrors(['cannotAttend' => 'You are already attending this game. Remove yourself first.']);
+        }
+
+        // Insert or update response to 'cannot'
+        DB::table('game_player_responses')->updateOrInsert(
+            ['game_id' => $game->id, 'user_id' => $userId],
+            ['status' => 'cannot', 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true]);
+        return back()->with('success', 'Marked as not attending');
     }
 
     public function generateTeams() {
@@ -244,6 +326,8 @@ class GameDetailController extends Controller
         $guestName = Str::title(Str::lower($guestName));
 
         $role = (string) $request->input('gameRole');
+
+        $level = $request->has('level') ? (int) $request->input('level') : 3;
 
         // Enforce max 2 goalies per game (users + guests)
         if ($role === 'goalie') {
@@ -266,7 +350,8 @@ class GameDetailController extends Controller
             GamePlayersGuest::create([
                 'name' => $guestName,
                 'game_id' => $game->id,
-                'role' => $role
+                'role' => $role,
+                'level' => $level
             ]);
         } catch (QueryException $e) {
             // In case two requests race, the DB unique index will throw here.
@@ -301,7 +386,10 @@ class GameDetailController extends Controller
                 $output .= '<ul class="py-1">';
                 foreach ($data as $row) {
                     $name = e($row->name);
-                    $output .= '<li class="px-3 py-2 text-slate-200 hover:bg-slate-800 cursor-pointer select-none">'.$name.'</li>';
+                    // Try to find the most recent saved level for this guest from past game guest entries
+                    $levelRow = DB::table('game_players_guests')->where('name', $row->name)->orderByDesc('id')->limit(1)->first();
+                    $level = $levelRow && isset($levelRow->level) ? (int) $levelRow->level : 3;
+                    $output .= '<li data-level="'.e($level).'" class="px-3 py-2 text-slate-200 hover:bg-slate-800 cursor-pointer select-none">'.$name.'</li>';
                 }
                 $output .= '</ul>';
             } else {
@@ -342,6 +430,12 @@ class GameDetailController extends Controller
             $updated = (bool) $inserted;
         }
 
+        // Remove any cannot-attend response for this user now that they are marked attending
+        DB::table('game_player_responses')
+            ->where('game_id', $game->id)
+            ->where('user_id', $user_id)
+            ->delete();
+
         // Return JSON for AJAX requests, otherwise redirect back
         $now = Carbon::now()->setTimezone('America/Toronto');
         (new GameTeamsService())->ensureLockedTeams($game, $now);
@@ -368,7 +462,8 @@ class GameDetailController extends Controller
         }
 
         $request->validate([
-            'gameRole' => 'required|string'
+            'gameRole' => 'required|string',
+            'level' => 'nullable|integer|min:1|max:5'
         ]);
 
         if (empty($guestId)) {
@@ -395,10 +490,15 @@ class GameDetailController extends Controller
             }
         }
 
+        $updateData = ['role' => $newRole];
+        if ($request->has('level')) {
+            $updateData['level'] = (int) $request->input('level');
+        }
+
         $updated = DB::table('game_players_guests')
             ->where('id', $guestId)
             ->where('game_id', $game->id)
-            ->update(['role' => $newRole]);
+            ->update($updateData);
 
         if ($updated) {
             return response()->json(['success' => true]);
@@ -423,15 +523,22 @@ class GameDetailController extends Controller
             return response()->json(['error' => 'guest id required'], 422);
         }
 
-        $deleted = DB::table('game_players_guests')
-            ->where('id', $guestId)
-            ->where('game_id', $game->id)
-            ->delete();
+        $result = DB::transaction(function () use ($guestId, $game) {
+            $deleted = DB::table('game_players_guests')
+                ->where('id', $guestId)
+                ->where('game_id', $game->id)
+                ->delete();
 
-        if ($deleted) {
-            return response()->json(['success' => true]);
-        }
+            // Also remove any team assignments for this guest
+            DB::table('game_teams_guests')
+                ->where('guest_id', $guestId)
+                ->where('game_id', $game->id)
+                ->delete();
 
+            return (bool) $deleted;
+        });
+
+        if ($result) return response()->json(['success' => true]);
         return response()->json(['success' => false], 422);
     }
 
@@ -451,16 +558,63 @@ class GameDetailController extends Controller
             return response()->json(['error' => 'user id required'], 422);
         }
 
-        $deleted = DB::table('game_players')
-            ->where('user_id', $uid)
-            ->where('game_id', $game->id)
-            ->delete();
+        $result = DB::transaction(function () use ($uid, $game) {
+            $deleted = DB::table('game_players')
+                ->where('user_id', $uid)
+                ->where('game_id', $game->id)
+                ->delete();
 
-        if ($deleted) {
-            return response()->json(['success' => true]);
+            // Also remove any team assignments for this user
+            DB::table('game_teams_players')
+                ->where('user_id', $uid)
+                ->where('game_id', $game->id)
+                ->delete();
+
+            return (bool) $deleted;
+        });
+
+        if ($result) return response()->json(['success' => true]);
+        return response()->json(['success' => false], 422);
+    }
+
+    /**
+     * Allow the current authenticated user to remove themselves from a game.
+     */
+    public function removeSelf(Request $request, Game $game)
+    {
+        if (!Auth::check()) abort(403);
+
+        $userId = Auth::id();
+
+        // Ensure the user is actually attending
+        $attending = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $userId)->exists();
+        if (!$attending) {
+            if ($request->expectsJson() || $request->ajax()) return response()->json(['error' => 'You are not attending this game'], 422);
+            return back()->withErrors(['remove' => 'You are not attending this game']);
         }
 
-        return response()->json(['success' => false], 422);
+        $result = DB::transaction(function () use ($userId, $game) {
+            $deleted = DB::table('game_players')
+                ->where('user_id', $userId)
+                ->where('game_id', $game->id)
+                ->delete();
+
+            // Also remove any team assignments for this user
+            DB::table('game_teams_players')
+                ->where('user_id', $userId)
+                ->where('game_id', $game->id)
+                ->delete();
+
+            return (bool) $deleted;
+        });
+
+        if ($result) {
+            if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true]);
+            return back()->with('success', 'You have removed yourself from the game');
+        }
+
+        if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => false], 422);
+        return back()->with('error', 'Unable to remove you from the game');
     }
 
     /**
@@ -511,6 +665,42 @@ class GameDetailController extends Controller
                 ['game_id' => $game->id, 'guest_id' => $memberId],
                 ['team' => $team]
             );
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Admin: remove a team assignment for a member (user or guest) without removing attendance.
+     */
+    public function adminRemoveTeamAssignment(Request $request, Game $game)
+    {
+        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'memberType' => 'required|string|in:user,guest',
+            'memberId' => 'required|integer',
+        ]);
+
+        $now = Carbon::now()->setTimezone('America/Toronto');
+        $teamsRevealAt = $game->time->copy()->subMinutes(30);
+        if ($now->lessThan($teamsRevealAt)) {
+            return response()->json(['error' => 'Teams can be managed 30 minutes before puck drop.'], 422);
+        }
+
+        $memberId = (int) $data['memberId'];
+        if ($data['memberType'] === 'user') {
+            DB::table('game_teams_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', $memberId)
+                ->delete();
+        } else {
+            DB::table('game_teams_guests')
+                ->where('game_id', $game->id)
+                ->where('guest_id', $memberId)
+                ->delete();
         }
 
         return response()->json(['success' => true]);

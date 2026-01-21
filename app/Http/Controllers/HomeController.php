@@ -43,6 +43,7 @@ class HomeController extends Controller
         $allGameTimesPassed = $allGameTimes->isEmpty(); // Set $allGameTimesPassed to true if there are no game times
 
         $gamesAttending = array();
+        $gamesDeclined = array();
 
         $hasNotSignedUpForAllGames = false;
 
@@ -58,7 +59,6 @@ class HomeController extends Controller
         foreach ($games as $game) {
             $players = $game->players->pluck('name')->toArray();
             $goalies = $game->goalies->pluck('name')->toArray();
-
             if (in_array(Auth::user()->name, $players)) {
                 array_push($gamesAttending, $game->id);
             }
@@ -66,6 +66,14 @@ class HomeController extends Controller
             if (in_array(Auth::user()->name, $goalies)) {
                 array_push($gamesAttending, $game->id);
             }
+
+            // Check for explicit cannot-attend responses
+            $declined = DB::table('game_player_responses')
+                ->where('game_id', $game->id)
+                ->where('user_id', Auth::user()->id)
+                ->where('status', 'cannot')
+                ->exists();
+            if ($declined) array_push($gamesDeclined, $game->id);
         }
 
         Settings::set('foo', 'Hello');
@@ -127,6 +135,7 @@ class HomeController extends Controller
             'currentTime' => $currentTime,
             'allGameTimesPassed' => $allGameTimesPassed,
             'gamesAttending' => $gamesAttending,
+            'gamesDeclined' => $gamesDeclined,
             'hasNotSignedUpForAllGames' => $hasNotSignedUpForAllGames
         ]);
     }
