@@ -295,6 +295,33 @@
             @endif
         @endrole
 
+        @role('admin')
+            <div class="lg:col-span-3">
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mt-2">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-semibold text-ice">🏒 Email All Players</h3>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-400">Send an upcoming game reminder to all registered players.</p>
+
+                    <div class="mt-3 flex items-center gap-3">
+                        @if($emailMailtoLink)
+                            <a href="{{ $emailMailtoLink }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-ice-blue text-deep-navy rounded font-semibold hover:bg-ice-blue/90 hover:text-deep-navy no-underline transition">
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>Email All Players</span>
+                            </a>
+                            <span class="text-xs text-slate-400">Opens your email client with all player addresses</span>
+                        @else
+                            <button disabled class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-700 text-slate-500 rounded font-semibold cursor-not-allowed opacity-60">
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>Email All Players</span>
+                            </button>
+                            <span class="text-xs text-slate-400">No players have registered yet</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endrole
+
         <!-- Full width row: Roster + Teams (span to sidebar edge) -->
         <div class="lg:col-span-3 space-y-4">
             <!-- Roster -->

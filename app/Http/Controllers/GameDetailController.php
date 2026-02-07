@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Games\GameRoles;
+use App\Helpers\EmailHelper;
 use App\Http\Requests\Admin\UserAcceptGamePayment;
 use App\Http\Requests\Admin\UserAcceptGameRequest;
 use App\Http\Requests\Admin\UserAcceptGameRequestGuest;
@@ -213,6 +214,16 @@ class GameDetailController extends Controller
             }
         }
 
+        // Generate email data for admin: all registered players on website
+        $allPlayersForEmail = User::where('email', '!=', null)
+            ->where('email', '!=', '')
+            ->orderBy('name')
+            ->get();
+        $smartDateMessage = EmailHelper::getSmartDateMessage($game->time);
+        $emailSubject = 'Upcoming Game Reminder';
+        $emailBody = EmailHelper::generateEmailBody($game->title, $smartDateMessage);
+        $mailtoLink = EmailHelper::generateMailtoLink($allPlayersForEmail, $emailSubject, $emailBody);
+
         // $current_game_price_percentage = 100*($game->collected_game_cost/$game->ice_cost);
 
         return view('game_detail', [
@@ -240,6 +251,9 @@ class GameDetailController extends Controller
             'guestGoalies' => $guestGoalies,
             'notAttendingUsers' => $notAttendingUsers,
             'cannotAttendingUsers' => $cannotAttendingUsers,
+            'emailMailtoLink' => $mailtoLink,
+            'emailSubject' => $emailSubject,
+            'emailBody' => $emailBody,
         ]);
 
     }
