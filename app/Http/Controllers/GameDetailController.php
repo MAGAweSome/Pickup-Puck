@@ -183,20 +183,32 @@ class GameDetailController extends Controller
         $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
         $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
 
-        // Compute team level totals (sum of levels for users + guests)
+        // Compute team score using skaters only; goalies never count toward score.
         $darkTeamSkill = 0;
         foreach ($darkTeamUsers as $u) {
+            if (($u->role ?? null) === 'goalie') {
+                continue;
+            }
             $darkTeamSkill += (int) ($u->level ?? 3);
         }
         foreach ($darkTeamGuests as $g) {
+            if (($g->role ?? null) === 'goalie') {
+                continue;
+            }
             $darkTeamSkill += (int) ($g->level ?? 3);
         }
 
         $lightTeamSkill = 0;
         foreach ($lightTeamUsers as $u) {
+            if (($u->role ?? null) === 'goalie') {
+                continue;
+            }
             $lightTeamSkill += (int) ($u->level ?? 3);
         }
         foreach ($lightTeamGuests as $g) {
+            if (($g->role ?? null) === 'goalie') {
+                continue;
+            }
             $lightTeamSkill += (int) ($g->level ?? 3);
         }
 
