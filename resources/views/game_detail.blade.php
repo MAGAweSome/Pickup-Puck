@@ -74,9 +74,11 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 game-actions">
+                    <div id="gameHeaderActions" class="flex flex-wrap items-center gap-2.5 game-actions">
+                        @include('components.add-to-calendar', ['game' => $game])
+
                         @role('admin')
-                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-semibold">
+                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-semibold text-xs shadow-sm">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span>Edit Game</span>
                             </a>
@@ -85,7 +87,7 @@
                         {{-- Non-admin attendees can remove themselves from the game. If the user marked cannot-attend, show non-clickable status. --}}
                         @if(auth()->check())
                             @if(!empty($user_registered) && $user_registered)
-                                <form method="POST" action="{{ route('game_remove_self', ['game' => $game->id]) }}">
+                                <form method="POST" action="{{ route('game_remove_self', ['game' => $game->id]) }}" data-async-game-form>
                                     @csrf
                                     <button type="submit" class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded font-semibold">Remove Myself</button>
                                 </form>
@@ -114,12 +116,12 @@
             </div>
 
             <!-- Accept / Guest forms -->
-            <div class="grid grid-cols-1 gap-4">
+            <div id="acceptGameWrap" class="grid grid-cols-1 gap-4">
                 @if($user_registered == false)
                     <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <h3 class="text-lg font-semibold text-ice mb-2">Accept Game</h3>
                         <div class="flex flex-wrap gap-2 items-center accept-controls">
-                            <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST" class="flex-1 min-w-0">
+                            <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST" class="flex-1 min-w-0" data-async-game-form>
                                 @csrf
                                 <div class="flex gap-2">
                                     <select required name="gameRole" id="gameRole" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
@@ -134,7 +136,7 @@
                                 @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
                             </form>
 
-                            <form action="{{ route('game_detail_cannot_attend', ['game' => $game->id]) }}" method="POST" class="shrink-0">
+                            <form action="{{ route('game_detail_cannot_attend', ['game' => $game->id]) }}" method="POST" class="shrink-0" data-async-game-form>
                                 @csrf
                                 <button type="submit" class="px-4 py-2 bg-rose-600 text-white rounded whitespace-nowrap">Cannot Attend</button>
                             </form>
@@ -160,7 +162,7 @@
 
         <!-- Sidebar: quick stats -->
         <aside id="sidebarCol" class="space-y-3 lg:self-stretch lg:flex lg:flex-col lg:gap-4 lg:col-span-1">
-            <div class="bg-slate-800/80 border border-ice-blue/25 rounded-xl p-4 shadow-lg shadow-black/20 ring-1 ring-white/5">
+            <div id="quickInfoCard" class="bg-slate-800/80 border border-ice-blue/25 rounded-xl p-4 shadow-lg shadow-black/20 ring-1 ring-white/5">
                 <div class="flex items-center justify-between gap-3">
                     <h4 class="text-base font-semibold text-ice">Quick Info</h4>
                     <span class="text-[11px] uppercase tracking-wide text-slate-400">This game</span>
@@ -193,7 +195,7 @@
 
             <div id="bringGuestCard" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                 <h4 class="text-sm text-slate-300">Bring a Guest</h4>
-                <form action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col">
+                <form id="bringGuestForm" action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col" data-async-game-form>
                     @csrf
                     <div class="relative">
                         <input type="text" id="guestName" name="guestName" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice" placeholder="Guest full name" minlength="4" required>
@@ -227,9 +229,9 @@
         </aside>
 
         @role('admin')
-            @if(isset($notAttendingUsers) && $notAttendingUsers->isNotEmpty())
-                <!-- Not Yet Attending (admin only) -->
-                <div class="lg:col-span-3">
+            <!-- Not Yet Attending (admin only) -->
+            <div id="notAttendingWrap" class="lg:col-span-3">
+                @if(isset($notAttendingUsers) && $notAttendingUsers->isNotEmpty())
                     <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="flex items-center justify-between gap-3">
                             <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
@@ -246,7 +248,7 @@
                                             <div class="text-xs text-slate-400 truncate">{{ $u->email }}</div>
                                         </div>
 
-                                        <form class="flex items-center gap-2" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}">
+                                        <form class="flex items-center gap-2" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}" data-async-game-form>
                                             @csrf
                                             <select name="gameRole" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-ice text-sm">
                                                 @foreach ($GAME_ROLES as $gamerole)
@@ -264,13 +266,13 @@
                         </div>
                         @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
                     </div>
-                </div>
-            @endif
+                @endif
+            </div>
         @endrole
 
         @role('admin')
-            @if(isset($cannotAttendingUsers) && $cannotAttendingUsers->isNotEmpty())
-                <div class="lg:col-span-3">
+            <div id="cannotAttendingWrap" class="lg:col-span-3">
+                @if(isset($cannotAttendingUsers) && $cannotAttendingUsers->isNotEmpty())
                     <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mt-2">
                         <div class="flex items-center justify-between gap-3">
                             <h3 class="text-lg font-semibold text-ice">Cannot Attend</h3>
@@ -291,8 +293,8 @@
                             </ul>
                         </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            </div>
         @endrole
 
         @role('admin')
@@ -325,7 +327,7 @@
         <!-- Full width row: Roster + Teams (span to sidebar edge) -->
         <div class="lg:col-span-3 space-y-4">
             <!-- Roster -->
-            <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+            <div id="attendanceLists" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                 <h3 class="text-lg font-semibold text-ice mb-3">Roster</h3>
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
@@ -412,131 +414,279 @@
                 </div>
             </div>
 
-            <!-- Teams (shown 30 minutes before start) -->
-            <div id="gameTeam" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-ice mb-3">Teams</h3>
+            <!-- Teams (Live Auto-Reveal at T-30) -->
+            <div
+                id="gameTeam"
+                class="bg-slate-800 border border-slate-700 rounded-lg p-5 shadow-lg relative overflow-hidden transition-all duration-300"
+                x-data="liveTeamsReveal({
+                    gameId: {{ $game->id }},
+                    revealTimestamp: {{ $teamsRevealAt->timestamp }},
+                    isReady: {{ (!empty($teamsReady) && $teamsReady) ? 'true' : 'false' }}
+                })"
+                x-init="initTimer()"
+            >
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-700/60">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-people-group text-ice-blue text-lg"></i>
+                        <h3 class="text-xl font-bold text-ice">Teams</h3>
+                    </div>
 
-                @if(!empty($teamsReady) && $teamsReady)
-                    @if(!empty($currentUserTeam))
-                        <div class="mb-3 text-sm">
-                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-400/20 px-3 py-1 text-emerald-200">
-                                <span class="font-semibold">You</span>
-                                <span class="text-emerald-200/90">are on</span>
-                                <span class="font-extrabold">{{ $currentUserTeam }}</span>
+                    <!-- Live Indicator / Status Badge -->
+                    <div>
+                        <template x-if="ready">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span>Rosters Revealed</span>
                             </span>
-                        </div>
-                    @endif
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div class="bg-slate-900 border border-slate-700 rounded p-3">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm text-slate-300">Dark</div>
-                                @role('admin')
-                                    <div class="text-xs text-slate-400">Team Level: <span class="font-semibold text-ice">{{ $darkTeamSkill ?? 0 }}</span></div>
-                                @endrole
-                            </div>
-                            <ul class="mt-2 space-y-1 text-ice">
-                                @forelse(($darkTeamMembers ?? collect()) as $m)
-                                    @php
-                                        $isGoalie = !empty($m['is_goalie']);
-                                        $isEmptyNet = !empty($m['is_empty_net']);
-                                        $isCurrentUser = !empty($m['is_current_user']);
-                                    @endphp
-                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>
-                                            {{ $m['name'] }}@if($isGoalie) (G) @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']))
-                                                <span class="ml-2 inline-flex items-center text-xs rounded-full bg-slate-700/30 border border-white/10 px-2 py-0.5 text-slate-200">Lvl {{ $m['level'] ?? 3 }}</span>
-                                            @endif
-                                        </span>
-                                        <span class="flex items-center gap-2">
-                                            @if($isCurrentUser)
-                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                            @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <div class="relative">
-                                                    <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                                    <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
-                                                        <button data-member-type="{{ $m['type'] }}" data-member-id="{{ $m['id'] }}" data-target-team="2" class="w-full text-left px-3 py-2 admin-move-team">Move → Light</button>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        </span>
-                                    </li>
-                                @empty
-                                    <li class="text-slate-400">Teams not generated yet.</li>
-                                @endforelse
-                            </ul>
+                        </template>
+
+                        <template x-if="!ready">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-ice-blue/10 border border-ice-blue/30 text-ice-blue shadow-sm animate-pulse">
+                                <i class="fa-solid fa-clock text-[11px]"></i>
+                                <span>Live Reveal at T-30</span>
+                            </span>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Unrevealed State: Live Countdown Flip Card -->
+                <div
+                    x-show="!ready"
+                    x-transition:leave="transition ease-in duration-300 transform"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="py-6 px-4 text-center"
+                >
+                    <div class="max-w-md mx-auto space-y-4">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 border border-slate-700 text-ice-blue mb-1">
+                            <i class="fa-solid fa-stopwatch text-xl" :class="{ 'animate-bounce': isRevealing }"></i>
                         </div>
 
-                        <div class="bg-slate-900 border border-slate-700 rounded p-3">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm text-slate-300">Light</div>
-                                @role('admin')
-                                    <div class="text-xs text-slate-400">Team Level: <span class="font-semibold text-ice">{{ $lightTeamSkill ?? 0 }}</span></div>
-                                @endrole
+                        <div>
+                            <h4 class="text-base font-semibold text-ice">Team Reveal Countdown</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                Teams balance automatically and reveal 30 minutes before puck drop.
+                            </p>
+                        </div>
+
+                        <!-- Digital Countdown Clock -->
+                        <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto py-2">
+                            <!-- Hours -->
+                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
+                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice" x-text="hours">00</div>
+                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Hours</div>
                             </div>
-                            <ul class="mt-2 space-y-1 text-ice">
-                                @forelse(($lightTeamMembers ?? collect()) as $m)
-                                    @php
-                                        $isGoalie = !empty($m['is_goalie']);
-                                        $isEmptyNet = !empty($m['is_empty_net']);
-                                        $isCurrentUser = !empty($m['is_current_user']);
-                                    @endphp
-                                    <li class="rounded px-2 py-1 border flex items-center justify-between gap-2 @if($isCurrentUser) bg-emerald-500/10 border-emerald-400/30 ring-2 ring-emerald-400/20 font-bold @elseif($isGoalie) bg-ice-blue/15 border-ice-blue/30 font-semibold @else bg-transparent border-transparent @endif @if($isEmptyNet) text-slate-300 italic @else text-ice @endif">
-                                        <span>
-                                            {{ $m['name'] }}@if($isGoalie) (G) @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']))
-                                                <span class="ml-2 inline-flex items-center text-xs rounded-full bg-slate-700/30 border border-white/10 px-2 py-0.5 text-slate-200">Lvl {{ $m['level'] ?? 3 }}</span>
-                                            @endif
-                                        </span>
-                                        <span class="flex items-center gap-2">
-                                            @if($isCurrentUser)
-                                                <span class="text-xs rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 text-emerald-200">You</span>
-                                            @endif
-                                            @if(auth()->check() && auth()->user()->hasRole('admin') && empty($m['is_empty_net']) && !empty($m['type']) && in_array($m['type'], ['user','guest']) && !empty($m['id']))
-                                                <div class="relative">
-                                                    <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                                    <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
-                                                        <button data-member-type="{{ $m['type'] }}" data-member-id="{{ $m['id'] }}" data-target-team="1" class="w-full text-left px-3 py-2 admin-move-team">Move → Dark</button>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        </span>
-                                    </li>
-                                @empty
-                                    <li class="text-slate-400">Teams not generated yet.</li>
-                                @endforelse
-                            </ul>
+                            <!-- Minutes -->
+                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
+                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice-blue" x-text="minutes">00</div>
+                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Mins</div>
+                            </div>
+                            <!-- Seconds -->
+                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
+                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice" x-text="seconds">00</div>
+                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Secs</div>
+                            </div>
+                        </div>
+
+                        <!-- Live Status Message -->
+                        <div class="text-xs text-slate-400 flex items-center justify-center gap-2">
+                            <template x-if="isRevealing">
+                                <span class="text-emerald-400 font-medium inline-flex items-center gap-1.5 animate-pulse">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    <span>T-30 Reached! Unlocking rosters live...</span>
+                                </span>
+                            </template>
+                            <template x-if="!isRevealing">
+                                <span>
+                                    Opens at <strong class="text-slate-300">{{ $teamsRevealAt->format('g:i A') }}</strong> • Page will auto-update
+                                </span>
+                            </template>
                         </div>
                     </div>
-                @else
-                    <div class="text-sm text-slate-300">
-                        Teams will be generated 30 minutes before puck drop.
-                        @if(!empty($teamsRevealAt))
-                            <span class="text-slate-400">(Opens at {{ $teamsRevealAt->format('g:i A') }})</span>
-                        @endif
-                    </div>
-                @endif
+                </div>
+
+                <!-- Revealed State: Dark & Light Rosters -->
+                <div
+                    x-show="ready"
+                    x-cloak
+                    x-transition:enter="transition ease-out duration-500 transform"
+                    x-transition:enter-start="opacity-0 translate-y-3 scale-98"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    id="teamsRosterContainer"
+                >
+                    @if(!empty($teamsReady) && $teamsReady)
+                        @include('components.teams_roster')
+                    @endif
+                </div>
             </div>
+
         
 
 @push('scripts')
 <script>
-    // Guest search and list (uses existing endpoints)
+    // Asynchronously refresh dynamic game sections without page reload
+    let isRefreshingSections = false;
+    async function refreshGameSections(toastMessage = null, toastType = 'success') {
+        if (isRefreshingSections) return;
+        isRefreshingSections = true;
+        try {
+            const response = await fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            if (!response.ok) throw new Error('Network error fetching game update');
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            const sectionIds = [
+                'gameHeaderActions',
+                'acceptGameWrap',
+                'quickInfoCard',
+                'attendanceLists',
+                'notAttendingWrap',
+                'cannotAttendingWrap'
+            ];
+
+            sectionIds.forEach(id => {
+                const currentEl = document.getElementById(id);
+                const newEl = doc.getElementById(id);
+                if (currentEl && newEl) {
+                    currentEl.innerHTML = newEl.innerHTML;
+                } else if (currentEl && !newEl) {
+                    currentEl.innerHTML = '';
+                }
+            });
+
+            // Update Bring a Guest card only if the user is not actively typing
+            const guestInput = document.getElementById('guestName');
+            const isTyping = guestInput && (document.activeElement === guestInput || guestInput.value.trim().length > 0);
+            if (!isTyping) {
+                const curBring = document.getElementById('bringGuestCard');
+                const newBring = doc.getElementById('bringGuestCard');
+                if (curBring && newBring) {
+                    curBring.innerHTML = newBring.innerHTML;
+                }
+            }
+
+            // Update teams roster if revealed
+            const curTeams = document.getElementById('teamsRosterContainer');
+            const newTeams = doc.getElementById('teamsRosterContainer');
+            if (curTeams && newTeams && newTeams.innerHTML.trim().length > 0) {
+                curTeams.innerHTML = newTeams.innerHTML;
+            }
+
+            if (typeof window.matchMapHeight === 'function') {
+                window.matchMapHeight();
+            }
+
+            if (toastMessage && window.showToast) {
+                window.showToast(toastMessage, toastType);
+            }
+        } catch (err) {
+            console.error('refreshGameSections error:', err);
+            if (toastMessage && window.showToast) {
+                window.showToast(toastMessage, toastType);
+            }
+        } finally {
+            isRefreshingSections = false;
+        }
+    }
+
+    // Intercept form submissions for Accept Game, Cannot Attend, Bring a Guest, Admin Add Player, and Remove Myself
+    document.addEventListener('submit', async function (e) {
+        const form = e.target.closest('form[data-async-game-form]');
+        if (!form) return;
+
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
+        }
+
+        try {
+            const formData = new FormData(form);
+            const actionUrl = form.getAttribute('action') || window.location.href;
+            const method = (form.getAttribute('method') || 'POST').toUpperCase();
+
+            const response = await fetch(actionUrl, {
+                method: method,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (jsonErr) {
+                // not a JSON response
+            }
+
+            if (response.ok && (!data || data.success !== false)) {
+                const msg = (data && data.message) ? data.message : 'Updated successfully!';
+                if (form.id === 'bringGuestForm' || form.closest('#bringGuestCard')) {
+                    form.reset();
+                    const guestListEl = document.getElementById('guestList');
+                    if (guestListEl) guestListEl.classList.add('hidden');
+                }
+                await refreshGameSections(msg, 'success');
+            } else {
+                let errorMsg = 'Unable to complete action';
+                if (data && data.error) {
+                    errorMsg = data.error;
+                } else if (data && data.errors) {
+                    errorMsg = Object.values(data.errors).flat().join(' ');
+                } else if (data && data.message) {
+                    errorMsg = data.message;
+                }
+                if (window.showToast) {
+                    window.showToast(errorMsg, 'error');
+                } else {
+                    alert(errorMsg);
+                }
+            }
+        } catch (err) {
+            console.error('Async form error:', err);
+            if (window.showToast) {
+                window.showToast('Network error submitting request', 'error');
+            } else {
+                alert('Network error submitting request');
+            }
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+        }
+    });
+
+    // Guest search and autocomplete (delegated so it stays active across DOM refreshes)
     $(document).ready(function(){
-        $('#guestName').on('keyup', function(){
+        $(document).on('input keyup', '#guestName', function(){
             var value = ($(this).val() || '').trim();
             if (value.length === 0) {
                 $('#guestList').addClass('hidden').html('');
                 return;
             }
-            $.ajax({ url: "{{$game->id}}/search", type: "GET", data: {'guestName':value}, success: function(data){
-                if (data && data.trim().length > 0) {
-                    $('#guestList').removeClass('hidden').html(data);
-                } else {
-                    $('#guestList').addClass('hidden').html('');
-                }
-            } });
+            $.ajax({ 
+                url: "{{$game->id}}/search", 
+                type: "GET", 
+                data: {'guestName': value}, 
+                success: function(data){
+                    if (data && data.trim().length > 0) {
+                        $('#guestList').removeClass('hidden').html(data);
+                    } else {
+                        $('#guestList').addClass('hidden').html('');
+                    }
+                } 
+            });
         });
 
         // Only handle clicks on search result items inside #guestList
@@ -546,7 +696,6 @@
             var level = $(this).data('level');
             $('#guestName').val(value);
             if (typeof level !== 'undefined' && level !== null) {
-                // Prefill the Guest Level select with the previously saved level
                 $('#level').val(level);
             }
             $('#guestList').addClass('hidden').html('');
@@ -564,9 +713,8 @@
         });
     });
 
-    // Player options toggle and role/guest admin actions retained
+    // Delegated player options menu toggle and admin operations
     document.addEventListener('click', function (e) {
-        // helper to robustly find guest id from various click targets
         function findGuestIdFrom(el) {
             if (!el) return '';
             try {
@@ -579,7 +727,6 @@
                     const v = li.getAttribute('data-guest-id');
                     if (v) return v;
                 }
-                // look for ancestor .relative then its li
                 const rel = el.closest ? el.closest('.relative') : null;
                 if (rel) {
                     const outerLi = rel.closest ? rel.closest('li[data-guest-id]') : null;
@@ -590,6 +737,7 @@
             }
             return '';
         }
+
         // If clicking the options button: close all other menus, toggle this one
         const optionsBtn = e.target.closest ? e.target.closest('.player-options-btn') : null;
         if (optionsBtn) {
@@ -607,32 +755,44 @@
             document.querySelectorAll('.player-options-menu').forEach(m => m.classList.add('hidden'));
         }
 
-        // Helper: hide the closest menu for the clicked element
         const closestMenu = e.target.closest ? e.target.closest('.player-options-menu') : null;
         if (closestMenu) closestMenu.classList.add('hidden');
 
+        // Admin: Change Player Role
         const changePlayerBtn = e.target.closest ? e.target.closest('.change-player-role') : null;
         if (changePlayerBtn) {
             const userId = changePlayerBtn.getAttribute('data-user-id');
             const newRole = changePlayerBtn.getAttribute('data-role');
-            if (!userId || !newRole) return alert('Missing data');
+            if (!userId || !newRole) return window.showToast ? window.showToast('Missing data', 'error') : alert('Missing data');
             const body = new URLSearchParams(); body.append('_token', '{{ csrf_token() }}'); body.append('gameRole', newRole);
-            fetch(`/admin/game/{{ $game->id }}/${userId}/role`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+            fetch(`/admin/game/{{ $game->id }}/${userId}/role`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
                 .then(async r => {
                     let json = null;
-                    try { json = await r.json(); } catch (err) { /* ignore parse errors */ }
-                    if (r.ok && json && (json.success || json.message)) return location.reload();
+                    try { json = await r.json(); } catch (err) { }
+                    if (r.ok && json && (json.success || json.message)) {
+                        return refreshGameSections(json.message || 'Player role updated', 'success');
+                    }
                     const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to change role';
-                    alert(msg);
-                }).catch(err => { console.error(err); alert('Request failed'); });
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
 
+        // Admin: Remove Player
         const removePlayerBtn = e.target.closest ? e.target.closest('.remove-player') : null;
         if (removePlayerBtn) {
             const userId = removePlayerBtn.getAttribute('data-user-id'); if (!userId) return; if (!confirm('Remove this player?')) return;
             const body = new URLSearchParams(); body.append('_token', '{{ csrf_token() }}'); body.append('userId', userId);
-            fetch(`/admin/game/{{ $game->id }}/${userId}/remove`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body }).then(r => r.json()).then(json => { if (json && json.success) location.reload(); else alert('Unable to remove player'); }).catch(err => { console.error(err); alert('Request failed'); });
+            fetch(`/admin/game/{{ $game->id }}/${userId}/remove`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
+                .then(async r => {
+                    let json = null;
+                    try { json = await r.json(); } catch (err) { }
+                    if (r.ok && json && json.success) {
+                        return refreshGameSections(json.message || 'Player removed', 'info');
+                    }
+                    const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to remove player';
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
 
@@ -645,82 +805,93 @@
             return;
         }
 
-        // Admin: make a guest a specific role (Make Player / Make Goalie)
+        // Admin: Make Guest Role (Goalie / Player)
         const makeGuestBtn = e.target.closest ? e.target.closest('.make-guest-role') : null;
         if (makeGuestBtn) {
-            // hide the menu immediately
             const menu = makeGuestBtn.closest('.player-options-menu'); if (menu) menu.classList.add('hidden');
-            // robustly find guest id
             const guestId = findGuestIdFrom(makeGuestBtn);
-            console.debug('makeGuestBtn clicked', { guestId, el: makeGuestBtn });
             const newRole = makeGuestBtn.getAttribute('data-role');
-            if (!guestId || !newRole) { alert('Missing data'); console.debug('makeGuestBtn missing', {guestId, newRole, el: makeGuestBtn}); return; }
+            if (!guestId || !newRole) { if (window.showToast) window.showToast('Missing data', 'error'); else alert('Missing data'); return; }
             const body = new URLSearchParams(); body.append('_token', '{{ csrf_token() }}'); body.append('gameRole', newRole); body.append('guestId', guestId);
-            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/role`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/role`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
                 .then(async r => {
                     let json = null;
-                    try { json = await r.json(); } catch (err) { console.warn('non-json response', err); }
-                    if (r.ok && json && json.success) return location.reload();
+                    try { json = await r.json(); } catch (err) { }
+                    if (r.ok && json && json.success) {
+                        return refreshGameSections(json.message || 'Guest role updated', 'success');
+                    }
                     const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to update guest';
-                    alert(msg);
-                }).catch(err => { console.error(err); alert('Request failed'); });
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
 
+        // Admin: Change Guest Role via select
         const adminChangeGuestBtn = e.target.closest ? e.target.closest('.admin-change-guest') : null;
         if (adminChangeGuestBtn) {
             const guestId = findGuestIdFrom(adminChangeGuestBtn);
-            console.debug('adminChangeGuestBtn clicked', { guestId, el: adminChangeGuestBtn });
-            if (!guestId) { console.debug('adminChangeGuestBtn no guestId', adminChangeGuestBtn); return; }
-            const li = adminChangeGuestBtn.closest('li[data-guest-id]'); if (!li) return; const select = li.querySelector('.admin-guest-role-select'); const newRole = select ? select.value : null; if (!newRole) return alert('Select a role');
+            if (!guestId) return;
+            const li = adminChangeGuestBtn.closest('li[data-guest-id]'); if (!li) return; const select = li.querySelector('.admin-guest-role-select'); const newRole = select ? select.value : null; if (!newRole) { if (window.showToast) window.showToast('Select a role', 'error'); else alert('Select a role'); return; }
             const menu = adminChangeGuestBtn.closest('.player-options-menu'); if (menu) menu.classList.add('hidden');
             const body = new URLSearchParams(); body.append('_token', '{{ csrf_token() }}'); body.append('gameRole', newRole); body.append('guestId', guestId);
-            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/role`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body }).then(async r => { let json = null; try { json = await r.json(); } catch(e){ } if (r.ok && json && json.success) return location.reload(); const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to update guest'; alert(msg); }).catch(err => { console.error(err); alert('Request failed'); });
+            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/role`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
+                .then(async r => { 
+                    let json = null; 
+                    try { json = await r.json(); } catch(e){ } 
+                    if (r.ok && json && json.success) {
+                        return refreshGameSections(json.message || 'Guest role updated', 'success');
+                    }
+                    const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to update guest'; 
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
 
+        // Admin: Remove Guest
         const adminRemoveGuestBtn = e.target.closest ? e.target.closest('.admin-remove-guest') : null;
         if (adminRemoveGuestBtn) {
             const guestId = findGuestIdFrom(adminRemoveGuestBtn);
-            console.debug('adminRemoveGuestBtn clicked', { guestId, el: adminRemoveGuestBtn });
-            if (!guestId) { console.debug('adminRemoveGuestBtn no guestId', adminRemoveGuestBtn); return; }
+            if (!guestId) return;
             if (!confirm('Remove this guest?')) return;
             const menu = adminRemoveGuestBtn.closest('.player-options-menu'); if (menu) menu.classList.add('hidden');
             const body = new URLSearchParams(); body.append('_token', '{{ csrf_token() }}'); body.append('guestId', guestId);
-            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/remove`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+            fetch(`/admin/game/{{ $game->id }}/guest/${encodeURIComponent(guestId)}/remove`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
                 .then(async r => {
                     let json = null;
-                    try { json = await r.json(); } catch (err) { console.warn('non-json response', err); }
-                    if (r.ok && json && json.success) return location.reload();
+                    try { json = await r.json(); } catch (err) { }
+                    if (r.ok && json && json.success) {
+                        return refreshGameSections(json.message || 'Guest removed', 'info');
+                    }
                     const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to remove guest';
-                    alert(msg);
-                }).catch(err => { console.error(err); alert('Request failed'); });
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
 
+        // Admin: Move Team Member
         const adminMoveTeamBtn = e.target.closest ? e.target.closest('.admin-move-team') : null;
         if (adminMoveTeamBtn) {
             const memberType = adminMoveTeamBtn.getAttribute('data-member-type');
             const memberId = adminMoveTeamBtn.getAttribute('data-member-id');
             const targetTeam = adminMoveTeamBtn.getAttribute('data-target-team');
-            if (!memberType || !memberId || !targetTeam) return alert('Missing data');
+            if (!memberType || !memberId || !targetTeam) return window.showToast ? window.showToast('Missing data', 'error') : alert('Missing data');
             const body = new URLSearchParams();
             body.append('_token', '{{ csrf_token() }}');
             body.append('memberType', memberType);
             body.append('memberId', memberId);
             body.append('team', targetTeam);
-            fetch(`/admin/game/{{ $game->id }}/teams/move`, { method: 'POST', headers: { 'Accept': 'application/json' }, body: body })
+            fetch(`/admin/game/{{ $game->id }}/teams/move`, { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body })
                 .then(async r => {
                     let json = null;
-                    try { json = await r.json(); } catch (err) { /* ignore */ }
-                    if (r.ok && json && json.success) return location.reload();
+                    try { json = await r.json(); } catch (err) { }
+                    if (r.ok && json && json.success) {
+                        return refreshGameSections(json.message || 'Team updated', 'success');
+                    }
                     const msg = (json && (json.error || json.message)) ? (json.error || json.message) : 'Unable to move team member';
-                    alert(msg);
-                }).catch(err => { console.error(err); alert('Request failed'); });
+                    if (window.showToast) window.showToast(msg, 'error'); else alert(msg);
+                }).catch(err => { console.error(err); if (window.showToast) window.showToast('Request failed', 'error'); else alert('Request failed'); });
             return;
         }
-
-        
     });
 
     // Match map height to sidebar (guest + quick info) on large screens
@@ -744,11 +915,102 @@
                 mapWrap.style.height = '';
             }
         }
+        window.matchMapHeight = matchHeight;
         window.addEventListener('resize', function(){ matchHeight(); });
         document.addEventListener('DOMContentLoaded', matchHeight);
-        // try run after a short delay to allow fonts/images to settle
         setTimeout(matchHeight, 300);
     })();
+
+    // Silent background poller (every 10 seconds, only when tab is visible and user is not typing)
+    setInterval(() => {
+        if (document.hidden) return;
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') return;
+        refreshGameSections();
+    }, 10000);
+
+    function liveTeamsReveal(config) {
+        return {
+            gameId: config.gameId,
+            revealTimestamp: config.revealTimestamp,
+            ready: Boolean(config.isReady),
+            isRevealing: false,
+            hours: '00',
+            minutes: '00',
+            seconds: '00',
+            timer: null,
+            pollInterval: null,
+
+            initTimer() {
+                if (this.ready) return;
+
+                this.updateRemaining();
+                this.timer = setInterval(() => {
+                    this.updateRemaining();
+                }, 1000);
+            },
+
+            updateRemaining() {
+                const now = Math.floor(Date.now() / 1000);
+                const diff = this.revealTimestamp - now;
+
+                if (diff <= 0) {
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
+                    this.hours = '00';
+                    this.minutes = '00';
+                    this.seconds = '00';
+                    this.fetchRoster();
+                    return;
+                }
+
+                const h = Math.floor(diff / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+
+                this.hours = String(h).padStart(2, '0');
+                this.minutes = String(m).padStart(2, '0');
+                this.seconds = String(s).padStart(2, '0');
+            },
+
+            fetchRoster() {
+                if (this.ready) return;
+                this.isRevealing = true;
+
+                fetch(`/game/${this.gameId}/teams-roster`, {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ready && data.html) {
+                        const container = document.getElementById('teamsRosterContainer');
+                        if (container) {
+                            container.innerHTML = data.html;
+                        }
+                        this.ready = true;
+                        this.isRevealing = false;
+                        if (this.pollInterval) {
+                            clearInterval(this.pollInterval);
+                            this.pollInterval = null;
+                        }
+                    } else {
+                        // If clock drift, poll every 3 seconds until confirmed
+                        if (!this.pollInterval) {
+                            this.pollInterval = setInterval(() => {
+                                this.fetchRoster();
+                            }, 3000);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to fetch teams roster:', err);
+                    setTimeout(() => this.fetchRoster(), 5000);
+                });
+            }
+        };
+    }
 </script>
 @endpush
 

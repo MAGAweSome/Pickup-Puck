@@ -47,7 +47,15 @@ class GameTeamsService
         return $sum;
     }
 
-    private function buildBalancedSkaterTeams(Collection $skaterPool): array
+    /**
+     * Builds fair, evenly matched Dark and Light skater rosters:
+     * - Categorizes skaters into skill tiers (Elite 5-4, Mid 3, Developing 2-1).
+     * - Pairs players within each tier and randomly coin-flips team assignments so teams change every game.
+     * - Balances total skater counts (max 1 player difference for odd attendance).
+     * - Factors in goalie skill differences so a team with a developing goalie gets a balanced skater roster.
+     * - Uses local swap optimization over multiple iterations to minimize overall disparity.
+     */
+    private function buildBalancedSkaterTeams(Collection $skaterPool, int $goalie1Level = 3, int $goalie2Level = 3): array
     {
         $totalSkaters = $skaterPool->count();
         if ($totalSkaters === 0) {
@@ -59,42 +67,147 @@ class GameTeamsService
             ];
         }
 
+        // If goalie 1 is notably stronger than goalie 2, target slightly higher skater points on team 2 (and vice versa)
+        $goalieDiff = $goalie1Level - $goalie2Level;
+        $targetSkaterDiff = 0;
+        if ($goalieDiff >= 2) {
+            $targetSkaterDiff = -1;
+        } elseif ($goalieDiff <= -2) {
+            $targetSkaterDiff = 1;
+        }
+
         $best = null;
-        $bestDiff = PHP_INT_MAX;
+        $bestScore = PHP_INT_MAX;
+        $skatersArray = $skaterPool->values()->all();
 
-        for ($attempt = 1; $attempt <= self::TEAM_BALANCE_THRESHOLD; $attempt++) {
-            $shuffled = $skaterPool->shuffle()->values();
-            $baseTeamSize = intdiv($totalSkaters, 2);
+        // Run 60 randomized seeded drafts and pick the most balanced combination
+        for ($round = 0; $round < 60; $round++) {
+            $tiers = [
+                'elite' => [], // Level 5 & 4
+                'mid'   => [], // Level 3
+                'low'   => [], // Level 2 & 1
+            ];
 
-            $team1Target = $baseTeamSize;
-            $team2Target = $baseTeamSize;
-            if (($totalSkaters % 2) === 1) {
-                if (random_int(0, 1) === 0) {
-                    $team1Target++;
+            foreach ($skatersArray as $s) {
+                $lvl = (int) ($s['level'] ?? 3);
+                if ($lvl >= 4) {
+                    $tiers['elite'][] = $s;
+                } elseif ($lvl === 3) {
+                    $tiers['mid'][] = $s;
                 } else {
-                    $team2Target++;
+                    $tiers['low'][] = $s;
                 }
             }
 
-            $team1 = $shuffled->slice(0, $team1Target)->values()->all();
-            $team2 = $shuffled->slice($team1Target)->values()->all();
+            // Shuffle each tier to introduce week-to-week roster variety
+            shuffle($tiers['elite']);
+            shuffle($tiers['mid']);
+            shuffle($tiers['low']);
 
-            $team1Skill = $this->sumMemberLevels($team1);
-            $team2Skill = $this->sumMemberLevels($team2);
-            $diff = abs($team1Skill - $team2Skill);
+            $t1 = [];
+            $t2 = [];
 
-            if ($diff < $bestDiff) {
-                $bestDiff = $diff;
-                $best = [
-                    'team1' => $team1,
-                    'team2' => $team2,
-                    'team1Skill' => $team1Skill,
-                    'team2Skill' => $team2Skill,
-                ];
+            // Distribute tier by tier with 50/50 coin flips
+            foreach (['elite', 'mid', 'low'] as $tierKey) {
+                $pool = $tiers[$tierKey];
+                $count = count($pool);
+                for ($i = 0; $i < $count; $i += 2) {
+                    if ($i + 1 < $count) {
+                        if (random_int(0, 1) === 0) {
+                            $t1[] = $pool[$i];
+                            $t2[] = $pool[$i + 1];
+                        } else {
+                            $t2[] = $pool[$i];
+                            $t1[] = $pool[$i + 1];
+                        }
+                    } else {
+                        // Odd leftover player in tier: assign to smaller or lower-skill team
+                        $s1 = $this->sumMemberLevels($t1);
+                        $s2 = $this->sumMemberLevels($t2);
+                        if (count($t1) < count($t2)) {
+                            $t1[] = $pool[$i];
+                        } elseif (count($t2) < count($t1)) {
+                            $t2[] = $pool[$i];
+                        } elseif ($s1 < $s2) {
+                            $t1[] = $pool[$i];
+                        } else {
+                            $t2[] = $pool[$i];
+                        }
+                    }
+                }
             }
 
-            if ($diff <= self::TEAM_SCORE_DIFF_MAX) {
-                break;
+            // Swap optimization to converge on target
+            for ($swapAttempt = 0; $swapAttempt < 25; $swapAttempt++) {
+                $s1 = $this->sumMemberLevels($t1);
+                $s2 = $this->sumMemberLevels($t2);
+                $currentDiff = ($s1 - $s2);
+
+                // Re-balance count if disparity exceeds 1
+                if (count($t1) - count($t2) > 1) {
+                    $idx = array_rand($t1);
+                    $t2[] = $t1[$idx];
+                    array_splice($t1, $idx, 1);
+                    continue;
+                } elseif (count($t2) - count($t1) > 1) {
+                    $idx = array_rand($t2);
+                    $t1[] = $t2[$idx];
+                    array_splice($t2, $idx, 1);
+                    continue;
+                }
+
+                if ($currentDiff === $targetSkaterDiff) {
+                    break;
+                }
+
+                // Try swapping 1 player from each team to get closer to target
+                $improved = false;
+                foreach ($t1 as $i1 => $p1) {
+                    foreach ($t2 as $i2 => $p2) {
+                        $lvl1 = (int) ($p1['level'] ?? 3);
+                        $lvl2 = (int) ($p2['level'] ?? 3);
+                        $newDiff = ($s1 - $lvl1 + $lvl2) - ($s2 - $lvl2 + $lvl1);
+                        if (abs($newDiff - $targetSkaterDiff) < abs($currentDiff - $targetSkaterDiff)) {
+                            $t1[$i1] = $p2;
+                            $t2[$i2] = $p1;
+                            $improved = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if (!$improved) break;
+            }
+
+            $finalS1 = $this->sumMemberLevels($t1);
+            $finalS2 = $this->sumMemberLevels($t2);
+            $finalCount1 = count($t1);
+            $finalCount2 = count($t2);
+
+            $eliteCount1 = count(array_filter($t1, fn($p) => (int)($p['level'] ?? 3) >= 4));
+            $eliteCount2 = count(array_filter($t2, fn($p) => (int)($p['level'] ?? 3) >= 4));
+
+            $lowCount1 = count(array_filter($t1, fn($p) => (int)($p['level'] ?? 3) <= 2));
+            $lowCount2 = count(array_filter($t2, fn($p) => (int)($p['level'] ?? 3) <= 2));
+
+            // Multi-factor balance penalty
+            $penalty = abs(($finalS1 - $finalS2) - $targetSkaterDiff) * 12
+                     + abs($finalCount1 - $finalCount2) * 50
+                     + abs($eliteCount1 - $eliteCount2) * 20
+                     + abs($lowCount1 - $lowCount2) * 10;
+
+            if ($penalty < $bestScore) {
+                $bestScore = $penalty;
+                $best = [
+                    'team1' => $t1,
+                    'team2' => $t2,
+                    'team1Skill' => $finalS1,
+                    'team2Skill' => $finalS2,
+                ];
+
+                if ($penalty === 0) {
+                    break;
+                }
             }
         }
 
@@ -193,8 +306,15 @@ class GameTeamsService
                 };
 
                 // Spread goalies across teams when possible.
-                if ($goaliePool->count() >= 1) $assignGoalie(1, $goaliePool[0]);
-                if ($goaliePool->count() >= 2) $assignGoalie(2, $goaliePool[1]);
+                $goalieLevels = [1 => 3, 2 => 3];
+                if ($goaliePool->count() >= 1) {
+                    $assignGoalie(1, $goaliePool[0]);
+                    $goalieLevels[1] = (int) ($goaliePool[0]['level'] ?? 3);
+                }
+                if ($goaliePool->count() >= 2) {
+                    $assignGoalie(2, $goaliePool[1]);
+                    $goalieLevels[2] = (int) ($goaliePool[1]['level'] ?? 3);
+                }
                 for ($i = 2; $i < $goaliePool->count(); $i++) {
                     $teamNo = $this->pickTeamByTotalCount(
                         count($teamUsers[1]) + count($teamGuests[1]),
@@ -207,7 +327,7 @@ class GameTeamsService
                 foreach ($playerIds->all() as $id) $skaterPool->push(['type' => 'user', 'id' => (int) $id, 'level' => $userLevelMap[$id] ?? 3]);
                 foreach ($guestPlayerIds->all() as $id) $skaterPool->push(['type' => 'guest', 'id' => (int) $id, 'level' => $guestLevelMap[$id] ?? 3]);
 
-                $balancedSkaters = $this->buildBalancedSkaterTeams($skaterPool);
+                $balancedSkaters = $this->buildBalancedSkaterTeams($skaterPool, $goalieLevels[1], $goalieLevels[2]);
                 foreach ([1, 2] as $teamNo) {
                     $members = $teamNo === 1 ? $balancedSkaters['team1'] : $balancedSkaters['team2'];
                     foreach ($members as $m) {

@@ -75,10 +75,11 @@
                     <div class="mt-3 flex flex-col gap-3">
                         <div class="text-sm text-slate-300">Score: {{ $game->dark_score }} - {{ $game->light_score }}</div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <a href="{{ route('game_detail.game_id', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 no-underline">Details</a>
+                            <a href="{{ route('game_detail.game_id', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1.5 rounded bg-slate-700 text-slate-200 hover:text-slate-200 hover:bg-slate-600 text-xs no-underline font-medium">Details</a>
+                            @include('components.add-to-calendar', ['game' => $game])
                             @if($isAdmin)
-                                <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-amber-300 hover:text-amber-300 hover:bg-slate-600 no-underline">Edit</a>
-                                <a href="{{ route('delete_game', ['game' => $game->id]) }}" onclick="return confirm('Are you sure you want to delete this game?');" class="inline-flex items-center px-3 py-1 rounded bg-slate-700 text-rose-400 hover:text-rose-400 hover:bg-slate-600 no-underline">Delete</a>
+                                <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center px-3 py-1.5 rounded bg-slate-700 text-amber-300 hover:text-amber-300 hover:bg-slate-600 text-xs no-underline font-medium">Edit</a>
+                                <a href="{{ route('delete_game', ['game' => $game->id]) }}" onclick="return confirm('Are you sure you want to delete this game?');" class="inline-flex items-center px-3 py-1.5 rounded bg-slate-700 text-rose-400 hover:text-rose-400 hover:bg-slate-600 text-xs no-underline font-medium">Delete</a>
                             @endif
                         </div>
                     </div>

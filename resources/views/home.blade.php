@@ -38,11 +38,27 @@
                 <h3 class="text-lg font-semibold text-ice mb-3 pl-4">Upcoming Games</h3>
 
                 @if($isOnboarding)
-                    <article id="gameCard" class="bg-slate-800 border border-ice-blue/30 rounded-lg p-4">
+                    <div class="mb-4 bg-slate-800/80 border border-ice-blue/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xl">🏒</span>
+                            <div class="text-xs">
+                                <span class="font-bold text-ice-blue uppercase tracking-wider">Interactive Tour</span>
+                                <span class="text-slate-300 ml-1.5">— Learn how Pickup Puck games, rosters, and registration work.</span>
+                            </div>
+                        </div>
+                        <a href="{{ route('home') }}" class="px-2.5 py-1 text-xs border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white rounded transition shrink-0">
+                            Dismiss Tour
+                        </a>
+                    </div>
+
+                    <article id="gameCard" class="bg-slate-800 border border-ice-blue/30 rounded-lg p-4 mb-4">
                         <div class="flex items-start justify-between">
                             <div>
-                                <h4 class="text-xl text-ice font-semibold">Example Pickup Game</h4>
-                                <p class="text-sm text-slate-300">Fri 9:30 PM • 123 Example Arena</p>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xl text-ice font-semibold">Example Pickup Game</h4>
+                                    <span class="text-[11px] font-semibold bg-ice-blue/15 text-ice-blue px-2 py-0.5 rounded border border-ice-blue/30">Demo</span>
+                                </div>
+                                <p class="text-sm text-slate-300 mt-1">Fri 9:30 PM • 123 Example Arena</p>
                             </div>
                             <div class="text-right space-y-1 text-center">
                                 @include('components.badge', ['status' => 'Not Yet Attending'])
@@ -52,22 +68,36 @@
 
                         <div class="mt-4 flex items-center justify-between">
                             <div id="gameLocation_Players" class="text-sm text-slate-300">123 Example Arena • 10 Players • 2 Goalies</div>
-                            <a id="gameMoreDetails" href="{{ route('games.index', ['onboarding' => 1]) }}" class="px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded">See details</a>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('home') }}" class="px-3 py-1 text-xs border border-slate-600 text-slate-300 hover:text-white rounded">Skip</a>
+                                <a id="gameMoreDetails" href="{{ route('games.index', ['onboarding' => 1]) }}" class="px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy font-medium rounded text-xs">See details &rarr;</a>
+                            </div>
                         </div>
                     </article>
                 @endif
 
                 <div class="grid gap-4 md:grid-cols-2">
                     @foreach ($upcomingGames as $game)
-                        <article class="bg-slate-800 border border-slate-700 rounded-lg w-full {{ $isSingleUpcoming ? 'md:col-span-2' : '' }} relative">
-                            <!-- Mobile/Tablet: Full card link -->
-                            <a href="/game/{{$game->id}}" class="block p-4 lg:pointer-events-none">
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
-                                        <p class="text-sm text-slate-300">{{$game->game_time}} • {{$game->location}}</p>
+                        @php
+                            $teamsRevealAt = $game->time->copy()->subMinutes(30);
+                            $isTeamsReady = \Carbon\Carbon::now()->setTimezone('America/Toronto')->greaterThanOrEqualTo($teamsRevealAt);
+                        @endphp
+                        <article class="bg-slate-800 border border-slate-700 rounded-lg w-full {{ $isSingleUpcoming ? 'md:col-span-2' : '' }} flex flex-col justify-between">
+                            <div class="p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h4 class="text-xl text-ice font-semibold">{{$game->title}}</h4>
+                                            @if($isTeamsReady)
+                                                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                    Teams Revealed
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <p class="text-sm text-slate-300 mt-1">{{$game->game_time}} • {{$game->location}}</p>
                                     </div>
-                                    <div class="text-right space-y-1 text-center">
+                                    <div class="text-right space-y-1 text-center shrink-0">
                                         @if(in_array($game->id, $gamesAttending))
                                             @include('components.badge', ['status' => 'Attending'])
                                         @elseif(isset($gamesDeclined) && in_array($game->id, $gamesDeclined))
@@ -80,17 +110,23 @@
                                                 && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
                                         @endphp
                                         @if($showPrice)
-                                            <div class="text-sm text-slate-300">${{ $game->price }}</div>
+                                            <div class="text-sm text-slate-300 font-medium">${{ $game->price }}</div>
                                         @endif
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="mt-4 flex items-center justify-between">
-                                    <div class="text-sm text-slate-300">{{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies</div>
+                            <div class="p-4 pt-0 flex flex-wrap items-center justify-between gap-3 border-t border-slate-700/50 mt-2">
+                                <div class="text-xs text-slate-400 pt-2">
+                                    {{$game->players->count()}} Players • {{$game->goalies->count()}} Goalies
                                 </div>
-                            </a>
-                            <!-- Desktop: See details button -->
-                            <a href="/game/{{$game->id}}" class="hidden lg:block absolute bottom-4 right-4 px-3 py-1 bg-ice-blue text-deep-navy hover:text-deep-navy rounded pointer-events-auto z-10">See details</a>
+                                <div class="flex items-center gap-2 pt-2">
+                                    @include('components.add-to-calendar', ['game' => $game])
+                                    <a href="/game/{{$game->id}}" class="inline-flex items-center px-3 py-1.5 bg-ice-blue text-deep-navy font-semibold hover:bg-ice rounded text-xs no-underline shadow-sm transition">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
                         </article>
                     @endforeach
                 </div>

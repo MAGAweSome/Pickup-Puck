@@ -2,48 +2,220 @@
 
 @section('content')
 
-<div class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-lg shadow-md px-6 py-8">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-white">{{ __('Register') }}</h2>
-            <a href="{{ route('login') }}" class="text-slate-300 hover:text-white">{{ __('Login') }}</a>
+<div class="min-h-[80vh] flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-lg shadow-xl px-6 py-8" x-data="registerPasswordValidator()">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
+            <div>
+                <h2 class="text-2xl font-bold text-ice-blue">{{ __('Create Account') }}</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Join the Pickup Puck hockey league</p>
+            </div>
+            <a href="{{ route('login') }}" class="text-xs text-ice-blue hover:text-white underline font-medium">{{ __('Already registered? Login') }}</a>
         </div>
 
         <form method="POST" action="{{ route('register') }}" class="space-y-4">
             @csrf
 
+            <!-- Name -->
             <div>
-                <label for="name" class="block text-sm text-gray-100">{{ __('Name') }}</label>
+                <label for="name" class="block text-sm font-medium text-slate-200 mb-1">{{ __('Full Name') }}</label>
                 <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus
-                    class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
-                @error('name') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                    placeholder="e.g. Wayne Gretzky"
+                    class="w-full bg-slate-800 text-ice border border-slate-700 rounded-md px-3.5 py-2 text-sm focus:outline-none focus:border-ice-blue focus:ring-1 focus:ring-ice-blue transition @error('name') border-rose-500 @enderror" />
+                @error('name')
+                    <div class="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
             </div>
 
+            <!-- Email Address -->
             <div>
-                <label for="email" class="block text-sm text-gray-100">{{ __('Email Address') }}</label>
+                <label for="email" class="block text-sm font-medium text-slate-200 mb-1">{{ __('Email Address') }}</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email"
-                    class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
-                @error('email') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                    placeholder="name@example.com"
+                    class="w-full bg-slate-800 text-ice border border-slate-700 rounded-md px-3.5 py-2 text-sm focus:outline-none focus:border-ice-blue focus:ring-1 focus:ring-ice-blue transition @error('email') border-rose-500 @enderror" />
+                @error('email')
+                    <div class="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
             </div>
 
+            <!-- Password with Live Strength UI -->
             <div>
-                <label for="password" class="block text-sm text-gray-100">{{ __('Password') }}</label>
-                <input id="password" type="password" name="password" required autocomplete="new-password"
-                    class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
-                @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                <label for="password" class="block text-sm font-medium text-slate-200 mb-1">{{ __('Password') }}</label>
+                <div class="relative">
+                    <input
+                        id="password"
+                        :type="showPassword ? 'text' : 'password'"
+                        name="password"
+                        x-model="password"
+                        required
+                        autocomplete="new-password"
+                        placeholder="At least 8 characters"
+                        class="w-full bg-slate-800 text-ice border border-slate-700 rounded-md pl-3.5 pr-10 py-2 text-sm focus:outline-none focus:border-ice-blue focus:ring-1 focus:ring-ice-blue transition @error('password') border-rose-500 @enderror"
+                    />
+                    <button
+                        type="button"
+                        @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-ice focus:outline-none"
+                        tabindex="-1"
+                        aria-label="Toggle password visibility"
+                    >
+                        <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+                    </button>
+                </div>
+
+                @error('password')
+                    <div class="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                        <span>{{ $message }}</span>
+                    </div>
+                @enderror
+
+                <!-- Password Strength Meter -->
+                <div class="mt-2 space-y-1.5" x-show="password.length > 0" x-transition>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Password Strength:</span>
+                        <span class="font-semibold" :class="strengthTextColor" x-text="strengthLabel"></span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden p-0.5">
+                        <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 1 ? strengthBgColor : 'bg-transparent'"></div>
+                        <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 2 ? strengthBgColor : 'bg-transparent'"></div>
+                        <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 3 ? strengthBgColor : 'bg-transparent'"></div>
+                        <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 4 ? strengthBgColor : 'bg-transparent'"></div>
+                    </div>
+
+                    <!-- Requirements Checklist -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 text-xs">
+                        <div class="flex items-center gap-1.5" :class="hasMinLength ? 'text-emerald-400' : 'text-slate-500'">
+                            <i :class="hasMinLength ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                            <span>8+ characters</span>
+                        </div>
+                        <div class="flex items-center gap-1.5" :class="hasLetter ? 'text-emerald-400' : 'text-slate-500'">
+                            <i :class="hasLetter ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                            <span>Letters</span>
+                        </div>
+                        <div class="flex items-center gap-1.5" :class="hasNumberOrSpecial ? 'text-emerald-400' : 'text-slate-500'">
+                            <i :class="hasNumberOrSpecial ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                            <span>Numbers/symbols</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- Confirm Password -->
             <div>
-                <label for="password-confirm" class="block text-sm text-gray-100">{{ __('Confirm Password') }}</label>
-                <input id="password-confirm" type="password" name="password_confirmation" required autocomplete="new-password"
-                    class="mt-1 w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                <label for="password-confirm" class="block text-sm font-medium text-slate-200 mb-1">{{ __('Confirm Password') }}</label>
+                <div class="relative">
+                    <input
+                        id="password-confirm"
+                        :type="showConfirm ? 'text' : 'password'"
+                        name="password_confirmation"
+                        x-model="confirmation"
+                        required
+                        autocomplete="new-password"
+                        placeholder="Repeat your password"
+                        class="w-full bg-slate-800 text-ice border border-slate-700 rounded-md pl-3.5 pr-10 py-2 text-sm focus:outline-none focus:border-ice-blue focus:ring-1 focus:ring-ice-blue transition"
+                    />
+                    <button
+                        type="button"
+                        @click="showConfirm = !showConfirm"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-ice focus:outline-none"
+                        tabindex="-1"
+                        aria-label="Toggle confirm password visibility"
+                    >
+                        <i :class="showConfirm ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+                    </button>
+                </div>
+
+                <!-- Live Match Indicator -->
+                <div class="mt-1.5 text-xs" x-show="confirmation.length > 0" x-transition>
+                    <span x-show="passwordsMatch" class="text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i> Passwords match
+                    </span>
+                    <span x-show="!passwordsMatch" class="text-amber-400 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Passwords do not match yet
+                    </span>
+                </div>
             </div>
 
-            <div>
-                <button type="submit" class="w-full bg-ice-blue text-deep-navy font-semibold py-2 rounded shadow">{{ __('Register') }}</button>
+            <div class="pt-3">
+                <button
+                    type="submit"
+                    class="w-full bg-ice-blue text-deep-navy font-bold py-2.5 rounded-md shadow-md hover:bg-ice transition flex items-center justify-center gap-2 text-sm"
+                >
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>{{ __('Create Account') }}</span>
+                </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function registerPasswordValidator() {
+        return {
+            showPassword: false,
+            showConfirm: false,
+            password: '',
+            confirmation: '',
+
+            get hasMinLength() {
+                return this.password.length >= 8;
+            },
+            get hasLetter() {
+                return /[a-zA-Z]/.test(this.password);
+            },
+            get hasNumberOrSpecial() {
+                return /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.password);
+            },
+            get hasMixedCase() {
+                return /[a-z]/.test(this.password) && /[A-Z]/.test(this.password);
+            },
+            get strengthScore() {
+                if (this.password.length === 0) return 0;
+                let score = 0;
+                if (this.hasMinLength) score++;
+                if (this.hasLetter) score++;
+                if (this.hasNumberOrSpecial) score++;
+                if (this.hasMixedCase || this.password.length >= 12) score++;
+                return Math.min(4, Math.max(1, score));
+            },
+            get strengthLabel() {
+                switch(this.strengthScore) {
+                    case 1: return 'Weak';
+                    case 2: return 'Fair';
+                    case 3: return 'Good';
+                    case 4: return 'Strong';
+                    default: return '';
+                }
+            },
+            get strengthTextColor() {
+                switch(this.strengthScore) {
+                    case 1: return 'text-rose-400';
+                    case 2: return 'text-amber-400';
+                    case 3: return 'text-ice-blue';
+                    case 4: return 'text-emerald-400';
+                    default: return 'text-slate-400';
+                }
+            },
+            get strengthBgColor() {
+                switch(this.strengthScore) {
+                    case 1: return 'bg-rose-500';
+                    case 2: return 'bg-amber-500';
+                    case 3: return 'bg-ice-blue';
+                    case 4: return 'bg-emerald-500';
+                    default: return 'bg-slate-700';
+                }
+            },
+            get passwordsMatch() {
+                return this.password.length > 0 && this.password === this.confirmation;
+            }
+        };
+    }
+</script>
 
 @endsection

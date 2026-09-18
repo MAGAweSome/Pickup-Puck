@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
+use Illuminate\Validation\Rules\Password;
+
 class RegisterController extends Controller
 {
     /*
@@ -44,21 +46,11 @@ class RegisterController extends Controller
     }
 
     /**
-     * After a user is registered, redirect into onboarding for regular users.
-     *
-     * Note: completion is only recorded when the user finishes the onboarding flow.
+     * After a user is registered, bring them to the email verification confirmation page.
      */
     protected function registered(Request $request, $user)
     {
-        if ($user && method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-            return redirect($this->redirectPath());
-        }
-
-        if (!($user->completed_onboarding ?? false)) {
-            return redirect()->route('home', ['onboarding' => 1]);
-        }
-
-        return redirect($this->redirectPath());
+        return redirect()->route('verification.notice');
     }
 
     /**
@@ -73,9 +65,11 @@ class RegisterController extends Controller
             // Require a first name and a last name (last name at least 2 chars) per requested pattern
             'name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z]+ [A-Za-z]{2,}$/'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', Password::defaults()],
         ], [
-            'name.regex' => 'Please enter first and last name'
+            'name.regex' => 'Please enter first and last name',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'password.min' => 'The password must be at least 8 characters.',
         ]);
     }
 

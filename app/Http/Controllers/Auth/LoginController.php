@@ -42,7 +42,8 @@ class LoginController extends Controller
     }
 
     /**
-     * After successful login, send regular users into onboarding until completed.
+     * After successful login, show onboarding only on the user's first login.
+     * Subsequent logins will never show onboarding unless manually triggered from profile.
      */
     protected function authenticated(Request $request, $user)
     {
@@ -50,7 +51,11 @@ class LoginController extends Controller
             return redirect()->intended($this->redirectPath());
         }
 
+        // Show onboarding only once on the first login
         if (!($user->completed_onboarding ?? false)) {
+            $user->completed_onboarding = true;
+            $user->save();
+
             return redirect()->route('home', ['onboarding' => 1]);
         }
 

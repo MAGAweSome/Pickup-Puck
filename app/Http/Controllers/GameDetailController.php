@@ -33,7 +33,7 @@ class GameDetailController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['downloadIcs']);
     }
 
     /**
@@ -96,121 +96,19 @@ class GameDetailController extends Controller
             ->get();
 
         $currentTime = Carbon::now()->setTimezone('America/Toronto');
-
-        $teamsRevealAt = $game->time->copy()->subMinutes(30);
-        $teamsReady = $currentTime->greaterThanOrEqualTo($teamsRevealAt);
-
-        $currentUserTeam = null;
-        if (Auth::check() && $teamsReady) {
-            $row = DB::table('game_teams_players')
-                ->where('game_id', $game->id)
-                ->where('user_id', Auth::id())
-                ->first();
-            if ($row && isset($row->team)) {
-                $currentUserTeam = ((int) $row->team) === 1 ? 'Dark' : (((int) $row->team) === 2 ? 'Light' : null);
-            }
-        }
-
-        if ($teamsReady) {
-            (new GameTeamsService())->ensureLockedTeams($game, $currentTime);
-        }
+        $teamData = $this->getTeamsData($game);
+        $teamsRevealAt = $teamData['teamsRevealAt'];
+        $teamsReady = $teamData['teamsReady'];
+        $currentUserTeam = $teamData['currentUserTeam'];
+        $darkTeamMembers = $teamData['darkTeamMembers'];
+        $lightTeamMembers = $teamData['lightTeamMembers'];
+        $darkTeamSkill = $teamData['darkTeamSkill'];
+        $lightTeamSkill = $teamData['lightTeamSkill'];
 
         // return guest records so we have ids and names available for admin actions
         $guestPlayers = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'player')->get();
         $guestGoalies = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->get();
 
-        $darkTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get();
-        $lightTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get();
-
-        $darkTeamGuests = DB::table('game_teams_guests')
-            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
-            ->where('game_teams_guests.game_id', $game->id)
-            ->where('game_teams_guests.team', 1)
-            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
-
-        $lightTeamGuests = DB::table('game_teams_guests')
-            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
-            ->where('game_teams_guests.game_id', $game->id)
-            ->where('game_teams_guests.team', 2)
-            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
-
-        // Goalies are stored as id => name; keep ids for (G) labeling in teams
-        $goalieUserIds = $goalies->keys()->map(fn ($id) => (int) $id)->values()->all();
-
-        $buildOrderedTeamMembers = function ($teamUsers, $teamGuests) use ($goalieUserIds) {
-            $goaliesFirst = collect();
-            $skaters = collect();
-
-                foreach ($teamUsers as $u) {
-                $isGoalie = in_array((int) $u->id, $goalieUserIds, true);
-                $isCurrentUser = Auth::check() && ((int) $u->id === (int) Auth::id());
-                $item = [
-                    'type' => 'user',
-                    'id' => (int) $u->id,
-                        'name' => $u->name,
-                        'level' => $u->level ?? 3,
-                    'is_goalie' => $isGoalie,
-                    'is_empty_net' => false,
-                    'is_current_user' => $isCurrentUser,
-                ];
-                if ($isGoalie) $goaliesFirst->push($item);
-                else $skaters->push($item);
-            }
-
-            foreach ($teamGuests as $g) {
-                $isGoalie = ($g->role === 'goalie');
-                $item = [
-                    'type' => 'guest',
-                    'id' => (int) $g->id,
-                    'name' => $g->name,
-                    'level' => $g->level ?? 3,
-                    'is_goalie' => $isGoalie,
-                    'is_empty_net' => false,
-                    'is_current_user' => false,
-                ];
-                if ($isGoalie) $goaliesFirst->push($item);
-                else $skaters->push($item);
-            }
-
-            if ($goaliesFirst->isEmpty()) {
-                // Always show a goalie slot first, even if it's an Empty Net
-                $goaliesFirst->push(['type' => 'empty', 'id' => null, 'name' => 'Empty Net', 'is_goalie' => true, 'is_empty_net' => true, 'is_current_user' => false]);
-            }
-
-            return $goaliesFirst->concat($skaters)->values();
-        };
-
-        $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
-        $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
-
-        // Compute team score using skaters only; goalies never count toward score.
-        $darkTeamSkill = 0;
-        foreach ($darkTeamUsers as $u) {
-            if (($u->role ?? null) === 'goalie') {
-                continue;
-            }
-            $darkTeamSkill += (int) ($u->level ?? 3);
-        }
-        foreach ($darkTeamGuests as $g) {
-            if (($g->role ?? null) === 'goalie') {
-                continue;
-            }
-            $darkTeamSkill += (int) ($g->level ?? 3);
-        }
-
-        $lightTeamSkill = 0;
-        foreach ($lightTeamUsers as $u) {
-            if (($u->role ?? null) === 'goalie') {
-                continue;
-            }
-            $lightTeamSkill += (int) ($u->level ?? 3);
-        }
-        foreach ($lightTeamGuests as $g) {
-            if (($g->role ?? null) === 'goalie') {
-                continue;
-            }
-            $lightTeamSkill += (int) ($g->level ?? 3);
-        }
 
         $players_attending = array();
 
@@ -281,6 +179,9 @@ class GameDetailController extends Controller
             ->exists();
 
         if ($alreadySignedUp) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'You are already signed up for this game. Remove yourself first if you want to change your role.'], 422);
+            }
             return back()->withErrors(['gameRole' => 'You are already signed up for this game. Remove yourself first if you want to change your role.']);
         }
 
@@ -290,6 +191,9 @@ class GameDetailController extends Controller
             $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
             $goalieCount = $userGoalieCount + $guestGoalieCount;
             if ($goalieCount >= 2) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'There are already two goalies for this game. Remove a goalie first.'], 422);
+                }
                 return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Remove a goalie first.']);
             }
         }
@@ -308,6 +212,10 @@ class GameDetailController extends Controller
 
         $now = Carbon::now()->setTimezone('America/Toronto');
         (new GameTeamsService())->ensureLockedTeams($game, $now);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'You have joined the game!']);
+        }
 
         return back()->with('success', 'You have successfully added your game!');
     }
@@ -334,7 +242,7 @@ class GameDetailController extends Controller
             ['status' => 'cannot', 'updated_at' => now(), 'created_at' => now()]
         );
 
-        if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true]);
+        if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true, 'message' => 'Marked as not attending']);
         return back()->with('success', 'Marked as not attending');
     }
 
@@ -360,6 +268,9 @@ class GameDetailController extends Controller
             $userGoalieCount = DB::table('game_players')->where('game_id', $game->id)->where('role', 'goalie')->count();
             $guestGoalieCount = DB::table('game_players_guests')->where('game_id', $game->id)->where('role', 'goalie')->count();
             if (($userGoalieCount + $guestGoalieCount) >= 2) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'There are already two goalies for this game. Add them as a player instead.'], 422);
+                }
                 return back()->withErrors(['gameRole' => 'There are already two goalies for this game. Add them as a player instead.']);
             }
         }
@@ -369,6 +280,9 @@ class GameDetailController extends Controller
             ->exists();
 
         if ($alreadyAttending) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'That guest is already attending this game.'], 422);
+            }
             return back()->withErrors(['guestName' => 'That guest is already attending this game.']);
         }
 
@@ -381,6 +295,9 @@ class GameDetailController extends Controller
             ]);
         } catch (QueryException $e) {
             // In case two requests race, the DB unique index will throw here.
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'That guest is already attending this game.'], 422);
+            }
             return back()->withErrors(['guestName' => 'That guest is already attending this game.']);
         }
 
@@ -392,6 +309,10 @@ class GameDetailController extends Controller
             Guest::create([
                 'name' => $guestName
             ]);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Guest added successfully!']);
         }
 
         return back()->with('success', 'You have successfully added a guest to the game!');
@@ -467,7 +388,7 @@ class GameDetailController extends Controller
         (new GameTeamsService())->ensureLockedTeams($game, $now);
 
         if ($request->expectsJson() || $request->ajax()) {
-            if ($updated) return response()->json(['success' => true]);
+            if ($updated) return response()->json(['success' => true, 'message' => 'Player role updated']);
             return response()->json(['error' => 'Unable to update player role'], 422);
         }
 
@@ -527,10 +448,12 @@ class GameDetailController extends Controller
             ->update($updateData);
 
         if ($updated) {
-            return response()->json(['success' => true]);
+            $now = Carbon::now()->setTimezone('America/Toronto');
+            (new GameTeamsService())->ensureLockedTeams($game, $now);
+            return response()->json(['success' => true, 'message' => 'Guest role updated']);
         }
 
-        return response()->json(['success' => false], 422);
+        return response()->json(['error' => 'Unable to update guest role'], 422);
     }
 
     /**
@@ -564,8 +487,8 @@ class GameDetailController extends Controller
             return (bool) $deleted;
         });
 
-        if ($result) return response()->json(['success' => true]);
-        return response()->json(['success' => false], 422);
+        if ($result) return response()->json(['success' => true, 'message' => 'Guest removed']);
+        return response()->json(['error' => 'Unable to remove guest'], 422);
     }
 
     /**
@@ -599,8 +522,8 @@ class GameDetailController extends Controller
             return (bool) $deleted;
         });
 
-        if ($result) return response()->json(['success' => true]);
-        return response()->json(['success' => false], 422);
+        if ($result) return response()->json(['success' => true, 'message' => 'Player removed']);
+        return response()->json(['error' => 'Unable to remove player'], 422);
     }
 
     /**
@@ -635,11 +558,11 @@ class GameDetailController extends Controller
         });
 
         if ($result) {
-            if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true]);
+            if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => true, 'message' => 'You have removed yourself from the game']);
             return back()->with('success', 'You have removed yourself from the game');
         }
 
-        if ($request->expectsJson() || $request->ajax()) return response()->json(['success' => false], 422);
+        if ($request->expectsJson() || $request->ajax()) return response()->json(['error' => 'Unable to remove you from the game'], 422);
         return back()->with('error', 'Unable to remove you from the game');
     }
 
@@ -693,7 +616,7 @@ class GameDetailController extends Controller
             );
         }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Team updated']);
     }
 
     /**
@@ -729,7 +652,7 @@ class GameDetailController extends Controller
                 ->delete();
         }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Team assignment removed']);
     }
 
     public function payment(UserAcceptGamePayment $request, Game $game) {
@@ -784,4 +707,232 @@ class GameDetailController extends Controller
         if ($saved) return back()->with('success', 'Scores updated');
         return back()->with('error', 'Unable to save scores');
     }
+
+    /**
+     * Get structured team rosters, scores, and status for a game.
+     */
+    public function getTeamsData(Game $game): array
+    {
+        $currentTime = Carbon::now()->setTimezone('America/Toronto');
+        $teamsRevealAt = $game->time->copy()->subMinutes(30);
+        $teamsReady = $currentTime->greaterThanOrEqualTo($teamsRevealAt);
+
+        $currentUserTeam = null;
+        if (Auth::check() && $teamsReady) {
+            $row = DB::table('game_teams_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', Auth::id())
+                ->first();
+            if ($row && isset($row->team)) {
+                $currentUserTeam = ((int) $row->team) === 1 ? 'Dark' : (((int) $row->team) === 2 ? 'Light' : null);
+            }
+        }
+
+        if ($teamsReady) {
+            (new GameTeamsService())->ensureLockedTeams($game, $currentTime);
+        }
+
+        $darkTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 1)->get();
+        $lightTeamUsers = $game->gameTeamsPlayers()->wherePivot('team', 2)->get();
+
+        $darkTeamGuests = DB::table('game_teams_guests')
+            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
+            ->where('game_teams_guests.game_id', $game->id)
+            ->where('game_teams_guests.team', 1)
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
+
+        $lightTeamGuests = DB::table('game_teams_guests')
+            ->join('game_players_guests', 'game_teams_guests.guest_id', '=', 'game_players_guests.id')
+            ->where('game_teams_guests.game_id', $game->id)
+            ->where('game_teams_guests.team', 2)
+            ->get(['game_players_guests.id', 'game_players_guests.name', 'game_players_guests.role', 'game_players_guests.level']);
+
+        $goalieUserIds = $game->gamePlayers()
+            ->wherePivot('role', GameRoles::Goalie)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $buildOrderedTeamMembers = function ($teamUsers, $teamGuests) use ($goalieUserIds) {
+            $goaliesFirst = collect();
+            $skaters = collect();
+
+            foreach ($teamUsers as $u) {
+                $isGoalie = in_array((int) $u->id, $goalieUserIds, true);
+                $isCurrentUser = Auth::check() && ((int) $u->id === (int) Auth::id());
+                $item = [
+                    'type' => 'user',
+                    'id' => (int) $u->id,
+                    'name' => $u->name,
+                    'level' => $u->level ?? 3,
+                    'is_goalie' => $isGoalie,
+                    'is_empty_net' => false,
+                    'is_current_user' => $isCurrentUser,
+                ];
+                if ($isGoalie) {
+                    $goaliesFirst->push($item);
+                } else {
+                    $skaters->push($item);
+                }
+            }
+
+            foreach ($teamGuests as $g) {
+                $isGoalie = ($g->role === 'goalie');
+                $item = [
+                    'type' => 'guest',
+                    'id' => (int) $g->id,
+                    'name' => $g->name,
+                    'level' => $g->level ?? 3,
+                    'is_goalie' => $isGoalie,
+                    'is_empty_net' => false,
+                    'is_current_user' => false,
+                ];
+                if ($isGoalie) {
+                    $goaliesFirst->push($item);
+                } else {
+                    $skaters->push($item);
+                }
+            }
+
+            if ($goaliesFirst->isEmpty()) {
+                $goaliesFirst->push([
+                    'type' => 'empty',
+                    'id' => null,
+                    'name' => 'Empty Net',
+                    'is_goalie' => true,
+                    'is_empty_net' => true,
+                    'is_current_user' => false,
+                ]);
+            }
+
+            return $goaliesFirst->concat($skaters)->values();
+        };
+
+        $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
+        $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
+
+        $darkTeamSkill = 0;
+        foreach ($darkTeamUsers as $u) {
+            if (($u->role ?? null) === 'goalie') continue;
+            $darkTeamSkill += (int) ($u->level ?? 3);
+        }
+        foreach ($darkTeamGuests as $g) {
+            if (($g->role ?? null) === 'goalie') continue;
+            $darkTeamSkill += (int) ($g->level ?? 3);
+        }
+
+        $lightTeamSkill = 0;
+        foreach ($lightTeamUsers as $u) {
+            if (($u->role ?? null) === 'goalie') continue;
+            $lightTeamSkill += (int) ($u->level ?? 3);
+        }
+        foreach ($lightTeamGuests as $g) {
+            if (($g->role ?? null) === 'goalie') continue;
+            $lightTeamSkill += (int) ($g->level ?? 3);
+        }
+
+        return [
+            'currentTime' => $currentTime,
+            'teamsRevealAt' => $teamsRevealAt,
+            'teamsReady' => $teamsReady,
+            'currentUserTeam' => $currentUserTeam,
+            'darkTeamMembers' => $darkTeamMembers,
+            'lightTeamMembers' => $lightTeamMembers,
+            'darkTeamSkill' => $darkTeamSkill,
+            'lightTeamSkill' => $lightTeamSkill,
+        ];
+    }
+
+    /**
+     * Endpoint returning live roster status & rendered HTML at T-30.
+     */
+    public function teamsRoster(Request $request, Game $game)
+    {
+        $teamData = $this->getTeamsData($game);
+
+        if (!$teamData['teamsReady']) {
+            $now = Carbon::now()->setTimezone('America/Toronto');
+            $secondsRemaining = max(0, $now->diffInSeconds($teamData['teamsRevealAt'], false));
+
+            return response()->json([
+                'ready' => false,
+                'reveal_at' => $teamData['teamsRevealAt']->toIso8601String(),
+                'reveal_timestamp' => $teamData['teamsRevealAt']->timestamp,
+                'seconds_remaining' => $secondsRemaining,
+            ]);
+        }
+
+        $html = view('components.teams_roster', array_merge($teamData, ['game' => $game]))->render();
+
+        return response()->json([
+            'ready' => true,
+            'reveal_at' => $teamData['teamsRevealAt']->toIso8601String(),
+            'reveal_timestamp' => $teamData['teamsRevealAt']->timestamp,
+            'current_user_team' => $teamData['currentUserTeam'],
+            'dark_team_skill' => $teamData['darkTeamSkill'],
+            'light_team_skill' => $teamData['lightTeamSkill'],
+            'html' => $html,
+        ]);
+    }
+
+    /**
+     * Download RFC 5545 iCalendar (.ics) with rink location and alarms at T-2h and T-30m.
+     */
+    public function downloadIcs(Game $game)
+    {
+        $startTime = $game->time->copy()->setTimezone('UTC');
+        $duration = (int) ($game->duration ?: 60);
+        $endTime = $startTime->copy()->addMinutes($duration);
+        $nowTime = Carbon::now('UTC')->format('Ymd\THis\Z');
+
+        $startFormatted = $startTime->format('Ymd\THis\Z');
+        $endFormatted = $endTime->format('Ymd\THis\Z');
+
+        $title = 'Pickup Puck: ' . ($game->title ?: 'Hockey Game');
+        $location = $game->location ?: 'Hockey Arena';
+        $url = route('game_detail.game_id', $game->id);
+        $description = "Pickup Hockey League\\nLocation: {$location}\\nGame Details: {$url}\\n\\nNote: Teams reveal 30 minutes before puck drop!";
+
+        $safeSummary = addcslashes($title, ",;\\");
+        $safeLocation = addcslashes($location, ",;\\");
+        $uid = "game-{$game->id}-{$game->time->timestamp}@pickuppuck.com";
+
+        $ics = "BEGIN:VCALENDAR\r\n"
+            . "VERSION:2.0\r\n"
+            . "PRODID:-//Pickup Puck//Pickup Hockey League//EN\r\n"
+            . "CALSCALE:GREGORIAN\r\n"
+            . "METHOD:PUBLISH\r\n"
+            . "BEGIN:VEVENT\r\n"
+            . "UID:{$uid}\r\n"
+            . "DTSTAMP:{$nowTime}\r\n"
+            . "DTSTART:{$startFormatted}\r\n"
+            . "DTEND:{$endFormatted}\r\n"
+            . "SUMMARY:{$safeSummary}\r\n"
+            . "DESCRIPTION:{$description}\r\n"
+            . "LOCATION:{$safeLocation}\r\n"
+            . "URL:{$url}\r\n"
+            . "STATUS:CONFIRMED\r\n"
+            . "BEGIN:VALARM\r\n"
+            . "TRIGGER:-PT2H\r\n"
+            . "ACTION:DISPLAY\r\n"
+            . "DESCRIPTION:Pickup Puck Reminder: Puck drops in 2 hours at {$safeLocation}!\r\n"
+            . "END:VALARM\r\n"
+            . "BEGIN:VALARM\r\n"
+            . "TRIGGER:-PT30M\r\n"
+            . "ACTION:DISPLAY\r\n"
+            . "DESCRIPTION:Pickup Puck: Teams are revealed! Check your team assignment at {$url}\r\n"
+            . "END:VALARM\r\n"
+            . "END:VEVENT\r\n"
+            . "END:VCALENDAR\r\n";
+
+        $fileName = 'pickup-puck-game-' . $game->id . '.ics';
+
+        return response($ics, 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
+        ]);
+    }
 }
+

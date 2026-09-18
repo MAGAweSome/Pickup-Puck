@@ -86,12 +86,111 @@
     <div class="flex h-[calc(100dvh-var(--nav-height))] mt-[var(--nav-height)]">
         @include('components.sidebar')
 
-        <main class="flex-1 overflow-y-auto bg-deep-navy">
-            <div class="p-6 md:p-10 app-container mx-auto w-full">
+        <main class="flex-1 overflow-y-auto bg-deep-navy flex flex-col">
+            @if(Auth::check() && !Auth::user()->hasVerifiedEmail() && !request()->routeIs('verification.notice'))
+                <div id="email-verification-banner" class="bg-amber-950/90 border-b border-amber-500/40 text-amber-200 px-4 py-2.5 shadow-md shrink-0">
+                    <div class="app-container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+                        <div class="flex items-center gap-2.5 text-center sm:text-left">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base shrink-0"></i>
+                            <span>
+                                Your email address (<strong class="text-white">{{ Auth::user()->email }}</strong>) is not verified. Please verify your email to unlock all league features.
+                            </span>
+                        </div>
+                        <form method="POST" action="{{ route('verification.resend') }}" class="shrink-0 inline-flex" onsubmit="event.preventDefault(); window.resendVerificationEmail(this);">
+                            @csrf
+                            <button type="submit" id="banner-resend-btn" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-deep-navy font-bold rounded text-xs transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                                <span>Resend Verification Email</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
+            <div class="p-6 md:p-10 app-container mx-auto w-full flex-1">
                 @yield('content')
             </div>
         </main>
     </div>
+
+    <!-- Global Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+
+    <script>
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm font-medium transition-all duration-300 transform translate-y-3 opacity-0 ${
+                type === 'success' 
+                    ? 'bg-slate-900/95 border-emerald-500/50 text-emerald-300 shadow-emerald-950/40' 
+                    : type === 'error'
+                    ? 'bg-slate-900/95 border-rose-500/50 text-rose-300 shadow-rose-950/40'
+                    : 'bg-slate-900/95 border-sky-500/50 text-sky-300 shadow-sky-950/40'
+            }`;
+
+            const icon = type === 'success'
+                ? '<i class="fas fa-check-circle text-emerald-400 text-base"></i>'
+                : type === 'error'
+                ? '<i class="fas fa-exclamation-circle text-rose-400 text-base"></i>'
+                : '<i class="fas fa-info-circle text-sky-400 text-base"></i>';
+
+            toast.innerHTML = `
+                ${icon}
+                <div class="flex-1">${message}</div>
+                <button type="button" class="text-slate-400 hover:text-white ml-2 transition-colors" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        };
+
+        window.resendVerificationEmail = async function(form) {
+            const btn = form.querySelector('button[type="submit"]');
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Sending...</span>';
+            }
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrf,
+                    }
+                });
+
+                if (res.ok || res.status === 202) {
+                    window.showToast('Verification email resent! Please check your inbox or junk folder.', 'success');
+                } else if (res.status === 429) {
+                    window.showToast('Please wait a moment before requesting another verification email.', 'error');
+                } else {
+                    form.submit();
+                }
+            } catch (e) {
+                form.submit();
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        };
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     @stack('scripts')

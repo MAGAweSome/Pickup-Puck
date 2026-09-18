@@ -50,6 +50,16 @@ Auth::routes(['verify' => true]);
 // AJAX endpoint for registration email availability (usable by guests)
 Route::post('/register/check-email', [App\Http\Controllers\Auth\RegisterController::class, 'checkEmail'])->name('register.check_email');
 
+// Public calendar download (.ics) for external calendar apps and mobile clients
+Route::get('/game/{game}/calendar/ics', [GameDetailController::class, 'downloadIcs'])->name('game.calendar.ics');
+
+// Real-time verification status check for auto-refresh
+Route::middleware('auth')->get('/email/verification-status', function () {
+    return response()->json([
+        'verified' => auth()->user() ? auth()->user()->hasVerifiedEmail() : false,
+    ]);
+})->name('verification.status');
+
 // Route::middleware('verified')->group(function () {
 // Must have a verified account to access
 
@@ -57,8 +67,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile',[ProfileController::class, 'update'])->name('profile_update');
+    Route::post('/profile/password', [UpdatePasswordController::class, 'updatePassword'])->name('profile.password.update');
     Route::get('/update_profile', [UpdateProfileController::class, 'index'])->name('update_profile');
     Route::get('/update/password',[UpdatePasswordController::class, 'index'])->name('update_password');
+
 
     // Structural pages (sidebar links)
     Route::get('/games', [GameController::class, 'index'])->name('games.index');
@@ -89,6 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/seasons/{season}/accept-all', [HomeController::class, 'acceptAllGamesInSeason'])->name('seasons.accept-all');
 
     Route::get('/game/{game}', [GameDetailController::class, 'index'])->name('game_detail.game_id');
+    Route::get('/game/{game}/teams-roster', [GameDetailController::class, 'teamsRoster'])->name('game.teams_roster');
     Route::get('/game/{game}/search', [GameDetailController::class, 'searchGuestList'])->name('game_detail_search_guest.game_id');
     Route::post('/game/{game}/role', [GameDetailController::class, 'update'])->name('game_detail_update.game_id');
     Route::post('/game/{game}/cannot-attend', [GameDetailController::class, 'cannotAttend'])->name('game_detail_cannot_attend');
@@ -141,5 +154,34 @@ Route::middleware('auth')->group(function () {
         Route::get('/delete_game/{game}', [EditGameController::class, 'delete'])->name('delete_game');
     });
 });
+
+// Email Template Previews (for visual design inspection in local/dev)
+Route::get('/email-preview/reset-password', function () {
+    $dummyUser = (object) [
+        'name' => auth()->check() ? auth()->user()->name : 'Wayne Gretzky',
+        'email' => auth()->check() ? auth()->user()->email : 'wayne@example.com',
+    ];
+    $dummyUrl = url('/password/reset/sample-token-12345?email=' . urlencode($dummyUser->email));
+
+    return view('emails.auth.reset-password', [
+        'user' => $dummyUser,
+        'url' => $dummyUrl,
+        'count' => 60,
+    ]);
+})->name('email_preview.reset_password');
+
+Route::get('/email-preview/verify-email', function () {
+    $dummyUser = (object) [
+        'name' => auth()->check() ? auth()->user()->name : 'Connor McDavid',
+        'email' => auth()->check() ? auth()->user()->email : 'connor@example.com',
+    ];
+    $dummyUrl = url('/email/verify/sample-id/sample-hash');
+
+    return view('emails.auth.verify-email', [
+        'user' => $dummyUser,
+        'url' => $dummyUrl,
+    ]);
+})->name('email_preview.verify_email');
+
 
     

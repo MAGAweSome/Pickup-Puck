@@ -114,7 +114,36 @@
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
                         @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
                     @endif
-                    <div x-show="passwordTouched && password.length < 8" x-cloak class="text-red-400 text-sm mt-1">Password must be at least 8 characters.</div>
+
+                    <!-- Password Strength Meter -->
+                    <div class="mt-2 space-y-1.5" x-show="(password || '').length > 0" x-cloak x-transition>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Strength:</span>
+                            <span class="font-semibold" :class="strengthTextColor" x-text="strengthLabel"></span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden p-0.5">
+                            <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 1 ? strengthBgColor : 'bg-transparent'"></div>
+                            <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 2 ? strengthBgColor : 'bg-transparent'"></div>
+                            <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 3 ? strengthBgColor : 'bg-transparent'"></div>
+                            <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 4 ? strengthBgColor : 'bg-transparent'"></div>
+                        </div>
+
+                        <!-- Requirements Checklist -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 text-xs">
+                            <div class="flex items-center gap-1.5" :class="hasMinLength ? 'text-emerald-400' : 'text-slate-500'">
+                                <i :class="hasMinLength ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                                <span>8+ characters</span>
+                            </div>
+                            <div class="flex items-center gap-1.5" :class="hasLetter ? 'text-emerald-400' : 'text-slate-500'">
+                                <i :class="hasLetter ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                                <span>Letters</span>
+                            </div>
+                            <div class="flex items-center gap-1.5" :class="hasNumberOrSpecial ? 'text-emerald-400' : 'text-slate-500'">
+                                <i :class="hasNumberOrSpecial ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                                <span>Numbers or symbols</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -128,10 +157,16 @@
                             <i x-show="showPasswordConfirmation" x-cloak class="fa-regular fa-eye-slash"></i>
                         </button>
                     </div>
-                    <div x-show="password_confirmation.length > 0" x-cloak
-                         :class="password === password_confirmation ? 'text-green-400' : 'text-red-400'"
-                         class="text-sm mt-1"
-                         x-text="password === password_confirmation ? 'Passwords match' : 'Passwords do not match'"></div>
+
+                    <!-- Live Match Indicator -->
+                    <div class="mt-1.5 text-xs" x-show="(password_confirmation || '').length > 0" x-cloak x-transition>
+                        <span x-show="passwordsMatch" class="text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-check"></i> Passwords match
+                        </span>
+                        <span x-show="!passwordsMatch" class="text-amber-400 flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Passwords do not match yet
+                        </span>
+                    </div>
                 </div>
 
                 <div>
@@ -163,6 +198,58 @@
             nameIsValid() {
                 const val = (this.name || '').trim();
                 return /^[A-Za-z]+ [A-Za-z]{2,}$/.test(val);
+            },
+
+            get hasMinLength() {
+                return (this.password || '').length >= 8;
+            },
+            get hasLetter() {
+                return /[a-zA-Z]/.test(this.password || '');
+            },
+            get hasNumberOrSpecial() {
+                return /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.password || '');
+            },
+            get hasMixedCase() {
+                return /[a-z]/.test(this.password || '') && /[A-Z]/.test(this.password || '');
+            },
+            get strengthScore() {
+                if (!this.password || this.password.length === 0) return 0;
+                let score = 0;
+                if (this.hasMinLength) score++;
+                if (this.hasLetter) score++;
+                if (this.hasNumberOrSpecial) score++;
+                if (this.hasMixedCase || this.password.length >= 12) score++;
+                return Math.min(4, Math.max(1, score));
+            },
+            get strengthLabel() {
+                switch(this.strengthScore) {
+                    case 1: return 'Weak';
+                    case 2: return 'Fair';
+                    case 3: return 'Good';
+                    case 4: return 'Strong';
+                    default: return '';
+                }
+            },
+            get strengthTextColor() {
+                switch(this.strengthScore) {
+                    case 1: return 'text-rose-400';
+                    case 2: return 'text-amber-400';
+                    case 3: return 'text-ice-blue';
+                    case 4: return 'text-emerald-400';
+                    default: return 'text-slate-400';
+                }
+            },
+            get strengthBgColor() {
+                switch(this.strengthScore) {
+                    case 1: return 'bg-rose-500';
+                    case 2: return 'bg-amber-500';
+                    case 3: return 'bg-ice-blue';
+                    case 4: return 'bg-emerald-500';
+                    default: return 'bg-slate-700';
+                }
+            },
+            get passwordsMatch() {
+                return (this.password || '').length > 0 && this.password === this.password_confirmation;
             },
 
             toTitleCase(s) {
