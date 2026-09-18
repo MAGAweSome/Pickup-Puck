@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
@@ -8,31 +8,83 @@
 
     <title>Pickup Puck</title>
 
+    <!-- Prevent Flash of Incorrect Theme (FOUC) & Atmos-compliant Theme Engine -->
+    <script>
+        (function () {
+            function applyTheme(theme) {
+                if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                } else {
+                    // Dark mode is default
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            }
+
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'light') {
+                    applyTheme('light');
+                } else {
+                    // Default to dark mode unless user preference is explicitly light
+                    applyTheme('dark');
+                }
+            } catch (e) {
+                applyTheme('dark');
+            }
+
+            window.setTheme = function (newTheme) {
+                try {
+                    const theme = (newTheme === 'light') ? 'light' : 'dark';
+                    applyTheme(theme);
+                    localStorage.setItem('theme', theme);
+                    window.dispatchEvent(new CustomEvent('theme-changed', {
+                        detail: { isDark: theme === 'dark', theme: theme }
+                    }));
+                } catch (err) {
+                    console.error('Failed to set theme', err);
+                }
+            };
+
+            window.toggleTheme = function () {
+                const isDark = document.documentElement.classList.contains('dark');
+                window.setTheme(isDark ? 'light' : 'dark');
+            };
+        })();
+    </script>
+
     <!-- Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CDN (for rapid UI overhaul). Keep @@vite for existing assets. -->
+    <!-- Tailwind Play CDN (Must load before assigning tailwind.config) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
+                    screens: {
+                        '2xl': '1536px',
+                        '3xl': '1780px',
+                    },
                     colors: {
-                        'deep-navy': '#051426',
-                        'slate-gray': '#2b3944',
-                        'ice-blue': '#a7e9ff',
-                        'ice': '#f2fbff'
+                        'deep-navy': '#0b1120',
+                        'slate-gray': '#1e293b',
+                        'ice-blue': '#38bdf8',
+                        'ice': '#f0f9ff'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Inter', 'sans-serif']
                     }
                 }
             }
-        }
+        };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 
@@ -44,74 +96,109 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" />
 
     <style>
-        /* Small utility for container max width matching previous layout */
-        .app-container { max-width: 1100px; }
-        /* Ensure only the top margin above the header is removed without touching page content spacing */
-        html, body { margin: 0 !important; padding: 0 !important; background-color: #051426; }
-        header { margin: 0 !important; }
-        /* navbar height constant used to offset main layout */
-        :root { --nav-height: 4rem; }
+        :root {
+            --nav-height: 4rem;
+            color-scheme: light;
+        }
+        html.dark {
+            color-scheme: dark;
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.7); }
+        .dark ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.6); }
+
+        /* Atmos Surface Hierarchy:
+           Light Mode: Canvas #f1f5f9, Cards #ffffff, Text #0f172a
+           Dark Mode: Canvas #0b1120 (not pitch black), Cards #1e293b (elevation), Text #f8fafc */
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        html.dark body {
+            background-color: #0b1120 !important;
+            color: #f8fafc !important;
+        }
+
+        .stadium-bg {
+            background-color: #f1f5f9;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05), transparent 30%),
+                radial-gradient(circle at 90% 80%, rgba(2, 132, 199, 0.04), transparent 40%);
+            background-attachment: fixed;
+        }
+        html.dark .stadium-bg {
+            background-color: #0b1120 !important;
+            background-image: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.09), transparent),
+                radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.04), transparent 40%) !important;
+            background-attachment: fixed;
+        }
+
+        /* Instantaneous visibility helpers for toggle icons */
+        html.dark .dark\:hidden { display: none !important; }
+        html.dark .dark\:inline { display: inline !important; }
+        html.dark .dark\:flex { display: flex !important; }
+        html:not(.dark) .hidden.dark\:inline { display: none !important; }
+        html:not(.dark) .hidden.dark\:flex { display: none !important; }
     </style>
 </head>
 
-<body class="min-h-screen bg-deep-navy text-ice antialiased font-sans m-0 overflow-hidden" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body class="stadium-bg min-h-screen text-slate-800 dark:text-slate-100 antialiased font-sans transition-colors duration-150" x-data="{ mobileMenuOpen: false }">
 
     @include('inc.nav')
 
-    <!-- Mobile/Tablet Sidebar Drawer -->
-    <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-50 lg:hidden" aria-hidden="true">
-        <div class="absolute inset-0 bg-black/60" @click="sidebarOpen = false"></div>
-        <aside class="absolute left-0 top-[var(--nav-height)] h-[calc(100dvh-var(--nav-height))] w-72 max-w-[85vw] bg-slate-800 text-ice border-r border-slate-700 overflow-y-auto p-4"
-              @click.stop
-              x-transition:enter="transition ease-out duration-200"
-              x-transition:enter-start="-translate-x-full"
-              x-transition:enter-end="translate-x-0"
-              x-transition:leave="transition ease-in duration-200"
-              x-transition:leave-start="translate-x-0"
-              x-transition:leave-end="-translate-x-full">
-            <div class="flex items-center justify-between mb-3">
-                <div class="text-sm font-semibold text-slate-200">Menu</div>
-                <button type="button" class="p-2 rounded hover:bg-slate-700" @click="sidebarOpen = false" aria-label="Close menu">
-                    <svg class="h-5 w-5 text-slate-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            </div>
-            <div @click="sidebarOpen = false">
-                @include('components.sidebar_content')
-            </div>
-        </aside>
-    </div>
-
-    <div class="flex h-[calc(100dvh-var(--nav-height))] mt-[var(--nav-height)]">
-        @include('components.sidebar')
-
-        <main class="flex-1 overflow-y-auto bg-deep-navy flex flex-col">
-            @if(Auth::check() && !Auth::user()->hasVerifiedEmail() && !request()->routeIs('verification.notice'))
-                <div id="email-verification-banner" class="bg-amber-950/90 border-b border-amber-500/40 text-amber-200 px-4 py-2.5 shadow-md shrink-0">
-                    <div class="app-container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
-                        <div class="flex items-center gap-2.5 text-center sm:text-left">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base shrink-0"></i>
-                            <span>
-                                Your email address (<strong class="text-white">{{ Auth::user()->email }}</strong>) is not verified. Please verify your email to unlock all league features.
-                            </span>
-                        </div>
-                        <form method="POST" action="{{ route('verification.resend') }}" class="shrink-0 inline-flex" onsubmit="event.preventDefault(); window.resendVerificationEmail(this);">
-                            @csrf
-                            <button type="submit" id="banner-resend-btn" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-deep-navy font-bold rounded text-xs transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
-                                <i class="fa-solid fa-paper-plane text-xs"></i>
-                                <span>Resend Verification Email</span>
-                            </button>
-                        </form>
+    <div class="pt-16 min-h-screen flex flex-col justify-between">
+        @if(Auth::check() && !Auth::user()->hasVerifiedEmail() && !request()->routeIs('verification.notice'))
+            <div id="email-verification-banner" class="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2.5 shadow-sm shrink-0">
+                <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+                    <div class="flex items-center gap-2.5 text-center sm:text-left">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400 text-base shrink-0"></i>
+                        <span>
+                            Your email address (<strong class="font-bold text-slate-900 dark:text-white">{{ Auth::user()->email }}</strong>) is not verified. Please verify your email to unlock all league features.
+                        </span>
                     </div>
+                    <form method="POST" action="{{ route('verification.resend') }}" class="shrink-0 inline-flex" onsubmit="event.preventDefault(); window.resendVerificationEmail(this);">
+                        @csrf
+                        <button type="submit" id="banner-resend-btn" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>Resend Verification Email</span>
+                        </button>
+                    </form>
                 </div>
-            @endif
-
-            <div class="p-6 md:p-10 app-container mx-auto w-full flex-1">
-                @yield('content')
             </div>
+        @endif
+
+        <main class="flex-1 w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-6 pb-24 lg:pb-12">
+            @yield('content')
         </main>
+
+        <!-- Global Footer -->
+        <footer class="w-full border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md py-6 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
+            <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2 font-medium">
+                    <span class="font-black text-slate-800 dark:text-white tracking-wider">PICKUP PUCK</span>
+                    <span>•</span>
+                    <span>Pickup Hockey Scheduling Hub</span>
+                </div>
+                <div class="flex items-center gap-3 text-[11px]">
+                    <span>Balanced Teams</span>
+                    <span>•</span>
+                    <span>Live Crease Tracking</span>
+                    <span>•</span>
+                    <span>T-30 Roster Reveals</span>
+                </div>
+            </div>
+        </footer>
     </div>
+
+    <!-- Mobile Bottom Navigation Dock -->
+    @include('components.mobile_dock')
 
     <!-- Global Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>

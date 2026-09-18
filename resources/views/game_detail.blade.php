@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="max-w-5xl mx-auto px-4 py-6">
+<div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-2 sm:px-4 py-6">
     <style>
         /* Control map sizing responsively to avoid it growing too tall on narrow screens */
         #mapWrap { min-height: 360px; }
@@ -41,45 +41,57 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Full width details card (moved above the map) -->
-        <div class="lg:col-span-3">
-            <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mb-4">
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div class="lg:col-span-3 relative z-30">
+            <div class="relative z-30 rounded-3xl bg-white dark:bg-gradient-to-r dark:from-slate-950/95 dark:via-slate-900/90 dark:to-cyan-950/30 border border-slate-200 dark:border-cyan-500/25 p-6 sm:p-7 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.5)] backdrop-blur-md mb-2">
+                <div class="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl"></div>
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6 relative z-30">
                     <div>
-                        <h1 class="text-2xl font-semibold text-ice">{{ $game->title }}</h1>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-sky-50 dark:bg-cyan-500/15 border border-sky-200 dark:border-cyan-500/30 text-sky-700 dark:text-cyan-300 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-sky-500 dark:bg-cyan-400 animate-pulse"></span>
+                            <span>Pickup Puck Game Center</span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">{{ $game->title }}</h1>
                         @if($game->description)
-                            <p class="mt-1 text-slate-300">{{ $game->description }}</p>
+                            <p class="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{{ $game->description }}</p>
                         @endif
-                        <div class="mt-3 flex flex-wrap gap-2 text-sm">
-                            <div class="flex items-center gap-2 text-slate-300"><svg class="w-4 h-4 stroke-current text-ice" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" stroke="currentColor"/></svg><span class="text-ice ml-1">{{ $game->game_time }}</span></div>
-                            <div class="flex items-center gap-2 text-slate-300">
-                                <!-- stopwatch icon -->
-                                <i class="fa-regular fa-hourglass"></i>
-                                <span class="text-ice ml-1">{{ $game->duration }} min</span>
+
+                        <div class="mt-4 flex flex-wrap items-center gap-2.5 text-xs">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200">
+                                <i class="fa-regular fa-calendar text-sky-500 dark:text-cyan-400"></i>
+                                <span class="font-medium">{{ $game->game_time }}</span>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-300">
-                                <!-- map-pin icon -->
-                                <svg class="w-4 h-4 stroke-current text-ice" viewBox="0 0 24 24" fill="none" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 12 7 12s7-6.75 7-12c0-3.866-3.134-7-7-7z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="12" cy="9" r="2.2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <a class="text-ice-blue ml-1" href="https://maps.google.com/?q={{ urlencode($game->location) }}" target="_blank">{{ $game->location }}</a>
+
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200">
+                                <i class="fa-regular fa-hourglass-half text-sky-500 dark:text-cyan-400"></i>
+                                <span class="font-medium">{{ $game->duration }} min session</span>
                             </div>
+
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200">
+                                <i class="fa-solid fa-location-dot text-rose-500"></i>
+                                <a class="text-sky-600 dark:text-cyan-300 hover:text-sky-800 dark:hover:text-white transition no-underline font-medium" href="https://maps.google.com/?q={{ urlencode($game->location) }}" target="_blank">{{ $game->location }}</a>
+                            </div>
+
                             @php
                                 $showPrice = auth()->check()
                                     && auth()->user()->role_preference !== \App\Enums\Games\GameRoles::Goalie->value;
                             @endphp
                             @if($showPrice)
-                                <div class="flex items-center gap-2 text-slate-300"><span class="text-ice ml-1">${{ $game->price }}</span></div>
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-cyan-500/15 border border-sky-200 dark:border-cyan-500/30 text-sky-700 dark:text-cyan-300 font-mono font-bold">
+                                    <span>${{ $game->price }}</span>
+                                </div>
                             @endif
                         </div>
                     </div>
 
-                    <div id="gameHeaderActions" class="flex flex-wrap items-center gap-2.5 game-actions">
+                    <div id="gameHeaderActions" class="flex flex-wrap items-center gap-2.5 game-actions shrink-0 relative z-30">
                         @include('components.add-to-calendar', ['game' => $game])
 
                         @role('admin')
-                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-ice-blue text-deep-navy hover:text-deep-navy rounded font-semibold text-xs shadow-sm">
-                                <i class="fa-solid fa-pen-to-square"></i>
+                            <a href="{{ route('edit_game', ['game' => $game->id]) }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs shadow-md transition no-underline">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
                                 <span>Edit Game</span>
                             </a>
                         @endrole
@@ -89,60 +101,75 @@
                             @if(!empty($user_registered) && $user_registered)
                                 <form method="POST" action="{{ route('game_remove_self', ['game' => $game->id]) }}" data-async-game-form>
                                     @csrf
-                                    <button type="submit" class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded font-semibold">Remove Myself</button>
+                                    <button type="submit" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs transition">
+                                        <i class="fa-solid fa-user-xmark text-xs"></i>
+                                        <span>Remove Myself</span>
+                                    </button>
                                 </form>
                             @elseif(!empty($meCannotAttend) && $meCannotAttend)
-                                <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded font-semibold">Not Attending</span>
+                                <span class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs">
+                                    <i class="fa-solid fa-ban text-xs"></i>
+                                    <span>Not Attending</span>
+                                </span>
                             @endif
                         @endif
                     </div>
                 </div>
             </div>
         </div>
+
         <!-- Main column: Map + details -->
         <div class="lg:col-span-2 space-y-4">
-            <div class="rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+            <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl">
                 <div id="mapWrap" class="w-full flex flex-col">
                     <iframe id="gameMap" src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=en&amp;q={{ urlencode($game->location) }}&amp;z=14&amp;output=embed" class="w-full" frameborder="0" marginheight="0" marginwidth="0" loading="lazy"></iframe>
 
-                    <div class="p-3 flex items-center justify-between">
-                        <div class="text-sm text-slate-300">Map location</div>
+                    <div class="p-3.5 bg-slate-50 dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div class="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-map-pin text-rose-500"></i>
+                            <span>Arena Location</span>
+                        </div>
                         <div>
-                            <button id="retryMapBtn" type="button" class="px-3 py-1 bg-slate-700 text-ice rounded hidden">Retry Map</button>
-                            <a href="https://maps.google.com/?q={{ urlencode($game->location) }}" target="_blank" class="ml-2 text-ice-blue text-sm">Open in Maps</a>
+                            <button id="retryMapBtn" type="button" class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs hidden">Retry Map</button>
+                            <a href="https://maps.google.com/?q={{ urlencode($game->location) }}" target="_blank" class="text-sky-600 dark:text-cyan-300 hover:text-sky-800 dark:hover:text-white text-xs font-semibold no-underline transition flex items-center gap-1">
+                                <span>Open Google Maps</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Accept / Guest forms -->
+            <!-- Accept / RSVP forms -->
             <div id="acceptGameWrap" class="grid grid-cols-1 gap-4">
                 @if($user_registered == false)
-                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-ice mb-2">Accept Game</h3>
-                        <div class="flex flex-wrap gap-2 items-center accept-controls">
+                    <div class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-sky-200 dark:border-cyan-500/30 p-5 shadow-xl backdrop-blur-md">
+                        <div class="flex items-center gap-2.5 mb-3">
+                            <span class="w-2 h-2 rounded-full bg-sky-500 dark:bg-cyan-400 animate-pulse"></span>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white tracking-wide">RSVP for This Game</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2.5 items-center accept-controls">
                             <form action="{{ route('game_detail_update.game_id', ['game' => $game->id]) }}" method="POST" class="flex-1 min-w-0" data-async-game-form>
                                 @csrf
                                 <div class="flex gap-2">
-                                    <select required name="gameRole" id="gameRole" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
-                                        <option value="" selected disabled hidden>Please Select</option>
+                                    <select required name="gameRole" id="gameRole" class="flex-1 min-w-0 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-slate-100 text-sm focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
+                                        <option value="" selected disabled hidden>Select your position...</option>
                                             @foreach ($GAME_ROLES as $gamerole)
                                                 @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
                                                 <option value="{{ $gamerole }}" {{ $gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference) ? 'selected' : '' }} @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>{{ $gamerole->name }}</option>
                                             @endforeach
                                     </select>
-                                    <button class="px-4 py-2 bg-ice-blue text-deep-navy rounded whitespace-nowrap" type="submit" id="accept_game_submit_button" name="game">Accept</button>
+                                    <button class="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-xl text-sm whitespace-nowrap shadow-md dark:shadow-[0_0_15px_rgba(56,189,248,0.3)] transition" type="submit" id="accept_game_submit_button" name="game">Accept</button>
                                 </div>
-                                @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
+                                @error('gameRole') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
                             </form>
 
                             <form action="{{ route('game_detail_cannot_attend', ['game' => $game->id]) }}" method="POST" class="shrink-0" data-async-game-form>
                                 @csrf
-                                <button type="submit" class="px-4 py-2 bg-rose-600 text-white rounded whitespace-nowrap">Cannot Attend</button>
+                                <button type="submit" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-sm whitespace-nowrap transition">Cannot Attend</button>
                             </form>
                     <style>
                         @media (max-width: 560px) {
-                            /* Stack Accept Game controls vertically on very small screens */
                             .accept-controls { flex-direction: column; align-items: stretch; }
                             .accept-controls > form { width: 100%; }
                             .accept-controls > form .flex { flex-direction: column; gap: 0.5rem; }
@@ -154,76 +181,81 @@
                         </div>
                     </div>
                 @endif
-
-                <!-- Bring a Guest removed from main column (moved to sidebar) -->
             </div>
-
         </div>
 
         <!-- Sidebar: quick stats -->
-        <aside id="sidebarCol" class="space-y-3 lg:self-stretch lg:flex lg:flex-col lg:gap-4 lg:col-span-1">
-            <div id="quickInfoCard" class="bg-slate-800/80 border border-ice-blue/25 rounded-xl p-4 shadow-lg shadow-black/20 ring-1 ring-white/5">
-                <div class="flex items-center justify-between gap-3">
-                    <h4 class="text-base font-semibold text-ice">Quick Info</h4>
-                    <span class="text-[11px] uppercase tracking-wide text-slate-400">This game</span>
+        <aside id="sidebarCol" class="space-y-4 lg:self-stretch lg:flex lg:flex-col lg:gap-4 lg:col-span-1">
+            <div id="quickInfoCard" class="relative overflow-hidden rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-cyan-500/25 p-5 shadow-xl backdrop-blur-md ring-1 ring-slate-950/5 dark:ring-white/5">
+                <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-sky-500 dark:text-cyan-400"></i>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-wide">Game Quick Info</h4>
+                    </div>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700/60">This Game</span>
                 </div>
 
-                <div class="mt-3 text-sm">
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-slate-300">Players</span>
-                        <span class="font-semibold text-ice">{{ count($players) + count($guestPlayers) }}</span>
+                <div class="mt-3 text-xs space-y-2.5">
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-slate-600 dark:text-slate-400 font-medium">Registered Skaters</span>
+                        <span class="font-black font-mono text-sky-600 dark:text-cyan-300 text-sm">{{ count($players) + count($guestPlayers) }}</span>
                     </div>
-                    <div class="h-px bg-slate-700/60"></div>
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-slate-300">Goalies</span>
-                        <span class="font-semibold text-ice">{{ count($goalies) + count($guestGoalies) }}</span>
+                    <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-slate-600 dark:text-slate-400 font-medium">Registered Goalies</span>
+                        <span class="font-black font-mono text-indigo-600 dark:text-sky-400 text-sm">{{ count($goalies) + count($guestGoalies) }} / 2</span>
                     </div>
                     @if($showPrice)
-                        <div class="h-px bg-slate-700/60"></div>
-                        <div class="flex items-center justify-between py-2">
-                            <span class="text-slate-300">Price</span>
-                            <span class="font-semibold text-ice">${{ $game->price }}</span>
+                        <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
+                        <div class="flex items-center justify-between py-1">
+                            <span class="text-slate-600 dark:text-slate-400 font-medium">Game Fee</span>
+                            <span class="font-black font-mono text-sky-600 dark:text-cyan-300 text-sm">${{ $game->price }}</span>
                         </div>
                     @endif
-                    <div class="h-px bg-slate-700/60"></div>
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-slate-300">Season</span>
-                        <span class="font-semibold text-ice">{{ isset($currentSeason) && $currentSeason ? $currentSeason->season_number : '—' }}</span>
+                    <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-slate-600 dark:text-slate-400 font-medium">Season</span>
+                        <span class="font-mono text-slate-900 dark:text-slate-200 font-semibold">{{ isset($currentSeason) && $currentSeason ? 'Season ' . $currentSeason->season_number : '—' }}</span>
                     </div>
                 </div>
             </div>
 
-            <div id="bringGuestCard" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                <h4 class="text-sm text-slate-300">Bring a Guest</h4>
-                <form id="bringGuestForm" action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col" data-async-game-form>
+            <div id="bringGuestCard" class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-5 shadow-xl backdrop-blur-md">
+                <div class="flex items-center gap-2 pb-2.5 mb-2 border-b border-slate-200 dark:border-slate-800">
+                    <i class="fa-solid fa-user-plus text-sky-500 dark:text-cyan-400 text-xs"></i>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Bring a Guest</h4>
+                </div>
+                <form id="bringGuestForm" action="{{ route('game_detail_update_guest.game_id', ['game' => $game->id]) }}" method="POST" class="mt-2 flex flex-col space-y-2.5" data-async-game-form>
                     @csrf
                     <div class="relative">
-                        <input type="text" id="guestName" name="guestName" autocomplete="off" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice" placeholder="Guest full name" minlength="4" required>
-                        <div id="guestList" class="hidden absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded shadow-lg max-h-48 overflow-auto"></div>
+                        <input type="text" id="guestName" name="guestName" autocomplete="off" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none" placeholder="Guest full name" minlength="4" required>
+                        <div id="guestList" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-cyan-500/30 rounded-xl shadow-2xl max-h-48 overflow-auto py-1 text-xs text-slate-900 dark:text-slate-100"></div>
                     </div>
-                    <select required name="gameRole" class="w-full mt-2 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
+                    <select required name="gameRole" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
                         <option value="" selected disabled hidden>Position</option>
                         @foreach ($GAME_ROLES as $gamerole)
                             @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
                             <option value="{{ $gamerole }}" {{ $gamerole == App\Enums\Games\GameRoles::tryFrom(Auth::user()->role_preference) ? 'selected' : '' }} @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>{{ $gamerole->name }}</option>
                         @endforeach
                     </select>
-                    <label for="level" class="block text-sm font-semibold text-slate-300 mt-3">Guest Level</label>
-                    @php
-                        $levelDescriptions = [
-                            1 => 'Beginner / low rec',
-                            2 => 'Recreational',
-                            3 => 'Intermediate / competitive',
-                            4 => 'Advanced / high skill',
-                        ];
-                    @endphp
-                    <select name="level" id="level" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-ice">
-                        @for ($i = 1; $i <= 4; $i++)
-                            <option value="{{ $i }}" {{ (int) old('level', 2) === $i ? 'selected' : '' }}>{{ $i }} - {{ $levelDescriptions[$i] }}</option>
-                        @endfor
-                    </select>
-                    <button type="submit" class="w-full mt-2 px-4 py-2 bg-ice-blue text-deep-navy rounded">Add</button>
-                    @error('guestName') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
+                    <div>
+                        <label for="level" class="block text-[11px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Guest Skill Level</label>
+                        @php
+                            $levelDescriptions = [
+                                1 => 'Beginner / low rec',
+                                2 => 'Recreational',
+                                3 => 'Intermediate / competitive',
+                                4 => 'Advanced / high skill',
+                            ];
+                        @endphp
+                        <select name="level" id="level" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
+                            @for ($i = 1; $i <= 4; $i++)
+                                <option value="{{ $i }}" {{ (int) old('level', 2) === $i ? 'selected' : '' }}>Level {{ $i }} — {{ $levelDescriptions[$i] }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full mt-1 px-4 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs transition shadow-md">Add Guest</button>
+                    @error('guestName') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1">{{ $message }}</div> @enderror
                 </form>
             </div>
         </aside>
@@ -232,25 +264,28 @@
             <!-- Not Yet Attending (admin only) -->
             <div id="notAttendingWrap" class="lg:col-span-3">
                 @if(isset($notAttendingUsers) && $notAttendingUsers->isNotEmpty())
-                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-lg font-semibold text-ice">Not Yet Attending</h3>
-                            <span class="text-sm text-slate-300">{{ $notAttendingUsers->count() }}</span>
+                    <div class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-5 shadow-xl backdrop-blur-md">
+                        <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-user-clock text-amber-500 dark:text-amber-400 text-sm"></i>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Not Yet Attending</h3>
+                            </div>
+                            <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-0.5 rounded-full">{{ $notAttendingUsers->count() }} Players</span>
                         </div>
-                        <p class="mt-1 text-sm text-slate-300">Add a player to this game (admin only).</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Add registered players directly into this game (admin only).</p>
 
-                        <div class="mt-3 max-h-72 overflow-auto rounded border border-slate-700 bg-slate-900">
-                            <ul class="divide-y divide-slate-800">
+                        <div class="max-h-72 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-1">
+                            <ul class="divide-y divide-slate-200 dark:divide-slate-800/80">
                                 @foreach($notAttendingUsers as $u)
-                                    <li class="px-3 py-2 flex items-center justify-between gap-3">
+                                    <li class="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-lg transition">
                                         <div class="min-w-0">
-                                            <div class="text-ice truncate">{{ $u->name }}</div>
-                                            <div class="text-xs text-slate-400 truncate">{{ $u->email }}</div>
+                                            <div class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ $u->name }}</div>
+                                            <div class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $u->email }}</div>
                                         </div>
 
                                         <form class="flex items-center gap-2" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}" data-async-game-form>
                                             @csrf
-                                            <select name="gameRole" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-ice text-sm">
+                                            <select name="gameRole" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-200 text-xs focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
                                                 @foreach ($GAME_ROLES as $gamerole)
                                                     @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
                                                     <option value="{{ $gamerole }}" @if($gamerole == App\Enums\Games\GameRoles::Player) selected @endif @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>
@@ -258,13 +293,13 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="px-3 py-1.5 bg-ice-blue text-deep-navy rounded text-sm font-semibold">Add</button>
+                                            <button type="submit" class="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-lg text-xs transition shadow-sm">Add</button>
                                         </form>
                                     </li>
                                 @endforeach
                             </ul>
                         </div>
-                        @error('gameRole') <div class="text-red-400 text-sm mt-2">{{ $message }}</div> @enderror
+                        @error('gameRole') <div class="text-rose-500 dark:text-rose-400 text-xs mt-2">{{ $message }}</div> @enderror
                     </div>
                 @endif
             </div>
@@ -273,21 +308,25 @@
         @role('admin')
             <div id="cannotAttendingWrap" class="lg:col-span-3">
                 @if(isset($cannotAttendingUsers) && $cannotAttendingUsers->isNotEmpty())
-                    <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mt-2">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-lg font-semibold text-ice">Cannot Attend</h3>
-                            <span class="text-sm text-slate-300">{{ $cannotAttendingUsers->count() }}</span>
+                    <div class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-5 shadow-xl backdrop-blur-md mt-2">
+                        <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-user-xmark text-rose-500 dark:text-rose-400 text-sm"></i>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Cannot Attend</h3>
+                            </div>
+                            <span class="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2.5 py-0.5 rounded-full">{{ $cannotAttendingUsers->count() }} Players</span>
                         </div>
-                        <p class="mt-1 text-sm text-slate-400">Players who have indicated they cannot attend this game.</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Players who confirmed they are unavailable for this session.</p>
 
-                        <div class="mt-3 max-h-56 overflow-auto rounded border border-slate-700 bg-slate-900">
-                            <ul class="divide-y divide-slate-800">
+                        <div class="max-h-56 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-1">
+                            <ul class="divide-y divide-slate-200 dark:divide-slate-800/80">
                                 @foreach($cannotAttendingUsers as $u)
-                                    <li class="px-3 py-2 flex items-center justify-between gap-3">
+                                    <li class="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-lg transition">
                                         <div class="min-w-0">
-                                            <div class="text-ice truncate">{{ $u->name }}</div>
-                                            <div class="text-xs text-slate-400 truncate">{{ $u->email }}</div>
+                                            <div class="text-sm font-medium text-slate-900 dark:text-slate-300 truncate">{{ $u->name }}</div>
+                                            <div class="text-xs text-slate-500 truncate">{{ $u->email }}</div>
                                         </div>
+                                        <span class="text-[10px] font-mono text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 px-2 py-0.5 rounded">Declined</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -299,25 +338,26 @@
 
         @role('admin')
             <div class="lg:col-span-3">
-                <div class="bg-slate-800 border border-slate-700 rounded-lg p-4 mt-2">
-                    <div class="flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-semibold text-ice">🏒 Email All Players</h3>
+                <div class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-cyan-500/20 p-5 shadow-xl backdrop-blur-md mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-envelope text-sky-500 dark:text-cyan-400"></i>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Broadcast Game Reminder</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Open email client with all attending players to send pre-game updates.</p>
                     </div>
-                    <p class="mt-1 text-sm text-slate-400">Send an upcoming game reminder to all registered players.</p>
 
-                    <div class="mt-3 flex items-center gap-3">
+                    <div class="shrink-0">
                         @if($emailMailtoLink)
-                            <a href="{{ $emailMailtoLink }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-ice-blue text-deep-navy rounded font-semibold hover:bg-ice-blue/90 hover:text-deep-navy no-underline transition">
-                                <i class="fa-solid fa-envelope"></i>
+                            <a href="{{ $emailMailtoLink }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs transition shadow-md no-underline">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
                                 <span>Email All Players</span>
                             </a>
-                            <span class="text-xs text-slate-400">Opens your email client with all player addresses</span>
                         @else
-                            <button disabled class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-700 text-slate-500 rounded font-semibold cursor-not-allowed opacity-60">
-                                <i class="fa-solid fa-envelope"></i>
+                            <button disabled class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold cursor-not-allowed opacity-60">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
                                 <span>Email All Players</span>
                             </button>
-                            <span class="text-xs text-slate-400">No players have registered yet</span>
                         @endif
                     </div>
                 </div>
@@ -325,43 +365,60 @@
         @endrole
 
         <!-- Full width row: Roster + Teams (span to sidebar edge) -->
-        <div class="lg:col-span-3 space-y-4">
+        <div class="lg:col-span-3 space-y-6">
             <!-- Roster -->
-            <div id="attendanceLists" class="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                <h3 class="text-lg font-semibold text-ice mb-3">Roster</h3>
-                <div class="grid md:grid-cols-2 gap-4">
+            <div id="attendanceLists" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 shadow-xl backdrop-blur-md">
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-clipboard-user text-sky-600 dark:text-cyan-400 text-lg"></i>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-wide">Attending Roster</h3>
+                    </div>
+                    <span class="text-xs font-mono text-slate-600 dark:text-slate-400">{{ (count($players) + count($guestPlayers) + count($goalies) + count($guestGoalies)) }} Attending</span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Goalies Column -->
                     <div>
-                        <h4 class="text-sm text-slate-300 mb-2">Goalies</h4>
-                        @php
-                            // total goalie count includes both user goalies and guest goalies
-                            $totalGoalies = count($goalies) + count($guestGoalies);
-                        @endphp
+                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-slate-800/80">
+                            <span class="text-xs uppercase font-mono font-bold tracking-wider text-indigo-600 dark:text-sky-400 flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>Goalie Crease</span>
+                            </span>
+                            <span class="text-xs font-mono text-slate-600 dark:text-slate-400">{{ $totalGoalies }} / 2</span>
+                        </div>
 
                         <ul class="space-y-2">
                             @foreach($goalies as $goalie_id => $goalie_name)
-                                <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $goalie_id }}">
-                                    <span class="text-ice">{{ $goalie_name }}</span>
+                                <li class="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-cyan-500/30 rounded-xl px-3 py-2 flex items-center justify-between gap-2 shadow-sm" data-user-id="{{ $goalie_id }}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-100 dark:bg-cyan-500/20 text-sky-700 dark:text-cyan-300 border border-sky-300 dark:border-cyan-500/40 shrink-0">G</span>
+                                        <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ $goalie_name }}</span>
+                                    </div>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
-                                                <button data-user-id="{{ $goalie_id }}" data-role="player" class="w-full text-left px-3 py-2 change-player-role">Make Player</button>
-                                                <button data-user-id="{{ $goalie_id }}" class="w-full text-left px-3 py-2 remove-player text-rose-500">Remove</button>
+                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
+                                                <button data-user-id="{{ $goalie_id }}" data-role="player" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white change-player-role">Make Skater</button>
+                                                <button data-user-id="{{ $goalie_id }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 remove-player">Remove</button>
                                             </div>
                                         </div>
                                     @endif
                                 </li>
                             @endforeach
+
                             @foreach($guestGoalies as $guest)
-                                <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-id="{{ $guest->id ?? '' }}">
-                                    <span>{{ $guest->name ?? $guest }}</span>
+                                <li class="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2 text-slate-800 dark:text-slate-300" data-guest-id="{{ $guest->id ?? '' }}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-100 dark:bg-cyan-500/15 text-sky-700 dark:text-cyan-400 border border-sky-300 dark:border-cyan-500/30 shrink-0">G</span>
+                                        <span class="text-sm truncate">{{ $guest->name ?? $guest }}</span>
+                                        <span class="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-800">Guest</span>
+                                    </div>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
-                                                <!-- Guest is currently a goalie; offer Make Player -->
-                                                <button data-guest-id="{{ $guest->id ?? '' }}" data-role="player" class="w-full text-left px-3 py-2 make-guest-role">Make Player</button>
-                                                <button data-guest-id="{{ $guest->id ?? '' }}" class="w-full text-left px-3 py-2 admin-remove-guest text-rose-500">Remove</button>
+                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
+                                                <button data-guest-id="{{ $guest->id ?? '' }}" data-role="player" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white make-guest-role">Make Skater</button>
+                                                <button data-guest-id="{{ $guest->id ?? '' }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 admin-remove-guest">Remove</button>
                                             </div>
                                         </div>
                                     @endif
@@ -369,24 +426,35 @@
                             @endforeach
 
                             @for ($i = $totalGoalies; $i < 2; $i++)
-                                <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-500">Empty Net</li>
+                                <li class="bg-slate-100/60 dark:bg-slate-950/40 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-500 flex items-center gap-2">
+                                    <i class="fa-regular fa-circle-dot text-slate-400 dark:text-slate-600"></i>
+                                    <span>Empty Net Spot</span>
+                                </li>
                             @endfor
                         </ul>
                     </div>
 
+                    <!-- Skaters Column -->
                     <div>
-                        <h4 class="text-sm text-slate-300 mb-2">Players</h4>
+                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-slate-800/80">
+                            <span class="text-xs uppercase font-mono font-bold tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-2">
+                                <i class="fa-solid fa-person-skating"></i>
+                                <span>Skaters</span>
+                            </span>
+                            <span class="text-xs font-mono text-slate-600 dark:text-slate-400">{{ count($players) + count($guestPlayers) }}</span>
+                        </div>
+
                         <ul class="space-y-2">
                             @foreach($players as $player_id => $player_name)
-                                <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex items-center justify-between" data-user-id="{{ $player_id }}">
-                                    <span class="text-ice">{{ $player_name }}</span>
+                                <li class="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-xl px-3 py-2 flex items-center justify-between gap-2 transition" data-user-id="{{ $player_id }}">
+                                    <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ $player_name }}</span>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
+                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
                                                 @php $canMakeGoalie = ($totalGoalies < 2); @endphp
-                                                <button data-user-id="{{ $player_id }}" data-role="goalie" class="w-full text-left px-3 py-2 change-player-role hover:bg-slate-700 @if(!$canMakeGoalie) opacity-50 pointer-events-none @endif" @if(!$canMakeGoalie) title="Goalie roster is full" disabled @endif>Make Goalie</button>
-                                                <button data-user-id="{{ $player_id }}" class="w-full text-left px-3 py-2 remove-player text-rose-500 hover:bg-slate-700">Remove</button>
+                                                <button data-user-id="{{ $player_id }}" data-role="goalie" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white change-player-role @if(!$canMakeGoalie) opacity-50 pointer-events-none @endif" @if(!$canMakeGoalie) title="Goalie roster is full" disabled @endif>Make Goalie</button>
+                                                <button data-user-id="{{ $player_id }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 remove-player">Remove</button>
                                             </div>
                                         </div>
                                     @endif
@@ -394,16 +462,18 @@
                             @endforeach
 
                             @foreach($guestPlayers as $guest)
-                                <li class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-300 flex items-center justify-between" data-guest-id="{{ $guest->id ?? '' }}">
-                                    <span>{{ $guest->name ?? $guest }}</span>
+                                <li class="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2 text-slate-800 dark:text-slate-300" data-guest-id="{{ $guest->id ?? '' }}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="text-sm truncate">{{ $guest->name ?? $guest }}</span>
+                                        <span class="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-800">Guest</span>
+                                    </div>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded hover:bg-slate-700">⋮</button>
-                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-700 rounded shadow z-50">
-                                                <!-- Guest is currently a player; offer Make Goalie -->
+                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
                                                 @php $canMakeGoalieGuest = ($totalGoalies < 2); @endphp
-                                                <button data-guest-id="{{ $guest->id ?? '' }}" data-role="goalie" class="w-full text-left px-3 py-2 make-guest-role hover:bg-slate-700 @if(!$canMakeGoalieGuest) opacity-50 pointer-events-none @endif" @if(!$canMakeGoalieGuest) title="Goalie roster is full" disabled @endif>Make Goalie</button>
-                                                <button data-guest-id="{{ $guest->id ?? '' }}" class="w-full text-left px-3 py-2 admin-remove-guest text-rose-500 hover:bg-slate-700">Remove</button>
+                                                <button data-guest-id="{{ $guest->id ?? '' }}" data-role="goalie" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white make-guest-role @if(!$canMakeGoalieGuest) opacity-50 pointer-events-none @endif" @if(!$canMakeGoalieGuest) title="Goalie roster is full" disabled @endif>Make Goalie</button>
+                                                <button data-guest-id="{{ $guest->id ?? '' }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 admin-remove-guest">Remove</button>
                                             </div>
                                         </div>
                                     @endif
@@ -417,7 +487,7 @@
             <!-- Teams (Live Auto-Reveal at T-30) -->
             <div
                 id="gameTeam"
-                class="bg-slate-800 border border-slate-700 rounded-lg p-5 shadow-lg relative overflow-hidden transition-all duration-300"
+                class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:via-slate-950/90 dark:to-slate-950 border border-slate-200 dark:border-cyan-500/30 p-6 sm:p-7 shadow-xl dark:shadow-2xl relative overflow-hidden backdrop-blur-md transition-all duration-300"
                 x-data="liveTeamsReveal({
                     gameId: {{ $game->id }},
                     revealTimestamp: {{ $teamsRevealAt->timestamp }},
@@ -425,24 +495,27 @@
                 })"
                 x-init="initTimer()"
             >
-                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-700/60">
-                    <div class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-people-group text-ice-blue text-lg"></i>
-                        <h3 class="text-xl font-bold text-ice">Teams</h3>
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-people-group text-sky-600 dark:text-cyan-400 text-xl"></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Balanced Teams</h3>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Rotated weekly using snake coin-flip balancing</span>
+                        </div>
                     </div>
 
                     <!-- Live Indicator / Status Badge -->
                     <div>
                         <template x-if="ready">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 shadow-sm">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-400/40 text-emerald-700 dark:text-emerald-300 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
                                 <span>Rosters Revealed</span>
                             </span>
                         </template>
 
                         <template x-if="!ready">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-ice-blue/10 border border-ice-blue/30 text-ice-blue shadow-sm animate-pulse">
-                                <i class="fa-solid fa-clock text-[11px]"></i>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-sky-50 dark:bg-cyan-500/15 border border-sky-200 dark:border-cyan-500/30 text-sky-700 dark:text-cyan-300 shadow-sm animate-pulse">
+                                <i class="fa-solid fa-clock text-[10px]"></i>
                                 <span>Live Reveal at T-30</span>
                             </span>
                         </template>
@@ -458,13 +531,13 @@
                     class="py-6 px-4 text-center"
                 >
                     <div class="max-w-md mx-auto space-y-4">
-                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 border border-slate-700 text-ice-blue mb-1">
-                            <i class="fa-solid fa-stopwatch text-xl" :class="{ 'animate-bounce': isRevealing }"></i>
+                        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-cyan-500/30 text-sky-600 dark:text-cyan-300 shadow-md mb-1">
+                            <i class="fa-solid fa-stopwatch text-2xl" :class="{ 'animate-bounce': isRevealing }"></i>
                         </div>
 
                         <div>
-                            <h4 class="text-base font-semibold text-ice">Team Reveal Countdown</h4>
-                            <p class="text-xs text-slate-400 mt-0.5">
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white tracking-wide">Roster Lock & Balancing Countdown</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-sm mx-auto">
                                 Teams balance automatically and reveal 30 minutes before puck drop.
                             </p>
                         </div>
@@ -472,33 +545,33 @@
                         <!-- Digital Countdown Clock -->
                         <div class="grid grid-cols-3 gap-3 max-w-xs mx-auto py-2">
                             <!-- Hours -->
-                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
-                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice" x-text="hours">00</div>
-                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Hours</div>
+                            <div class="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3 px-2 shadow-inner">
+                                <div class="text-3xl font-mono font-black text-slate-900 dark:text-white" x-text="hours">00</div>
+                                <div class="text-[9px] tracking-widest uppercase font-mono text-slate-500 dark:text-slate-500 mt-0.5">Hours</div>
                             </div>
                             <!-- Minutes -->
-                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
-                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice-blue" x-text="minutes">00</div>
-                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Mins</div>
+                            <div class="bg-sky-50 dark:bg-slate-950 border border-sky-200 dark:border-cyan-500/30 rounded-2xl py-3 px-2 shadow-inner">
+                                <div class="text-3xl font-mono font-black text-sky-600 dark:text-cyan-300" x-text="minutes">00</div>
+                                <div class="text-[9px] tracking-widest uppercase font-mono text-sky-600 dark:text-cyan-400 mt-0.5">Mins</div>
                             </div>
                             <!-- Seconds -->
-                            <div class="bg-slate-900/90 border border-slate-700/80 rounded-lg py-2.5 px-2 shadow-inner">
-                                <div class="text-2xl sm:text-3xl font-mono font-bold text-ice" x-text="seconds">00</div>
-                                <div class="text-[10px] tracking-wider uppercase text-slate-400 mt-0.5">Secs</div>
+                            <div class="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl py-3 px-2 shadow-inner">
+                                <div class="text-3xl font-mono font-black text-slate-900 dark:text-white" x-text="seconds">00</div>
+                                <div class="text-[9px] tracking-widest uppercase font-mono text-slate-500 dark:text-slate-500 mt-0.5">Secs</div>
                             </div>
                         </div>
 
                         <!-- Live Status Message -->
-                        <div class="text-xs text-slate-400 flex items-center justify-center gap-2">
+                        <div class="text-xs text-slate-600 dark:text-slate-400 flex items-center justify-center gap-2 pt-1 font-mono">
                             <template x-if="isRevealing">
-                                <span class="text-emerald-400 font-medium inline-flex items-center gap-1.5 animate-pulse">
-                                    <svg class="animate-spin h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center gap-1.5 animate-pulse">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                                     <span>T-30 Reached! Unlocking rosters live...</span>
                                 </span>
                             </template>
                             <template x-if="!isRevealing">
                                 <span>
-                                    Opens at <strong class="text-slate-300">{{ $teamsRevealAt->format('g:i A') }}</strong> • Page will auto-update
+                                    Reveals at <strong class="text-slate-900 dark:text-slate-200">{{ $teamsRevealAt->format('g:i A') }}</strong> • Page auto-updates
                                 </span>
                             </template>
                         </div>
@@ -519,6 +592,7 @@
                     @endif
                 </div>
             </div>
+        </div>
 
         
 

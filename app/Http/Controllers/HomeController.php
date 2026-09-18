@@ -81,39 +81,11 @@ class HomeController extends Controller
         // $role = Role::create(['name' => 'admin']);
         // Auth::user()->assignRole('admin');
 
-        $seasons = Season::all();
-        $currentSeason = 0; // Initialize the currentSeason variable
+        $defaultSeasonId = \App\Models\GameDefault::first()?->default_season_id;
+        $currentSeason = ($defaultSeasonId ? Season::find($defaultSeasonId) : null)
+            ?? Season::orderBy('season_number', 'desc')->first();
 
-        if ($seasons->isEmpty()) {
-            $currentSeason = 0; // If there are no seasons, set currentSeason to 0
-        } elseif ($seasons->count() === 1) {
-            $currentSeason = 1; // If there is only one season, set currentSeason to 1
-        } else {
-            $currentSeason = 1; // Start with season 1
-
-            foreach ($seasons as $season) {
-                // Find the next game with a time in the future in the current season
-                $nextGame = Game::where('season_id', $season->id)
-                    ->where('time', '>', Carbon::now())
-                    ->orderBy('time', 'asc')
-                    ->first();
-
-                if ($nextGame) {
-                    // There is a game in this season with a time in the future, so we don't increment currentSeason.
-                    break; // Exit the loop
-                } else {
-                    // All games in this season have passed.
-                    $currentSeason++; // Increment currentSeason
-                }
-            }
-
-            // If no future game was found in any season, set currentSeason back to 0
-            if ($currentSeason > $seasons->count()) {
-                $currentSeason = 0;
-            }
-        }
-
-        $gameIds = Game::where('season_id', $currentSeason)->pluck('id')->toArray();
+        $gameIds = $currentSeason ? Game::where('season_id', $currentSeason->id)->pluck('id')->toArray() : [];
 
         foreach ($gameIds as $gameId) {
             // Check if there is a record in game_players matching the user and game IDs
@@ -136,7 +108,8 @@ class HomeController extends Controller
             'allGameTimesPassed' => $allGameTimesPassed,
             'gamesAttending' => $gamesAttending,
             'gamesDeclined' => $gamesDeclined,
-            'hasNotSignedUpForAllGames' => $hasNotSignedUpForAllGames
+            'hasNotSignedUpForAllGames' => $hasNotSignedUpForAllGames,
+            'currentSeason' => $currentSeason,
         ]);
     }
 

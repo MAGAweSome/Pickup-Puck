@@ -69,15 +69,24 @@ class EditGameController extends Controller
 
     public function createSeason(Request $request)
     {
-        // Validate and create the new season in your database.
-        // You can use Eloquent or the DB facade to insert a new season record.
+        $nextSeasonNumber = (Season::max('season_number') ?? 0) + 1;
+        $seasonNumber = $request->input('season_number') ?: $nextSeasonNumber;
 
-        // For example:
         $season = new Season();
-        $season->season_number = $request->input('season_number');
+        $season->season_number = $seasonNumber;
         $season->save();
 
-        // Redirect back to the game creation form.
-        return redirect()->back();
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'season' => [
+                    'id' => $season->id,
+                    'season_number' => $season->season_number,
+                ],
+                'message' => "Season {$season->season_number} created successfully.",
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Season {$season->season_number} created successfully.");
     }
 }

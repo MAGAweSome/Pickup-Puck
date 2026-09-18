@@ -41,8 +41,8 @@ Route::get('/', function () {
         // If the user is already logged in, go to the home page
         return redirect('home');
     else
-        // If the user is not logged in, have the main page, the login page
-        return view('auth.login');
+        // If the user is not logged in, show the showcase landing page
+        return view('landing');
 });
 
 Auth::routes(['verify' => true]);
@@ -148,6 +148,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create_game', [CreateGameController::class, 'index'])->name('create_game');
         Route::post('/create_game', [CreateGameController::class, 'create'])->name('game_create');
         Route::post('/seasons', [CreateGameController::class, 'createSeason'])->name('season.create');
+        Route::delete('/seasons/{season}', [App\Http\Controllers\SettingsController::class, 'deleteSeason'])->name('admin.seasons.delete');
+        Route::post('/seasons/{season}/delete', [App\Http\Controllers\SettingsController::class, 'deleteSeason'])->name('admin.seasons.delete_post');
         Route::get('/edit_game/{game}', [EditGameController::class, 'index'])->name('edit_game');
         Route::post('/edit_game/{game}', [EditGameController::class, 'update'])->name('game_edit');
         Route::post('/game/{game}/score', [App\Http\Controllers\GameDetailController::class, 'adminUpdateScore'])->name('admin_game_update_score');

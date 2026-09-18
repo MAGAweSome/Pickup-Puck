@@ -22,8 +22,9 @@ class SettingsController extends Controller
      */
     public function index()
     {
-        $seasons = Season::all();
-        $nextSeasonNumber = Season::max('season_number') + 1;
+        $seasons = Season::withCount('games')->orderBy('season_number', 'desc')->get();
+        $currentSeason = Season::orderBy('season_number', 'desc')->first();
+        $nextSeasonNumber = ($seasons->max('season_number') ?? 0) + 1;
 
         $model = GameDefault::first();
         $defaults = [
@@ -37,7 +38,50 @@ class SettingsController extends Controller
             'next_number' => $model->default_next_number ?? 1,
         ];
 
-        return view('settings.index', ['defaults' => $defaults, 'seasons' => $seasons, 'nextSeasonNumber' => $nextSeasonNumber]);
+        return view('settings.index', [
+            'defaults' => $defaults,
+            'seasons' => $seasons,
+            'currentSeason' => $currentSeason,
+            'nextSeasonNumber' => $nextSeasonNumber,
+        ]);
+    }
+
+    /**
+     * Delete an entire season, including its games and attached roster records if present.
+     */
+    public function deleteSeason(Request $request, Season $season)
+    {
+        $seasonNumber = $season->season_number;
+        $gamesCount = $season->games()->count();
+
+        // Delete all attached games (their child relations: players, teams, payments, etc. cascade delete)
+        foreach ($season->games as $game) {
+            $game->delete();
+        }
+
+        // If game_defaults references this season, clear default_season_id
+        $gameDefault = GameDefault::first();
+        if ($gameDefault && $gameDefault->default_season_id == $season->id) {
+            $gameDefault->default_season_id = null;
+            $gameDefault->save();
+        }
+
+        $season->delete();
+
+        $nextSeasonNumber = (Season::max('season_number') ?? 0) + 1;
+        $msg = $gamesCount > 0
+            ? "Season {$seasonNumber} and all {$gamesCount} attached game(s) and roster contents were deleted successfully."
+            : "Season {$seasonNumber} was deleted successfully.";
+
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'next_season_number' => $nextSeasonNumber,
+            ]);
+        }
+
+        return Redirect::route('settings.index')->with('success', $msg);
     }
 
     /**

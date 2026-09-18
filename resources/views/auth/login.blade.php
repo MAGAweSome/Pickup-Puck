@@ -2,19 +2,79 @@
 
 @section('content')
 
-<div class="parent-container d-flex align-items-center justify-content-center h-100">
-    <div x-data='{"tab": @json(old("form", "login")) }' class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="min-h-[calc(100vh-12rem)] flex items-center justify-center py-6 px-3 sm:px-6">
+    <div x-data='{"tab": @json(old("form", "login")) }' class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/70 backdrop-blur-xl">
 
-        <div class="hidden md:flex flex-col justify-center bg-slate-800 p-8 rounded-lg">
-            <h3 class="text-2xl font-semibold text-ice-blue mb-2">Pickup Puck</h3>
-            <p class="text-slate-300">Pickup hockey scheduling made simple — manage games, players and payments.</p>
+        <!-- Left Stadium Showcase Brand Banner -->
+        <div class="relative hidden lg:flex lg:col-span-5 flex-col justify-between p-8 bg-gradient-to-br from-slate-100 via-sky-50/50 to-slate-200 dark:from-slate-900 dark:via-slate-950 dark:to-sky-950/40 border-r border-slate-200 dark:border-white/10 overflow-hidden">
+            <!-- Background Arena Radial Accent -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-4">
+                <div class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-sky-100 dark:bg-sky-500/10 border border-sky-300 dark:border-sky-400/20 text-sky-800 dark:text-sky-300 text-xs font-semibold tracking-wider uppercase">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+                    Stadium Arena Access
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 flex items-center justify-center shadow-lg shadow-sky-500/30 text-slate-950 font-black text-xl tracking-tighter">
+                        🏒
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white font-heading">PICKUP PUCK</h2>
+                        <p class="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-widest">Digital Game Day Hub</p>
+                    </div>
+                </div>
+
+                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed pt-2">
+                    Pickup hockey scheduling made effortless. Balanced rosters, live goalie tracking, instant roster reveals, and game day notifications.
+                </p>
+            </div>
+
+            <!-- Arena Feature Bullets -->
+            <div class="relative z-10 space-y-3 my-8 pt-4 border-t border-slate-200 dark:border-white/5">
+                <div class="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300">
+                    <div class="w-7 h-7 rounded-lg bg-white dark:bg-sky-500/10 border border-slate-200 dark:border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 shadow-sm">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <span>Balanced snake coin-flip rosters every game</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300">
+                    <div class="w-7 h-7 rounded-lg bg-white dark:bg-sky-500/10 border border-slate-200 dark:border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 shadow-sm">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span>Crease locks &amp; live goalie attendance counters</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300">
+                    <div class="w-7 h-7 rounded-lg bg-white dark:bg-sky-500/10 border border-slate-200 dark:border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 shadow-sm">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <span>T-30 live jersey reveal &amp; countdown timer</span>
+                </div>
+            </div>
+
+            <div class="relative z-10 text-[11px] text-slate-500 flex items-center justify-between">
+                <span>Designed for fast rinks</span>
+                <span class="font-mono text-slate-500 dark:text-slate-400">v2.4 Stadium</span>
+            </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-700 rounded-lg shadow-md px-6 py-8">
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center space-x-3">
-                    <button @click="tab = 'login'" :class="tab === 'login' ? 'bg-ice-blue text-deep-navy' : 'text-slate-300'" class="px-3 py-1 rounded font-medium">Login</button>
-                    <button @click="tab = 'register'" :class="tab === 'register' ? 'bg-ice-blue text-deep-navy' : 'text-slate-300'" class="px-3 py-1 rounded font-medium">Register</button>
+        <!-- Right Form Panel -->
+        <div class="lg:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white dark:bg-slate-900/90">
+            <!-- Segmented Pill Switcher -->
+            <div class="flex items-center justify-center mb-6">
+                <div class="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 w-full max-w-xs shadow-inner">
+                    <button type="button" @click="tab = 'login'"
+                        :class="tab === 'login' ? 'bg-gradient-to-r from-sky-500 to-cyan-400 text-slate-950 font-bold shadow-md shadow-sky-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                        class="flex-1 py-2 text-center text-sm rounded-xl transition-all duration-200">
+                        <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Sign In
+                    </button>
+                    <button type="button" @click="tab = 'register'"
+                        :class="tab === 'register' ? 'bg-gradient-to-r from-sky-500 to-cyan-400 text-slate-950 font-bold shadow-md shadow-sky-500/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+                        class="flex-1 py-2 text-center text-sm rounded-xl transition-all duration-200">
+                        <i class="fa-solid fa-user-plus mr-1.5"></i> Register
+                    </button>
                 </div>
             </div>
 
@@ -24,42 +84,54 @@
                 <input type="hidden" name="form" value="login">
 
                 <div>
-                    <label for="email" class="block text-sm text-gray-100">{{ __('Email Address') }}</label>
+                    <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fa-regular fa-envelope text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Email Address') }}
+                    </label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
-                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        placeholder="player@arena.ca"
+                        class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
                     @if(old('form') === 'login')
-                        @error('email') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                        @error('email') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div> @enderror
                     @endif
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm text-gray-100">{{ __('Password') }}</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-lock text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Password') }}
+                        </label>
+                        @if (Route::has('password.request'))
+                            <a class="text-xs text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300 transition-colors font-medium" href="{{ route('password.request') }}">{{ __('Forgot Password?') }}</a>
+                        @endif
+                    </div>
                     <div class="relative">
-                        <input id="password" type="password" :type="showLoginPassword ? 'text' : 'password'" name="password" required autocomplete="current-password"
-                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        <input id="password" :type="showLoginPassword ? 'text' : 'password'" name="password" required autocomplete="current-password"
+                            placeholder="••••••••••••"
+                            class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 pr-11 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
 
-                        <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                        <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors focus:outline-none">
                             <i x-show="!showLoginPassword" x-cloak class="fa-regular fa-eye"></i>
                             <i x-show="showLoginPassword" x-cloak class="fa-regular fa-eye-slash"></i>
                         </button>
                     </div>
                     @if(old('form') === 'login')
-                        @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                        @error('password') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div> @enderror
                     @endif
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center gap-2 text-sm text-slate-300">
-                        <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }} class="h-4 w-4 text-ice-blue bg-slate-800 border-slate-600 rounded">
-                        {{ __('Remember Me') }}
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                        <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}
+                            class="w-4 h-4 text-sky-600 dark:text-sky-500 bg-white dark:bg-slate-950 border-slate-300 dark:border-white/20 rounded focus:ring-sky-500">
+                        <span>{{ __('Stay signed in on this device') }}</span>
                     </label>
-                    @if (Route::has('password.request'))
-                        <a class="text-sm text-slate-300 hover:text-white" href="{{ route('password.request') }}">{{ __('Forgot Your Password?') }}</a>
-                    @endif
                 </div>
 
-                <div>
-                    <button type="submit" class="w-full bg-ice-blue text-deep-navy font-semibold py-2 rounded shadow">{{ __('Login') }}</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 rounded-xl font-bold text-sm text-slate-950 bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-400 hover:from-sky-300 hover:to-cyan-200 shadow-lg shadow-sky-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                        <span>{{ __('Sign In to Locker Room') }}</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
                 </div>
             </form>
 
@@ -80,48 +152,65 @@
                 <input type="hidden" name="form" value="register">
 
                 <div>
-                    <label for="name" class="block text-sm text-gray-100">{{ __('Name') }}</label>
+                    <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fa-regular fa-user text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Player Full Name') }}
+                    </label>
                     <input id="name" type="text" name="name" x-model="name" @blur="onNameBlur()" required autocomplete="off" autocapitalize="words" spellcheck="false"
-                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        placeholder="Connor McDavid"
+                        class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
-                        @error('name') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                        @error('name') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div> @enderror
                     @endif
-                    <div x-show="nameBlurred && (name || '').trim().length > 0 && !nameIsValid()" x-cloak class="text-red-400 text-sm mt-1">Please enter first and last name</div>
+                    <div x-show="nameBlurred && (name || '').trim().length > 0 && !nameIsValid()" x-cloak class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> Please enter both first and last name
+                    </div>
                 </div>
 
                 <div>
-                    <label for="reg_email" class="block text-sm text-gray-100">{{ __('Email Address') }}</label>
-                    <input id="reg_email" type="email" name="email" x-model="regEmail" @input="onEmailInput()" @blur="checkEmail()" required autocomplete="email" autocapitalize="none"
-                        class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
-                    @if(old('form') === 'register' || session('_old_input.form') === 'register')
-                        @error('email') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
-                    @endif
-                    <div x-show="emailChecking" x-cloak class="text-slate-300 text-sm mt-1">Checking…</div>
-                    <div x-show="emailChecked && emailExists" x-cloak class="text-red-400 text-sm mt-1">That email is already in use — please <a href="{{ route('login') }}" class="underline">login</a>.</div>
-                </div>
-
-                <div>
-                    <label for="reg_password" class="block text-sm text-gray-100">{{ __('Password') }}</label>
+                    <label for="reg_email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fa-regular fa-envelope text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Email Address') }}
+                    </label>
                     <div class="relative">
-                        <input id="reg_password" type="password" :type="showPassword ? 'text' : 'password'" name="password" x-model="password" @blur="passwordTouched = true" @input="passwordTouched = true" required autocomplete="new-password"
-                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        <input id="reg_email" type="email" name="email" x-model="regEmail" @input="onEmailInput()" @blur="checkEmail()" required autocomplete="email" autocapitalize="none"
+                            placeholder="player@arena.ca"
+                            class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 pr-9 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
+                        <div x-show="emailChecking" x-cloak class="absolute inset-y-0 right-3 flex items-center text-sky-600 dark:text-sky-400">
+                            <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                        </div>
+                    </div>
+                    @if(old('form') === 'register' || session('_old_input.form') === 'register')
+                        @error('email') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div> @enderror
+                    @endif
+                    <div x-show="emailChecked && emailExists" x-cloak class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> That email is already registered — <a href="javascript:void(0)" @click="tab = 'login'" class="text-sky-600 dark:text-sky-300 underline font-semibold ml-1">Sign In</a>
+                    </div>
+                </div>
 
-                        <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                <div>
+                    <label for="reg_password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fa-solid fa-lock text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Password') }}
+                    </label>
+                    <div class="relative">
+                        <input id="reg_password" :type="showPassword ? 'text' : 'password'" name="password" x-model="password" @blur="passwordTouched = true" @input="passwordTouched = true" required autocomplete="new-password"
+                            placeholder="••••••••••••"
+                            class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 pr-11 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
+
+                        <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors focus:outline-none">
                             <i x-show="!showPassword" x-cloak class="fa-regular fa-eye"></i>
                             <i x-show="showPassword" x-cloak class="fa-regular fa-eye-slash"></i>
                         </button>
                     </div>
                     @if(old('form') === 'register' || session('_old_input.form') === 'register')
-                        @error('password') <div class="text-red-400 text-sm mt-1">{{ $message }}</div> @enderror
+                        @error('password') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div> @enderror
                     @endif
 
                     <!-- Password Strength Meter -->
-                    <div class="mt-2 space-y-1.5" x-show="(password || '').length > 0" x-cloak x-transition>
+                    <div class="mt-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 space-y-2" x-show="(password || '').length > 0" x-cloak x-transition>
                         <div class="flex items-center justify-between text-xs">
-                            <span class="text-slate-400">Strength:</span>
-                            <span class="font-semibold" :class="strengthTextColor" x-text="strengthLabel"></span>
+                            <span class="text-slate-600 dark:text-slate-400">Password Strength:</span>
+                            <span class="font-bold tracking-wide" :class="strengthTextColor" x-text="strengthLabel"></span>
                         </div>
-                        <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden p-0.5">
+                        <div class="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden p-0.5">
                             <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 1 ? strengthBgColor : 'bg-transparent'"></div>
                             <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 2 ? strengthBgColor : 'bg-transparent'"></div>
                             <div class="h-full rounded-full transition-all duration-300" :class="strengthScore >= 3 ? strengthBgColor : 'bg-transparent'"></div>
@@ -129,48 +218,54 @@
                         </div>
 
                         <!-- Requirements Checklist -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 text-xs">
-                            <div class="flex items-center gap-1.5" :class="hasMinLength ? 'text-emerald-400' : 'text-slate-500'">
-                                <i :class="hasMinLength ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 pt-1 text-[11px]">
+                            <div class="flex items-center gap-1.5" :class="hasMinLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'">
+                                <i :class="hasMinLength ? 'fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-regular fa-circle'"></i>
                                 <span>8+ characters</span>
                             </div>
-                            <div class="flex items-center gap-1.5" :class="hasLetter ? 'text-emerald-400' : 'text-slate-500'">
-                                <i :class="hasLetter ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
+                            <div class="flex items-center gap-1.5" :class="hasLetter ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'">
+                                <i :class="hasLetter ? 'fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-regular fa-circle'"></i>
                                 <span>Letters</span>
                             </div>
-                            <div class="flex items-center gap-1.5" :class="hasNumberOrSpecial ? 'text-emerald-400' : 'text-slate-500'">
-                                <i :class="hasNumberOrSpecial ? 'fa-solid fa-check-circle' : 'fa-regular fa-circle'"></i>
-                                <span>Numbers or symbols</span>
+                            <div class="flex items-center gap-1.5" :class="hasNumberOrSpecial ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'">
+                                <i :class="hasNumberOrSpecial ? 'fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-regular fa-circle'"></i>
+                                <span>Numbers / symbols</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label for="password-confirm" class="block text-sm text-gray-100">{{ __('Confirm Password') }}</label>
+                    <label for="password-confirm" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                        <i class="fa-solid fa-lock-open text-sky-600 dark:text-sky-400 mr-1"></i> {{ __('Confirm Password') }}
+                    </label>
                     <div class="relative">
-                        <input id="password-confirm" type="password" :type="showPasswordConfirmation ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" @input="passwordTouched = true" required autocomplete="new-password"
-                            class="w-full bg-slate-800 text-gray-100 border border-slate-700 rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-ice-blue" />
+                        <input id="password-confirm" :type="showPasswordConfirmation ? 'text' : 'password'" name="password_confirmation" x-model="password_confirmation" @input="passwordTouched = true" required autocomplete="new-password"
+                            placeholder="••••••••••••"
+                            class="w-full bg-slate-50 dark:bg-slate-950/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 pr-11 text-sm focus:outline-none focus:border-sky-500 dark:focus:border-sky-400 focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 transition-all shadow-inner" />
 
-                        <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation" class="absolute inset-y-0 right-3 flex items-center text-slate-200 hover:text-white focus:outline-none">
+                        <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors focus:outline-none">
                             <i x-show="!showPasswordConfirmation" x-cloak class="fa-regular fa-eye"></i>
                             <i x-show="showPasswordConfirmation" x-cloak class="fa-regular fa-eye-slash"></i>
                         </button>
                     </div>
 
                     <!-- Live Match Indicator -->
-                    <div class="mt-1.5 text-xs" x-show="(password_confirmation || '').length > 0" x-cloak x-transition>
-                        <span x-show="passwordsMatch" class="text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check"></i> Passwords match
+                    <div class="mt-2 text-xs font-medium" x-show="(password_confirmation || '').length > 0" x-cloak x-transition>
+                        <span x-show="passwordsMatch" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Passwords match
                         </span>
-                        <span x-show="!passwordsMatch" class="text-amber-400 flex items-center gap-1">
+                        <span x-show="!passwordsMatch" class="text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                             <i class="fa-solid fa-triangle-exclamation"></i> Passwords do not match yet
                         </span>
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="w-full bg-ice-blue text-deep-navy font-semibold py-2 rounded shadow">{{ __('Register') }}</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 rounded-xl font-bold text-sm text-slate-950 bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-400 hover:from-sky-300 hover:to-cyan-200 shadow-lg shadow-sky-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
+                        <span>{{ __('Create Player Account') }}</span>
+                        <i class="fa-solid fa-user-check text-xs"></i>
+                    </button>
                 </div>
             </form>
         </div>
