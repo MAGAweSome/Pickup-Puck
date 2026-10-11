@@ -67,14 +67,9 @@ class GameTeamsService
             ];
         }
 
-        // If goalie 1 is notably stronger than goalie 2, target slightly higher skater points on team 2 (and vice versa)
-        $goalieDiff = $goalie1Level - $goalie2Level;
+        // Decouple goalie rating from skater balance:
+        // Goalies are assigned 1 per side first; skaters are balanced strictly on skater score variance.
         $targetSkaterDiff = 0;
-        if ($goalieDiff >= 2) {
-            $targetSkaterDiff = -1;
-        } elseif ($goalieDiff <= -2) {
-            $targetSkaterDiff = 1;
-        }
 
         $best = null;
         $bestScore = PHP_INT_MAX;

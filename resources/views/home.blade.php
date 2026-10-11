@@ -276,10 +276,21 @@
                             @endforeach
                         </div>
                     @elseif(!$nextGame)
-                        <div class="p-8 text-center rounded-3xl bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 shadow-sm dark:shadow-md">
-                            <i class="fa-regular fa-calendar-xmark text-3xl text-slate-400 dark:text-slate-500 mb-2"></i>
-                            <p class="font-bold text-sm text-slate-800 dark:text-slate-100">No upcoming games scheduled right now</p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Check back soon for new games added to the season.</p>
+                        <div class="relative overflow-hidden p-8 sm:p-10 text-center rounded-3xl bg-white dark:bg-gradient-to-b dark:from-[#1e293b] dark:to-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-md">
+                            <div class="absolute inset-0 bg-radial-gradient from-sky-500/5 to-transparent pointer-events-none"></div>
+                            <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-cyan-500/15 border border-sky-200 dark:border-cyan-500/30 text-sky-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-3 shadow-xs">
+                                <i class="fa-solid fa-hockey-puck text-2xl"></i>
+                            </div>
+                            <h3 class="font-black text-base sm:text-lg text-slate-900 dark:text-white">No upcoming games scheduled right now</h3>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">Check back soon for new games added to the season, or administrators can schedule new ice times.</p>
+                            @role('admin')
+                                <div class="mt-4">
+                                    <a href="/admin/create_game" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold text-xs transition shadow-md no-underline">
+                                        <i class="fa-solid fa-plus text-xs"></i>
+                                        <span>Create Next Session</span>
+                                    </a>
+                                </div>
+                            @endrole
                         </div>
                     @endif
                 </section>

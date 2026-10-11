@@ -812,25 +812,14 @@ class GameDetailController extends Controller
         $darkTeamMembers = $buildOrderedTeamMembers($darkTeamUsers, $darkTeamGuests);
         $lightTeamMembers = $buildOrderedTeamMembers($lightTeamUsers, $lightTeamGuests);
 
-        $darkTeamSkill = 0;
-        foreach ($darkTeamUsers as $u) {
-            if (($u->role ?? null) === 'goalie') continue;
-            $darkTeamSkill += (int) ($u->level ?? 3);
-        }
-        foreach ($darkTeamGuests as $g) {
-            if (($g->role ?? null) === 'goalie') continue;
-            $darkTeamSkill += (int) ($g->level ?? 3);
-        }
+        // Calculate skater skill rating totals (goalie levels are explicitly excluded from skater score)
+        $darkTeamSkill = (int) $darkTeamMembers
+            ->filter(fn ($m) => empty($m['is_goalie']) && empty($m['is_empty_net']))
+            ->sum(fn ($m) => (int) ($m['level'] ?? 3));
 
-        $lightTeamSkill = 0;
-        foreach ($lightTeamUsers as $u) {
-            if (($u->role ?? null) === 'goalie') continue;
-            $lightTeamSkill += (int) ($u->level ?? 3);
-        }
-        foreach ($lightTeamGuests as $g) {
-            if (($g->role ?? null) === 'goalie') continue;
-            $lightTeamSkill += (int) ($g->level ?? 3);
-        }
+        $lightTeamSkill = (int) $lightTeamMembers
+            ->filter(fn ($m) => empty($m['is_goalie']) && empty($m['is_empty_net']))
+            ->sum(fn ($m) => (int) ($m['level'] ?? 3));
 
         return [
             'currentTime' => $currentTime,

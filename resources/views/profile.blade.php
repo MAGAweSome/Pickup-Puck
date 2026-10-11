@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div class="max-w-4xl 2xl:max-w-5xl mx-auto space-y-8">
+    <div class="w-full space-y-6 xl:space-y-8">
         <!-- Player Locker Room Header -->
         <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gradient-to-r dark:from-slate-950/90 dark:via-slate-900/90 dark:to-cyan-950/30 border border-slate-200 dark:border-cyan-500/20 p-6 sm:p-7 shadow-xl backdrop-blur-md">
             @if(Auth::user()->hasVerifiedEmail())
@@ -45,8 +45,13 @@
             </div>
         </div>
 
-        <!-- Account Information Card -->
-        <div class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md">
+        <!-- Desktop Multi-Column Dashboard Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8 items-stretch">
+            
+            <!-- Left Column: Primary Settings -->
+            <div class="space-y-6 xl:space-y-8">
+                <!-- Account Information Card -->
+                <div class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md h-full flex flex-col">
             <div class="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                 <i class="fa-solid fa-id-card text-sky-600 dark:text-cyan-400 text-lg"></i>
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white tracking-wide">Account Details</h2>
@@ -59,7 +64,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('profile_update') }}" method="POST" class="space-y-4">
+            <form action="{{ route('profile_update') }}" method="POST" class="space-y-4 flex-1 flex flex-col">
                 @csrf
 
                 <div>
@@ -85,15 +90,18 @@
                     @error('role') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
                 </div>
 
-                <div class="flex flex-wrap gap-3 pt-3">
+                <div class="flex flex-wrap gap-3 pt-3 mt-auto">
                     <button id="updateProfile" type="submit" class="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-xl text-xs sm:text-sm transition shadow-md dark:shadow-[0_0_15px_rgba(56,189,248,0.3)]">Save Changes</button>
                     <button type="button" id="start-tour-btn" class="px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition text-xs sm:text-sm font-semibold">Restart App Tour</button>
                 </div>
             </form>
-        </div>
-
-        <!-- Interface & Theme Preference Card -->
-        <div id="theme-preference-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md"
+            </div>
+            </div>
+            
+            <!-- Right Column: Preferences & Security -->
+            <div class="space-y-6 xl:space-y-8 h-full">
+                <!-- Interface & Theme Preference Card -->
+                <div id="theme-preference-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md h-full flex flex-col justify-between"
             x-data="{
                 activeTheme: localStorage.getItem('theme') === 'light' ? 'light' : 'dark',
                 setTheme(theme) {
@@ -181,9 +189,11 @@
                 </button>
             </div>
         </div>
+        </div>
+        </div>
 
         <!-- Security & Password Card -->
-        <div id="password-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md" x-data="passwordValidator()">
+        <div id="password-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md max-w-4xl mx-auto w-full" x-data="passwordValidator()">
             <div class="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                 <i class="fa-solid fa-shield-halved text-sky-600 dark:text-cyan-400 text-lg"></i>
                 <div>

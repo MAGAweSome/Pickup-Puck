@@ -274,18 +274,23 @@
                         </div>
                         <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Add registered players directly into this game (admin only).</p>
 
-                        <div class="max-h-72 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 p-1">
-                            <ul class="divide-y divide-slate-200 dark:divide-slate-800/80">
+                        <div class="max-h-80 overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-950/80 p-2.5">
+                            <ul class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2.5">
                                 @foreach($notAttendingUsers as $u)
-                                    <li class="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-100 dark:hover:bg-slate-900/60 rounded-lg transition">
-                                        <div class="min-w-0">
-                                            <div class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ $u->name }}</div>
-                                            <div class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $u->email }}</div>
+                                    <li class="p-2.5 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/70 hover:border-sky-400 dark:hover:border-cyan-500/40 rounded-xl transition flex items-center justify-between gap-2 shadow-xs group">
+                                        <div class="min-w-0 flex items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-xs font-mono font-bold text-slate-700 dark:text-slate-300 shrink-0">
+                                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-sky-600 dark:group-hover:text-cyan-400 transition">{{ $u->name }}</div>
+                                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $u->email }}</div>
+                                            </div>
                                         </div>
 
-                                        <form class="flex items-center gap-2" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}" data-async-game-form>
+                                        <form class="flex items-center gap-1.5 shrink-0" method="POST" action="{{ route('admin_game_detail_update.game_id.user_id', ['game' => $game->id, 'user_id' => $u->id]) }}" data-async-game-form>
                                             @csrf
-                                            <select name="gameRole" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-200 text-xs focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
+                                            <select name="gameRole" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-800 dark:text-slate-200 text-[11px] font-medium focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer">
                                                 @foreach ($GAME_ROLES as $gamerole)
                                                     @php $isGoalieRole = ($gamerole == App\Enums\Games\GameRoles::Goalie); @endphp
                                                     <option value="{{ $gamerole }}" @if($gamerole == App\Enums\Games\GameRoles::Player) selected @endif @if($isGoalieRole && $totalGoalies >= 2) disabled title="Goalie roster is full" @endif>
@@ -293,7 +298,10 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-lg text-xs transition shadow-sm">Add</button>
+                                            <button type="submit" class="px-2.5 py-1 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 dark:from-cyan-500 dark:to-sky-600 dark:hover:from-cyan-400 dark:hover:to-sky-500 text-white dark:text-slate-950 font-bold rounded-lg text-xs transition shadow-xs flex items-center gap-1">
+                                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                                <span>Add</span>
+                                            </button>
                                         </form>
                                     </li>
                                 @endforeach
@@ -377,26 +385,35 @@
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
-                    <!-- Goalies Column -->
+                    <!-- Goalies Column (Goal Crease) -->
                     <div>
-                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-slate-800/80">
-                            <span class="text-xs uppercase font-mono font-bold tracking-wider text-indigo-600 dark:text-sky-400 flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved"></i>
+                        <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-sky-200/50 dark:border-cyan-500/20">
+                            <span class="text-xs uppercase font-mono font-black tracking-wider text-sky-700 dark:text-cyan-300 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-sky-100 dark:bg-cyan-500/20 border border-sky-300 dark:border-cyan-500/40 flex items-center justify-center text-sky-600 dark:text-cyan-300 shadow-xs">
+                                    <i class="fa-solid fa-shield-halved text-xs"></i>
+                                </span>
                                 <span>Goalie Crease</span>
                             </span>
-                            <span class="text-xs font-mono text-slate-600 dark:text-slate-400">{{ $totalGoalies }} / 2</span>
+                            <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-sky-50 dark:bg-cyan-500/10 text-sky-700 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30">{{ $totalGoalies }} / 2</span>
                         </div>
 
-                        <ul class="space-y-2">
+                        <ul class="space-y-2.5">
                             @foreach($goalies as $goalie_id => $goalie_name)
-                                <li class="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-cyan-500/30 rounded-xl px-3 py-2 flex items-center justify-between gap-2 shadow-sm" data-user-id="{{ $goalie_id }}">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-100 dark:bg-cyan-500/20 text-sky-700 dark:text-cyan-300 border border-sky-300 dark:border-cyan-500/40 shrink-0">G</span>
-                                        <span class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ $goalie_name }}</span>
+                                <li class="relative overflow-hidden bg-gradient-to-r from-sky-50/80 via-white to-sky-50/40 dark:from-slate-950 dark:via-[#0c182b] dark:to-cyan-950/30 border-2 border-sky-300 dark:border-cyan-500/40 rounded-2xl p-3 flex items-center justify-between gap-2.5 shadow-sm dark:shadow-[0_0_15px_rgba(56,189,248,0.1)] group transition" data-user-id="{{ $goalie_id }}">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl bg-sky-500 text-white dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-400 dark:border-cyan-400/50 flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-xs">
+                                            G
+                                        </div>
+                                        <div class="min-w-0">
+                                            <span class="text-sm font-bold text-slate-900 dark:text-white truncate block">{{ $goalie_name }}</span>
+                                            <span class="text-[10px] font-mono text-sky-600 dark:text-cyan-400 flex items-center gap-1 font-semibold">
+                                                <i class="fa-solid fa-crosshairs text-[9px]"></i> Crease Confirmed
+                                            </span>
+                                        </div>
                                     </div>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <button class="player-options-btn px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition text-xs">⋮</button>
                                             <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
                                                 <button data-user-id="{{ $goalie_id }}" data-role="player" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white change-player-role">Make Skater</button>
                                                 <button data-user-id="{{ $goalie_id }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 remove-player">Remove</button>
@@ -407,15 +424,19 @@
                             @endforeach
 
                             @foreach($guestGoalies as $guest)
-                                <li class="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2 text-slate-800 dark:text-slate-300" data-guest-id="{{ $guest->id ?? '' }}">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-100 dark:bg-cyan-500/15 text-sky-700 dark:text-cyan-400 border border-sky-300 dark:border-cyan-500/30 shrink-0">G</span>
-                                        <span class="text-sm truncate">{{ $guest->name ?? $guest }}</span>
-                                        <span class="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-800">Guest</span>
+                                <li class="relative overflow-hidden bg-gradient-to-r from-sky-50/80 via-white to-sky-50/40 dark:from-slate-950 dark:via-[#0c182b] dark:to-cyan-950/30 border-2 border-sky-300 dark:border-cyan-500/40 rounded-2xl p-3 flex items-center justify-between gap-2.5 shadow-sm text-slate-800 dark:text-slate-300 transition" data-guest-id="{{ $guest->id ?? '' }}">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl bg-sky-500 text-white dark:bg-cyan-500/20 dark:text-cyan-300 border border-sky-400 dark:border-cyan-400/50 flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-xs">
+                                            G
+                                        </div>
+                                        <div class="min-w-0">
+                                            <span class="text-sm font-bold text-slate-900 dark:text-white truncate block">{{ $guest->name ?? $guest }}</span>
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-900 px-1.5 py-0.2 rounded border border-slate-300 dark:border-slate-800 mt-0.5">Guest</span>
+                                        </div>
                                     </div>
                                     @if(auth()->check() && auth()->user()->hasRole('admin'))
                                         <div class="relative">
-                                            <button class="player-options-btn px-2 py-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition text-xs">⋮</button>
+                                            <button class="player-options-btn px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition text-xs">⋮</button>
                                             <div class="player-options-menu hidden absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 py-1 text-xs">
                                                 <button data-guest-id="{{ $guest->id ?? '' }}" data-role="player" class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white make-guest-role">Make Skater</button>
                                                 <button data-guest-id="{{ $guest->id ?? '' }}" class="w-full text-left px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 admin-remove-guest">Remove</button>
@@ -426,9 +447,17 @@
                             @endforeach
 
                             @for ($i = $totalGoalies; $i < 2; $i++)
-                                <li class="bg-slate-100/60 dark:bg-slate-950/40 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-500 flex items-center gap-2">
-                                    <i class="fa-regular fa-circle-dot text-slate-400 dark:text-slate-600"></i>
-                                    <span>Empty Net Spot</span>
+                                <li class="bg-slate-50/50 dark:bg-slate-950/40 border-2 border-dashed border-slate-300 dark:border-slate-800/80 rounded-2xl p-3 text-xs font-mono text-slate-500 dark:text-slate-400 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-600 text-xs font-mono">
+                                            ?
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-slate-700 dark:text-slate-300 block">Empty Net Spot</span>
+                                            <span class="text-[10px] text-slate-400">Awaiting netminder RSVP</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-800">Open</span>
                                 </li>
                             @endfor
                         </ul>

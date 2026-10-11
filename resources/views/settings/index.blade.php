@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="w-full space-y-6 xl:space-y-8">
         <div>
             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Application Settings</h1>
             <p class="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">Configure global defaults for new game sessions and scheduling preferences.</p>
@@ -14,8 +14,10 @@
             </div>
         @endif
 
-        <form action="{{ route('settings.update') }}" method="POST" class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-sm dark:shadow-md space-y-6">
-            @csrf
+        <!-- Desktop Multi-Column Dashboard Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 xl:gap-8 items-start">
+            <form action="{{ route('settings.update') }}" method="POST" class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-sm dark:shadow-md space-y-6">
+                @csrf
             <div class="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <i class="fa-solid fa-sliders text-sky-600 dark:text-sky-400"></i>
                 <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Game Creation Defaults</h3>
@@ -148,6 +150,7 @@
                     </div>
                 </div>
             @endif
+        </div>
         </div>
     </div>
 

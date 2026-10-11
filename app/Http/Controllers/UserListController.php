@@ -26,7 +26,18 @@ class UserListController extends Controller
     public function index()
     {
         $users = User::query()->orderBy('name')->get();
-        $guests = Guest::query()->orderBy('name')->get();
+        
+        // Fetch guests and attach their assigned skill level from recent games
+        $guestLevels = \Illuminate\Support\Facades\DB::table('game_players_guests')
+            ->select('name', \Illuminate\Support\Facades\DB::raw('MAX(level) as level'))
+            ->groupBy('name')
+            ->pluck('level', 'name');
+
+        $guests = Guest::query()->orderBy('name')->get()->map(function ($guest) use ($guestLevels) {
+            $guest->level = (int) ($guestLevels[$guest->name] ?? 3);
+            return $guest;
+        });
+
         return view('user_list', ['users' => $users, 'guests' => $guests]);
     }
 }
