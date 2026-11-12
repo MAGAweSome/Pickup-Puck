@@ -3,22 +3,49 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Pickup Puck</title>
+
+    <!-- Progressive Web App (PWA) Manifest & Metadata -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="application-name" content="Pickup Puck">
+    <meta name="apple-mobile-web-app-title" content="Pickup Puck">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b1120" id="meta-theme-color">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- iOS Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('icons/apple-touch-icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="167x167" href="{{ asset('icons/apple-touch-icon-167x167.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/apple-touch-icon-180x180.png') }}">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('icons/favicon-16x16.png') }}">
+    <meta name="msapplication-TileColor" content="#0b1120">
+    <meta name="msapplication-TileImage" content="{{ asset('icons/icon-144x144.png') }}">
 
     <!-- Prevent Flash of Incorrect Theme (FOUC) & Atmos-compliant Theme Engine -->
     <script>
         (function () {
             function applyTheme(theme) {
-                if (theme === 'light') {
+                const isLight = theme === 'light';
+                if (isLight) {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.style.colorScheme = 'light';
                 } else {
                     // Dark mode is default
                     document.documentElement.classList.add('dark');
                     document.documentElement.style.colorScheme = 'dark';
+                }
+                const themeMeta = document.getElementById('meta-theme-color');
+                if (themeMeta) {
+                    themeMeta.setAttribute('content', isLight ? '#f1f5f9' : '#0b1120');
                 }
             }
 
@@ -99,9 +126,40 @@
         :root {
             --nav-height: 4rem;
             color-scheme: light;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
         }
         html.dark {
             color-scheme: dark;
+        }
+
+        /* Safe-Area Inset Support for Standalone PWA on iOS & Android */
+        @media all and (display-mode: standalone) {
+            #navigationBar {
+                padding-top: var(--safe-top);
+                height: calc(4rem + var(--safe-top));
+            }
+            .pt-16 {
+                padding-top: calc(4rem + var(--safe-top)) !important;
+            }
+            #mobileDock {
+                padding-bottom: var(--safe-bottom);
+                height: calc(4rem + var(--safe-bottom));
+            }
+        }
+
+        html.pwa-standalone #navigationBar {
+            padding-top: var(--safe-top);
+            height: calc(4rem + var(--safe-top));
+        }
+        html.pwa-standalone .pt-16 {
+            padding-top: calc(4rem + var(--safe-top)) !important;
+        }
+        html.pwa-standalone #mobileDock {
+            padding-bottom: var(--safe-bottom);
+            height: calc(4rem + var(--safe-bottom));
         }
 
         /* Custom scrollbars */
@@ -280,6 +338,13 @@
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
+    
+    <!-- PWA Install Prompt Banner & iOS Modal -->
+    @include('components.pwa_install_prompt')
+
+    <!-- PWA Service Worker & Install Logic -->
+    <script src="{{ asset('js/pwa.js') }}" defer></script>
+
     @stack('scripts')
 </body>
 

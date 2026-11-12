@@ -185,5 +185,35 @@ Route::get('/email-preview/verify-email', function () {
     ]);
 })->name('email_preview.verify_email');
 
+// Progressive Web App (PWA) Endpoints
+Route::get('/manifest.json', function () {
+    return response()->file(public_path('manifest.json'), [
+        'Content-Type' => 'application/manifest+json; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
+Route::get('/site.webmanifest', function () {
+    return response()->file(public_path('site.webmanifest'), [
+        'Content-Type' => 'application/manifest+json; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
+Route::get('/sw.js', function () {
+    return response()->file(public_path('sw.js'), [
+        'Content-Type' => 'application/javascript; charset=UTF-8',
+        'Service-Worker-Allowed' => '/',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+    ]);
+});
+
+Route::get('/offline.html', function () {
+    return response()->file(public_path('offline.html'), [
+        'Content-Type' => 'text/html; charset=UTF-8',
+    ]);
+});
+
+
 
     

@@ -5,7 +5,7 @@
     $isAdminActive = request()->routeIs('user_list*') || request()->routeIs('settings.*');
 @endphp
 
-<div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.5)] transition-colors">
+<div id="mobileDock" class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.5)] transition-colors">
     <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-around">
         <!-- Home / Dashboard -->
         <a href="{{ auth()->check() ? route('home') : '/' }}"

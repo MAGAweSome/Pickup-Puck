@@ -30,7 +30,7 @@
             </p>
 
             <!-- Call-to-Actions -->
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
                 <a href="{{ route('login') }}?form=register" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 font-black text-sm transition shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 no-underline">
                     <i class="fa-solid fa-user-plus text-xs"></i>
                     <span>Create Account &amp; Play</span>
@@ -39,6 +39,10 @@
                     <i class="fa-solid fa-right-to-bracket text-xs"></i>
                     <span>Sign In to Locker Room</span>
                 </a>
+                <button type="button" class="pwa-install-trigger w-full sm:w-auto px-5 py-3.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-700 dark:text-sky-300 font-bold text-sm transition shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-xs text-sky-500"></i>
+                    <span>Get Mobile App</span>
+                </button>
             </div>
 
             <!-- 4-Stat Metric Highlights -->

@@ -67,6 +67,13 @@
         <!-- Right Utilities & Profile Controls -->
         <div class="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
 
+            <!-- PWA Install Button (Dynamic) -->
+            <button type="button" id="pwa-nav-install-btn" class="pwa-install-trigger hidden px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm" title="Install Pickup Puck as an App">
+                <i class="fa-solid fa-download text-xs text-sky-500"></i>
+                <span class="hidden sm:inline">Install App</span>
+                <span class="sm:hidden">Install</span>
+            </button>
+
             @guest
                 <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition no-underline shadow-sm">
                     Sign In
@@ -124,6 +131,10 @@
                                 <i class="fa-solid fa-calendar-days text-sky-500 w-4 text-center"></i>
                                 <span>Season Schedule</span>
                             </a>
+                            <button type="button" class="pwa-install-trigger w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 transition text-left">
+                                <i class="fa-solid fa-mobile-screen text-sky-500 w-4 text-center"></i>
+                                <span>Install App</span>
+                            </button>
                         </div>
 
                         @if(Auth::user()->hasRole('admin'))
