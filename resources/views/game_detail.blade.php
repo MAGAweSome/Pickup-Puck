@@ -685,6 +685,9 @@
                     @endif
                 </div>
             </div>
+
+            <!-- After Game Events / Hangouts Section -->
+            @include('components.after_game_events')
         </div>
 
         
@@ -713,7 +716,8 @@
                 'quickInfoCard',
                 'attendanceLists',
                 'notAttendingWrap',
-                'cannotAttendingWrap'
+                'cannotAttendingWrap',
+                'afterGameSection'
             ];
 
             sectionIds.forEach(id => {

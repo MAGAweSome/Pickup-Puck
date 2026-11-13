@@ -17,6 +17,7 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PushNotificationController;
+use App\Http\Controllers\AfterGameEventController;
 use App\Http\Controllers\ConnectedAccountController;
 
 use Illuminate\Support\Facades\Auth;
@@ -234,6 +235,14 @@ Route::prefix('connected-accounts')->middleware('auth')->group(function () {
     Route::delete('/{connectedUser}', [ConnectedAccountController::class, 'destroy'])->name('connected_accounts.destroy');
     Route::post('/game/{game}/{connectedUser}/rsvp', [ConnectedAccountController::class, 'rsvpConnected'])->name('connected_accounts.game_rsvp');
     Route::post('/game/{game}/{connectedUser}/remove', [ConnectedAccountController::class, 'removeConnectedFromGame'])->name('connected_accounts.game_remove');
+});
+
+// After-Game Hangouts / Events
+Route::prefix('game/{game}/after-events')->middleware('auth')->group(function () {
+    Route::post('/', [AfterGameEventController::class, 'store'])->name('after_game_events.store');
+    Route::post('/{event}/join', [AfterGameEventController::class, 'join'])->name('after_game_events.join');
+    Route::post('/{event}/leave', [AfterGameEventController::class, 'leave'])->name('after_game_events.leave');
+    Route::delete('/{event}', [AfterGameEventController::class, 'destroy'])->name('after_game_events.destroy');
 });
 
 

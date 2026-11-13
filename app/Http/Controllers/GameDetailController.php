@@ -167,6 +167,7 @@ class GameDetailController extends Controller
             'managedProfiles' => (Auth::check() && Auth::user()->canManageOthers())
                 ? Auth::user()->managedProfiles()->get()
                 : collect(),
+            'afterGameEvents' => $game->afterGameEvents()->get(),
         ]);
 
     }

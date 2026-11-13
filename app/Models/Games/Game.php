@@ -48,6 +48,11 @@ class Game extends Model
         return $this->hasMany(GameTeam::class);
     }
 
+    public function afterGameEvents(): HasMany
+    {
+        return $this->hasMany(AfterGameEvent::class)->with(['creator', 'attendees'])->latest();
+    }
+
     protected function players(): Attribute
     {
         return Attribute::make(
