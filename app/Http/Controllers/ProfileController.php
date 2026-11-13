@@ -26,14 +26,22 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        return view('profile');
+        $user = Auth::user();
+        $managedProfiles = $user->canManageOthers() ? $user->managedProfiles()->get() : collect();
+        $availableGuests = \App\Models\Guest::orderBy('name')->get();
+
+        return view('profile', [
+            'managedProfiles' => $managedProfiles,
+            'availableGuests' => $availableGuests,
+        ]);
     }
 
     public function update(Request $request) {
 
         $request->validate([
             'name' =>'required|min:4|string|max:255',
-            'email'=>'required|email|string|max:255'
+            'email'=>'required|email|string|max:255',
+            'jersey_number' => 'nullable|integer|min:0|max:99',
         ]);
 
         $user = $request->user();
@@ -41,6 +49,9 @@ class ProfileController extends Controller
         $user->email = $request['email'];
         if ($request['role'] != null) {
             $user->role_preference = $request['role'];
+        }
+        if ($request->has('jersey_number')) {
+            $user->jersey_number = $request->input('jersey_number') !== '' ? (int) $request->input('jersey_number') : null;
         }
         $user->save();
         return back()->with('message', 'Profile updated successfully.');

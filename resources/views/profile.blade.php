@@ -79,15 +79,23 @@
                     @error('email') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
                 </div>
 
-                <div>
-                    <label class="block text-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider mb-1.5">Preferred Ice Position</label>
-                    <select id="playerDesiredRole" name="role" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer transition">
-                        <option value="" disabled {{ old('role', Auth::user()->role_preference) ? '' : 'selected' }}>Select Position</option>
-                        @foreach (App\Enums\Games\GameRoles::cases() as $roleOption)
-                            <option value="{{ $roleOption->value }}" {{ old('role', Auth::user()->role_preference) == $roleOption->value ? 'selected' : '' }}>{{ \Illuminate\Support\Str::title(str_replace('_', ' ', $roleOption->name)) }}</option>
-                        @endforeach
-                    </select>
-                    @error('role') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider mb-1.5">Preferred Ice Position</label>
+                        <select id="playerDesiredRole" name="role" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none cursor-pointer transition">
+                            <option value="" disabled {{ old('role', Auth::user()->role_preference) ? '' : 'selected' }}>Select Position</option>
+                            @foreach (App\Enums\Games\GameRoles::cases() as $roleOption)
+                                <option value="{{ $roleOption->value }}" {{ old('role', Auth::user()->role_preference) == $roleOption->value ? 'selected' : '' }}>{{ \Illuminate\Support\Str::title(str_replace('_', ' ', $roleOption->name)) }}</option>
+                            @endforeach
+                        </select>
+                        @error('role') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider mb-1.5">Jersey Number</label>
+                        <input type="number" min="0" max="99" name="jersey_number" value="{{ old('jersey_number', Auth::user()->jersey_number) }}" placeholder="e.g. 99" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:border-sky-500 dark:focus:border-cyan-400 focus:outline-none transition">
+                        @error('jersey_number') <div class="text-rose-500 dark:text-rose-400 text-xs mt-1.5">{{ $message }}</div> @enderror
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap gap-3 pt-3 mt-auto">
@@ -191,6 +199,9 @@
         </div>
         </div>
         </div>
+
+        <!-- Connected Profiles & Accounts Hub -->
+        @include('components.connected_accounts_hub')
 
         <!-- Push Notifications & Game Alerts Card -->
         <div id="notifications-preference-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md max-w-4xl mx-auto w-full"

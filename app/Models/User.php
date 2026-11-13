@@ -26,6 +26,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
         'completed_onboarding',
         'level',
+        'mobility',
+        'role_preference',
+        'jersey_number',
+        'manager_id',
         'notify_team_assignment',
     ];
 
@@ -48,12 +52,48 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'completed_onboarding' => 'boolean',
         'level' => 'integer',
+        'mobility' => 'integer',
+        'jersey_number' => 'integer',
+        'manager_id' => 'integer',
         'notify_team_assignment' => 'boolean',
     ];
 
     public function pushSubscriptions()
     {
         return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
+     * Connected profiles managed by this account.
+     */
+    public function managedProfiles()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
+    /**
+     * The manager account that controls this profile (if managed).
+     */
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Check if this user is a managed/dependent profile.
+     */
+    public function isManaged(): bool
+    {
+        return !is_null($this->manager_id);
+    }
+
+    /**
+     * Check if this user is allowed to control other profiles.
+     * Rule: You cannot control another account if you are already a managed account!
+     */
+    public function canManageOthers(): bool
+    {
+        return is_null($this->manager_id);
     }
 
     public function isAdministrator()

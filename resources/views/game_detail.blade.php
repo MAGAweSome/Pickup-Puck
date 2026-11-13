@@ -220,6 +220,70 @@
                 </div>
             </div>
 
+            @if(isset($managedProfiles) && $managedProfiles->isNotEmpty())
+                <!-- Connected Profiles Game Roster Control -->
+                <div id="connectedProfilesRosterCard" class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-sky-300 dark:border-cyan-500/30 p-5 shadow-xl backdrop-blur-md">
+                    <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-users text-sky-500 dark:text-cyan-400 text-xs"></i>
+                            <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Connected Profiles</h4>
+                        </div>
+                        <a href="{{ route('profile') }}#connected-accounts-card" class="text-[10px] text-sky-600 dark:text-cyan-400 hover:underline">Manage</a>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach($managedProfiles as $mp)
+                            @php
+                                $attendingRecord = DB::table('game_players')->where('game_id', $game->id)->where('user_id', $mp->id)->first();
+                                $isAttending = !is_null($attendingRecord);
+                            @endphp
+                            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between gap-2.5 text-xs">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-bold text-slate-900 dark:text-white truncate">{{ $mp->name }}</span>
+                                        @if($mp->jersey_number)
+                                            <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400">#{{ $mp->jersey_number }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="mt-0.5">
+                                        @if($isAttending)
+                                            <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                <i class="fa-solid fa-circle-check text-[9px]"></i>
+                                                <span>Playing as {{ ucfirst($attendingRecord->role) }}</span>
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] text-slate-400">Not signed up</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0">
+                                    @if($isAttending)
+                                        <form method="POST" action="{{ route('connected_accounts.game_remove', ['game' => $game->id, 'connectedUser' => $mp->id]) }}" data-async-game-form>
+                                            @csrf
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-300 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[11px] font-bold transition">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('connected_accounts.game_rsvp', ['game' => $game->id, 'connectedUser' => $mp->id]) }}" class="flex items-center gap-1.5" data-async-game-form>
+                                            @csrf
+                                            <select name="role" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-[11px] text-slate-900 dark:text-slate-100 focus:outline-none">
+                                                <option value="player" {{ $mp->role_preference === 'player' ? 'selected' : '' }}>Skater</option>
+                                                <option value="goalie" {{ $mp->role_preference === 'goalie' ? 'selected' : '' }}>Goalie</option>
+                                            </select>
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition shadow-sm">
+                                                Add
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div id="bringGuestCard" class="rounded-2xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-5 shadow-xl backdrop-blur-md">
                 <div class="flex items-center gap-2 pb-2.5 mb-2 border-b border-slate-200 dark:border-slate-800">
                     <i class="fa-solid fa-user-plus text-sky-500 dark:text-cyan-400 text-xs"></i>

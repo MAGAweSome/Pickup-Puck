@@ -17,6 +17,7 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PushNotificationController;
+use App\Http\Controllers\ConnectedAccountController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -223,6 +224,18 @@ Route::prefix('api/push')->middleware('auth')->group(function () {
     Route::post('/toggle-notifications', [PushNotificationController::class, 'updatePreferences'])->name('push.toggle');
     Route::post('/test', [PushNotificationController::class, 'sendTestNotification'])->name('push.test');
 });
+
+// Connected Profiles & Accounts Management
+Route::prefix('connected-accounts')->middleware('auth')->group(function () {
+    Route::post('/', [ConnectedAccountController::class, 'store'])->name('connected_accounts.store');
+    Route::post('/claim-guest', [ConnectedAccountController::class, 'claimGuest'])->name('connected_accounts.claim_guest');
+    Route::post('/{connectedUser}/update', [ConnectedAccountController::class, 'update'])->name('connected_accounts.update');
+    Route::post('/{connectedUser}/promote', [ConnectedAccountController::class, 'promoteToIndependent'])->name('connected_accounts.promote');
+    Route::delete('/{connectedUser}', [ConnectedAccountController::class, 'destroy'])->name('connected_accounts.destroy');
+    Route::post('/game/{game}/{connectedUser}/rsvp', [ConnectedAccountController::class, 'rsvpConnected'])->name('connected_accounts.game_rsvp');
+    Route::post('/game/{game}/{connectedUser}/remove', [ConnectedAccountController::class, 'removeConnectedFromGame'])->name('connected_accounts.game_remove');
+});
+
 
 
 

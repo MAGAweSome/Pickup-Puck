@@ -274,7 +274,7 @@
                     href="/admin/user/{{ $user->id }}"
                     x-show="matchesUser({
                         name: '{{ addslashes($user->name) }}',
-                        email: '{{ addslashes($user->email) }}',
+                        email: '{{ addslashes($user->email ?? '') }}',
                         role: '{{ $isGoalie ? 'goalie' : 'skater' }}',
                         skill: '{{ $userLvl }}',
                         status: 'registered',
@@ -351,6 +351,11 @@
                         <span data-player-name class="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-cyan-400 transition truncate max-w-full block tracking-tight">
                             {{ $user->name }}
                         </span>
+                        @if($user->isManaged())
+                            <span class="text-[9px] font-mono text-sky-600 dark:text-cyan-400 bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 px-1.5 py-0.5 rounded mt-1 inline-block truncate max-w-full">
+                                Managed by {{ $user->manager->name ?? 'Account' }}
+                            </span>
+                        @endif
                     </div>
                 </a>
             @endforeach

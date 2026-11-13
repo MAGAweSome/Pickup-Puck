@@ -164,6 +164,9 @@ class GameDetailController extends Controller
             'emailMailtoLink' => $mailtoLink,
             'emailSubject' => $emailSubject,
             'emailBody' => $emailBody,
+            'managedProfiles' => (Auth::check() && Auth::user()->canManageOthers())
+                ? Auth::user()->managedProfiles()->get()
+                : collect(),
         ]);
 
     }
