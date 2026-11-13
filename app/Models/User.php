@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
         'completed_onboarding',
         'level',
+        'notify_team_assignment',
     ];
 
     /**
@@ -47,7 +48,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'completed_onboarding' => 'boolean',
         'level' => 'integer',
+        'notify_team_assignment' => 'boolean',
     ];
+
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 
     public function isAdministrator()
    {

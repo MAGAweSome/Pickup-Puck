@@ -604,6 +604,16 @@ class GameDetailController extends Controller
                 ['game_id' => $game->id, 'user_id' => $memberId],
                 ['team' => $team]
             );
+
+            // Send push notification for manual team switch ("You are on (Team) team!")
+            try {
+                $switchedUser = \App\Models\User::find($memberId);
+                if ($switchedUser) {
+                    (new \App\Services\WebPushService())->sendTeamAssignmentNotification($switchedUser, $game, $team, true);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[GameDetailController] Team switch push failed: ' . $e->getMessage());
+            }
         } else {
             $attending = DB::table('game_players_guests')->where('game_id', $game->id)->where('id', $memberId)->exists();
             if (!$attending) {

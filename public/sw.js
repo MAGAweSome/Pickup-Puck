@@ -165,3 +165,64 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
 });
+
+// ==========================================
+// Web Push Notifications
+// ==========================================
+self.addEventListener('push', (event) => {
+    let payload = {
+        title: 'Pickup Puck Alert',
+        body: 'You have a new update from Pickup Puck.',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/favicon-32x32.png',
+        data: { url: '/home' }
+    };
+
+    if (event.data) {
+        try {
+            payload = Object.assign(payload, event.data.json());
+        } catch (e) {
+            payload.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: payload.body,
+        icon: payload.icon || '/icons/icon-192x192.png',
+        badge: payload.badge || '/icons/favicon-32x32.png',
+        vibrate: [200, 100, 200],
+        data: payload.data || { url: payload.url || '/home' },
+        actions: [
+            { action: 'open', title: 'View Roster' }
+        ],
+        tag: payload.tag || 'pickup-puck-alert',
+        renotify: true
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// Handle clicking on notification
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl = event.notification.data?.url || '/home';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.navigate(targetUrl);
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+

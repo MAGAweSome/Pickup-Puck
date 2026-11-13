@@ -16,6 +16,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\PushNotificationController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -213,6 +214,16 @@ Route::get('/offline.html', function () {
         'Content-Type' => 'text/html; charset=UTF-8',
     ]);
 });
+
+// Push Notifications & User Preferences
+Route::prefix('api/push')->middleware('auth')->group(function () {
+    Route::get('/vapid-public-key', [PushNotificationController::class, 'getPublicKey'])->name('push.public_key');
+    Route::post('/subscribe', [PushNotificationController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/unsubscribe', [PushNotificationController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/toggle-notifications', [PushNotificationController::class, 'updatePreferences'])->name('push.toggle');
+    Route::post('/test', [PushNotificationController::class, 'sendTestNotification'])->name('push.test');
+});
+
 
 
 

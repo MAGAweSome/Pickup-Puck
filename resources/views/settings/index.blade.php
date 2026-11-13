@@ -152,6 +152,98 @@
             @endif
         </div>
         </div>
+
+        <!-- Push Notifications & Game Day Alerts Setting Card -->
+        <div id="notifications-preference-card" class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-sm dark:shadow-md space-y-6"
+            x-data="{
+                notificationsEnabled: {{ Auth::user()->notify_team_assignment ? 'true' : 'false' }},
+                loading: false,
+                testing: false,
+                async toggleNotifications() {
+                    this.loading = true;
+                    if (!this.notificationsEnabled) {
+                        const ok = await window.pwaPush.subscribe();
+                        if (ok) {
+                            this.notificationsEnabled = true;
+                        }
+                    } else {
+                        const ok = await window.pwaPush.unsubscribe();
+                        if (ok) {
+                            this.notificationsEnabled = false;
+                        }
+                    }
+                    this.loading = false;
+                },
+                async sendTest() {
+                    this.testing = true;
+                    await window.pwaPush.test();
+                    this.testing = false;
+                }
+            }">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-bell text-sky-600 dark:text-sky-400 text-lg"></i>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Personal Push Notifications</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Control live game alerts, team assignment notifications, and roster updates on this device.</p>
+                    </div>
+                </div>
+
+                <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-full border self-start sm:self-auto inline-flex items-center gap-1.5 transition-colors"
+                    :class="notificationsEnabled 
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' 
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'">
+                    <span class="w-2 h-2 rounded-full" :class="notificationsEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"></span>
+                    <span x-text="notificationsEnabled ? 'Active' : 'Muted'"></span>
+                </span>
+            </div>
+
+            <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-900 dark:text-white">Team Assignment &amp; Roster Switch Alerts</span>
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30">T-30 Lock</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 max-w-lg leading-relaxed">
+                        Receive a push notification when teams lock 30 minutes before puck drop (<strong class="text-slate-800 dark:text-slate-200">"You are on Dark team!"</strong>), or if you are manually moved to the other team.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3 self-end sm:self-center">
+                    <button type="button" 
+                        @click="toggleNotifications()" 
+                        :disabled="loading"
+                        class="relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                        :class="notificationsEnabled ? 'bg-sky-500 dark:bg-cyan-500' : 'bg-slate-300 dark:bg-slate-700'"
+                        role="switch" 
+                        :aria-checked="notificationsEnabled">
+                        <span class="sr-only">Toggle Team Assignment Notifications</span>
+                        <span aria-hidden="true" 
+                            class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out flex items-center justify-center text-[10px]"
+                            :class="notificationsEnabled ? 'translate-x-7 text-sky-600' : 'translate-x-0 text-slate-400'">
+                            <i class="fa-solid fa-spinner fa-spin text-[10px]" x-show="loading"></i>
+                            <i class="fa-solid fa-check text-[10px]" x-show="!loading && notificationsEnabled"></i>
+                            <i class="fa-solid fa-xmark text-[10px]" x-show="!loading && !notificationsEnabled"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 text-xs pt-2">
+                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-mobile-screen-button text-sky-500"></i>
+                    <span>Push notifications work across Android and iOS Home Screen apps.</span>
+                </span>
+                <button type="button" 
+                    @click="sendTest()"
+                    :disabled="testing || !notificationsEnabled"
+                    class="px-3.5 py-2 rounded-xl border border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 transition font-semibold text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-paper-plane text-[10px]" :class="{ 'fa-bounce': testing }"></i>
+                    <span x-text="testing ? 'Sending alert...' : 'Send Test Notification'"></span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Confirm Season Deletion Modal -->

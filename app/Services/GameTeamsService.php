@@ -273,7 +273,9 @@ class GameTeamsService
             ->mapWithKeys(fn($v, $k) => [(int) $k => (int) $v])
             ->all();
 
-        DB::transaction(function () use ($game, $goalieIds, $playerIds, $guestGoalieIds, $guestPlayerIds, $allUserIds, $allGuestIds, $userLevelMap, $guestLevelMap) {
+        $notificationsToSend = [];
+
+        DB::transaction(function () use ($game, $goalieIds, $playerIds, $guestGoalieIds, $guestPlayerIds, $allUserIds, $allGuestIds, $userLevelMap, $guestLevelMap, &$notificationsToSend) {
             $existingUsers = DB::table('game_teams_players')
                 ->where('game_id', $game->id)
                 ->get(['user_id', 'team']);
@@ -336,6 +338,7 @@ class GameTeamsService
                 foreach ($teamUsers as $teamNo => $ids) {
                     foreach ($ids as $uid) {
                         GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => $uid, 'team' => $teamNo]);
+                        $notificationsToSend[] = ['userId' => (int) $uid, 'teamNo' => $teamNo];
                     }
                 }
                 foreach ($teamGuests as $teamNo => $ids) {
@@ -423,6 +426,7 @@ class GameTeamsService
                         : $this->pickTeamByTotalCount($teamTotalCount(1), $teamTotalCount(2))
                     );
                 GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
+                $notificationsToSend[] = ['userId' => (int) $uid, 'teamNo' => $targetTeam];
                 $teamHasGoalie[$targetTeam] = true;
                 $missingUserIds = $missingUserIds->diff([(int) $uid])->values();
             }
@@ -445,6 +449,7 @@ class GameTeamsService
                 $level = $userLevelMap[$uid] ?? 3;
                 $targetTeam = $this->pickTeamBySkaterCountAndSkill($teamSkaterCount(1), $teamSkaterCount(2), $teamSkill[1] ?? 0, $teamSkill[2] ?? 0);
                 GameTeamsPlayer::create(['game_id' => $game->id, 'user_id' => (int) $uid, 'team' => $targetTeam]);
+                $notificationsToSend[] = ['userId' => (int) $uid, 'teamNo' => $targetTeam];
                 $teamSkill[$targetTeam] = ($teamSkill[$targetTeam] ?? 0) + (int) $level;
             }
 
@@ -455,5 +460,20 @@ class GameTeamsService
                 $teamSkill[$targetTeam] = ($teamSkill[$targetTeam] ?? 0) + (int) $level;
             }
         });
+
+        // Send Push Notifications for newly assigned users (outside DB transaction)
+        if (!empty($notificationsToSend)) {
+            $webPushService = new \App\Services\WebPushService();
+            foreach ($notificationsToSend as $item) {
+                try {
+                    $u = \App\Models\User::find($item['userId']);
+                    if ($u) {
+                        $webPushService->sendTeamAssignmentNotification($u, $game, $item['teamNo'], false);
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('[GameTeamsService] Failed sending team assignment push: ' . $e->getMessage());
+                }
+            }
+        }
     }
 }

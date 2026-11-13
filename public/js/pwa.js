@@ -259,4 +259,150 @@
     window.installPWA = handleInstallClick;
     window.openPWAInstallGuide = openIOSModal;
 
+    // ==========================================
+    // 4. Web Push Notification Controller
+    // ==========================================
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    async function subscribeToPush() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            notify('Push notifications are not supported on this browser.', 'error');
+            return false;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                notify('Notification permission was denied. Please allow notifications in your browser or phone settings.', 'error');
+                return false;
+            }
+
+            const registration = await navigator.serviceWorker.ready;
+
+            // Fetch VAPID public key
+            const keyRes = await fetch('/api/push/vapid-public-key', {
+                headers: { 'Accept': 'application/json' }
+            });
+            const keyData = await keyRes.json();
+            if (!keyData.publicKey) {
+                throw new Error('VAPID public key is missing on the server.');
+            }
+
+            const convertedKey = urlBase64ToUint8Array(keyData.publicKey);
+
+            // Subscribe or get existing
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedKey
+                });
+            }
+
+            // Sync with backend
+            const subRes = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify(subscription.toJSON())
+            });
+
+            const subJson = await subRes.json();
+            if (subJson.success) {
+                notify('Push notifications activated! You will receive team alerts.', 'success');
+                return true;
+            } else {
+                throw new Error(subJson.message || 'Server could not save subscription.');
+            }
+        } catch (err) {
+            console.error('[PWA Push Error]', err);
+            notify('Failed to enable notifications: ' + err.message, 'error');
+            return false;
+        }
+    }
+
+    async function unsubscribeFromPush() {
+        try {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    await fetch('/api/push/unsubscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': getCsrfToken()
+                        },
+                        body: JSON.stringify({ endpoint: subscription.endpoint })
+                    });
+                    await subscription.unsubscribe();
+                }
+            }
+
+            // Save preference to false
+            await fetch('/api/push/toggle-notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify({ notify_team_assignment: false })
+            });
+
+            notify('Team assignment notifications have been muted.', 'info');
+            return true;
+        } catch (err) {
+            console.error('[PWA Unsubscribe Error]', err);
+            notify('Failed to update notification settings: ' + err.message, 'error');
+            return false;
+        }
+    }
+
+    async function sendTestPush() {
+        try {
+            notify('Sending test alert to your device...', 'info');
+            const res = await fetch('/api/push/test', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+            const json = await res.json();
+            if (json.success) {
+                notify(json.message, 'success');
+            } else {
+                notify(json.message, 'error');
+            }
+        } catch (err) {
+            notify('Could not send test push: ' + err.message, 'error');
+        }
+    }
+
+    window.pwaPush = {
+        subscribe: subscribeToPush,
+        unsubscribe: unsubscribeFromPush,
+        test: sendTestPush
+    };
+
 })();
