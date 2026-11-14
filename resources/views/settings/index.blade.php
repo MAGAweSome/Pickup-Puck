@@ -244,6 +244,9 @@
                 </button>
             </div>
         </div>
+
+        <!-- How to Install the App Guide Card -->
+        @include('components.pwa_install_guide')
     </div>
 
     <!-- Confirm Season Deletion Modal -->

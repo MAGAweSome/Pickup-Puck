@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="min-h-[calc(100vh-12rem)] flex items-center justify-center py-6 px-3 sm:px-6">
+<div class="w-full my-auto flex items-center justify-center py-2 sm:py-4 px-3 sm:px-6">
     <div x-data='{"tab": @json(old("form", "login")) }' class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/70 backdrop-blur-xl">
 
         <!-- Left Stadium Showcase Brand Banner -->

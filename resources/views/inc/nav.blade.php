@@ -6,24 +6,24 @@
 @endphp
 
 <header id="navigationBar" class="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-[0_4px_25px_rgba(0,0,0,0.5)] transition-colors">
-    <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto h-16 flex items-center justify-between px-3.5 sm:px-6 lg:px-8 2xl:px-10">
+    <div class="nav-inner-bar w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto h-full flex items-center justify-between px-3.5 sm:px-6 lg:px-8 2xl:px-10">
         
         <!-- Left Brand & Season Beacon -->
-        <div class="flex items-center gap-3 min-w-0">
+        <div class="nav-brand-wrap flex items-center gap-3 min-w-0">
             <a href="{{ auth()->check() ? route('home') : '/' }}" class="flex items-center gap-2.5 group no-underline min-w-0">
-                <img src="{{ asset('photos/Pickup Puck Logo.png') }}" alt="Pickup Puck" class="h-9 w-auto drop-shadow-sm dark:drop-shadow-[0_0_12px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform duration-200">
-                <div class="flex flex-col">
-                    <span class="font-black tracking-wider text-sm text-slate-900 dark:text-white uppercase font-mono leading-tight flex items-center gap-1.5">
+                <img src="{{ asset('photos/Pickup Puck Logo.png') }}" alt="Pickup Puck" class="nav-brand-logo h-9 w-auto drop-shadow-sm dark:drop-shadow-[0_0_12px_rgba(56,189,248,0.4)] group-hover:scale-105 transition-transform duration-200 shrink-0">
+                <div class="flex flex-col min-w-0">
+                    <span class="nav-brand-title font-black tracking-wider text-sm text-slate-900 dark:text-white uppercase font-mono leading-tight flex items-center gap-1.5 whitespace-nowrap">
                         <span>Pickup Puck</span>
                         <span class="hidden sm:inline-flex w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
                     </span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide hidden sm:inline">Pickup Hockey League</span>
+                    <span class="nav-brand-subtitle text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide hidden sm:inline whitespace-nowrap">Pickup Hockey League</span>
                 </div>
             </a>
         </div>
 
         <!-- Center Desktop Navigation Pills (Hidden on mobile) -->
-        <nav class="hidden lg:flex items-center gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80">
+        <nav class="nav-desktop-links hidden lg:flex items-center gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80">
             @if(auth()->check())
                 <a href="{{ route('home') }}"
                     class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all no-underline {{ $isHomeActive ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50' }}">
@@ -65,7 +65,7 @@
         </nav>
 
         <!-- Right Utilities & Profile Controls -->
-        <div class="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
+        <div class="nav-right-actions flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
 
             <!-- PWA Install Button (Dynamic) -->
             <button type="button" id="pwa-nav-install-btn" class="pwa-install-trigger hidden px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm" title="Install Pickup Puck as an App">
@@ -75,36 +75,36 @@
             </button>
 
             @guest
-                <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition no-underline shadow-sm">
+                <a href="{{ route('login') }}" class="nav-auth-btn px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition no-underline shadow-sm">
                     Sign In
                 </a>
-                <a href="{{ route('login') }}?form=register" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 font-black text-xs transition no-underline shadow-md shadow-sky-500/20">
+                <a href="{{ route('login') }}?form=register" class="nav-auth-btn px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 font-black text-xs transition no-underline shadow-md shadow-sky-500/20">
                     Register
                 </a>
             @else
                 <!-- Player Capsule Dropdown with Alpine.js -->
                 <div class="relative" x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" @keydown.escape.window="userMenuOpen = false">
                     <button type="button" @click="userMenuOpen = !userMenuOpen"
-                        class="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40">
+                        class="nav-user-pill flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 transition shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40">
                         
-                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-cyan-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-sm">
+                        <div class="nav-user-avatar w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-cyan-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-sm shrink-0">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
 
-                        <div class="flex flex-col text-left hidden sm:flex">
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[110px] md:max-w-[140px] leading-tight">
+                        <div class="nav-user-info flex flex-col text-left hidden sm:flex min-w-0">
+                            <span class="nav-user-name text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[110px] md:max-w-[140px] leading-tight">
                                 {{ Auth::user()->name }}
                             </span>
                             @if(Auth::user()->jersey_number)
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">#{{ Auth::user()->jersey_number }}</span>
+                                <span class="nav-user-jersey text-[10px] text-slate-500 dark:text-slate-400 font-mono">#{{ Auth::user()->jersey_number }}</span>
                             @endif
                         </div>
 
                         @if(Auth::user()->hasRole('admin'))
-                            <span class="text-[9px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 hidden md:inline">Admin</span>
+                            <span class="nav-user-role text-[9px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 hidden md:inline shrink-0">Admin</span>
                         @endif
 
-                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-0.5 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }"></i>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-0.5 transition-transform duration-200 shrink-0" :class="{ 'rotate-180': userMenuOpen }"></i>
                     </button>
 
                     <!-- Dropdown Menu -->
@@ -131,10 +131,6 @@
                                 <i class="fa-solid fa-calendar-days text-sky-500 w-4 text-center"></i>
                                 <span>Season Schedule</span>
                             </a>
-                            <button type="button" class="pwa-install-trigger w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 transition text-left">
-                                <i class="fa-solid fa-mobile-screen text-sky-500 w-4 text-center"></i>
-                                <span>Install App</span>
-                            </button>
                         </div>
 
                         @if(Auth::user()->hasRole('admin'))

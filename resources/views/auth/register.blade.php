@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="min-h-[85vh] flex items-center justify-center px-4 py-10">
+<div class="w-full my-auto flex items-center justify-center px-4 py-4 sm:py-6">
     <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-6 sm:p-8 transition-colors duration-200" x-data="registerPasswordValidator()">
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>

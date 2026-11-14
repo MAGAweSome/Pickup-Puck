@@ -390,16 +390,25 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-700/60">
-                            <span class="text-[10px] uppercase font-mono font-semibold text-slate-500 dark:text-slate-400">Skill Level</span>
-                            <div class="font-black text-sm text-sky-600 dark:text-sky-400 mt-0.5">Tier {{ Auth::user()->level ?? '3' }}/5</div>
+                    @if(Auth::user()->hasRole('admin'))
+                        <div class="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-700/60">
+                                <span class="text-[10px] uppercase font-mono font-semibold text-slate-500 dark:text-slate-400">Skill Level</span>
+                                <div class="font-black text-sm text-sky-600 dark:text-sky-400 mt-0.5">Tier {{ Auth::user()->level ?? '3' }}/5</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-700/60">
+                                <span class="text-[10px] uppercase font-mono font-semibold text-slate-500 dark:text-slate-400">Position</span>
+                                <div class="font-black text-sm text-slate-900 dark:text-slate-100 mt-0.5 capitalize">{{ Auth::user()->role_preference ?? 'Skater' }}</div>
+                            </div>
                         </div>
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-700/60">
-                            <span class="text-[10px] uppercase font-mono font-semibold text-slate-500 dark:text-slate-400">Position</span>
-                            <div class="font-black text-sm text-slate-900 dark:text-slate-100 mt-0.5 capitalize">{{ Auth::user()->role_preference ?? 'Skater' }}</div>
+                    @else
+                        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-mono font-semibold text-slate-500 dark:text-slate-400">Position</span>
+                                <div class="font-black text-sm text-slate-900 dark:text-slate-100 capitalize">{{ Auth::user()->role_preference ?? 'Skater' }}</div>
+                            </div>
                         </div>
-                    </div>
+                    @endif
 
                     <div class="mt-4 pt-2">
                         <a href="{{ route('profile') }}" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold transition no-underline shadow-sm">

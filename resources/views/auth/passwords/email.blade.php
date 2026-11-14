@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4">
+<div class="w-full my-auto flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 sm:p-8 relative overflow-hidden">
         <!-- Background Radial Glow -->
         <div class="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>

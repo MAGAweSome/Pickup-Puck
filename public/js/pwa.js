@@ -15,6 +15,24 @@
                          window.navigator.standalone === true ||
                          document.referrer.includes('android-app://');
 
+    // Detect Desktop Window Controls Overlay (WCO)
+    const isWCO = window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+                  ('windowControlsOverlay' in navigator && navigator.windowControlsOverlay?.visible);
+
+    if (isWCO) {
+        document.documentElement.classList.add('wco-active');
+    }
+
+    if ('windowControlsOverlay' in navigator) {
+        navigator.windowControlsOverlay.addEventListener('geometrychange', () => {
+            if (navigator.windowControlsOverlay.visible) {
+                document.documentElement.classList.add('wco-active');
+            } else {
+                document.documentElement.classList.remove('wco-active');
+            }
+        });
+    }
+
     // Add standalone class to html if running as an installed PWA
     if (isStandalone) {
         document.documentElement.classList.add('pwa-standalone');
@@ -122,63 +140,21 @@
         e.preventDefault();
         deferredInstallPrompt = e;
         window.deferredPWAInstallPrompt = e;
-
-        // Show install buttons and banner if not standalone and not recently dismissed
-        if (!isStandalone) {
-            showInstallUI();
-        }
     });
 
     window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
         window.deferredPWAInstallPrompt = null;
-        hideInstallUI();
         notify('Pickup Puck installed to your home screen! Welcome to the app.', 'success');
         try {
             localStorage.setItem('pwa_installed', 'true');
         } catch (err) {}
     });
 
-    // Check on page load for iOS Safari or previously available prompt
+    // Check on page load
     document.addEventListener('DOMContentLoaded', () => {
-        if (!isStandalone) {
-            if (isIOS && isSafari) {
-                // On iOS Safari, show install UI (banner & buttons)
-                showInstallUI(true);
-            }
-            setupInstallButtons();
-        }
+        setupInstallButtons();
     });
-
-    function showInstallUI(isApple = false) {
-        // Top Nav button
-        const navBtn = document.getElementById('pwa-nav-install-btn');
-        if (navBtn) navBtn.classList.remove('hidden');
-
-        // Floating Bottom Banner (check if dismissed in the last 5 days)
-        const bannerDismissed = localStorage.getItem('pwa_banner_dismissed');
-        const fiveDays = 5 * 24 * 60 * 60 * 1000;
-        const isDismissed = bannerDismissed && (Date.now() - parseInt(bannerDismissed, 10)) < fiveDays;
-
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner && !isDismissed) {
-            banner.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                banner.classList.remove('translate-y-full', 'opacity-0');
-            });
-        }
-    }
-
-    function hideInstallUI() {
-        const navBtn = document.getElementById('pwa-nav-install-btn');
-        if (navBtn) navBtn.classList.add('hidden');
-
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner) {
-            banner.classList.add('translate-y-full', 'opacity-0');
-            setTimeout(() => banner.classList.add('hidden'), 350);
-        }
-    }
 
     function setupInstallButtons() {
         // Wire all install triggers
@@ -187,16 +163,8 @@
             btn.addEventListener('click', handleInstallClick);
         });
 
-        // Wire dismiss button
-        const dismissBtn = document.getElementById('pwa-dismiss-banner-btn');
-        if (dismissBtn) {
-            dismissBtn.addEventListener('click', () => {
-                try {
-                    localStorage.setItem('pwa_banner_dismissed', Date.now().toString());
-                } catch (e) {}
-                hideInstallUI();
-            });
-        }
+        // Export global install trigger
+        window.handlePWAInstall = handleInstallClick;
 
         // Wire iOS modal close button
         const iosModalClose = document.getElementById('pwa-ios-modal-close');
@@ -219,7 +187,6 @@
             console.log('[PWA] User install choice:', outcome);
             deferredInstallPrompt = null;
             window.deferredPWAInstallPrompt = null;
-            hideInstallUI();
             return;
         }
 
@@ -229,8 +196,14 @@
             return;
         }
 
-        // 3. Fallback instructions for unsupported browsers
-        notify('To install Pickup Puck, tap your browser menu (⋮) and select "Add to Home screen" or "Install App".', 'info');
+        // 3. Fallback instructions for unsupported browsers or when prompt is not yet ready
+        const guideEl = document.getElementById('app-install-guide');
+        if (guideEl) {
+            guideEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            notify('See installation instructions below for your device.', 'info');
+        } else {
+            notify('To install Pickup Puck, open your browser menu (⋮) and select "Add to Home screen" or "Install App".', 'info');
+        }
     }
 
     function openIOSModal() {

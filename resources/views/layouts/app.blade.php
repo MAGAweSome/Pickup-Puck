@@ -61,6 +61,12 @@
                 applyTheme('dark');
             }
 
+            try {
+                if (window.matchMedia('(display-mode: window-controls-overlay)').matches || ('windowControlsOverlay' in navigator && navigator.windowControlsOverlay?.visible)) {
+                    document.documentElement.classList.add('wco-active');
+                }
+            } catch (e) {}
+
             window.setTheme = function (newTheme) {
                 try {
                     const theme = (newTheme === 'light') ? 'light' : 'dark';
@@ -135,29 +141,223 @@
             color-scheme: dark;
         }
 
-        /* Safe-Area Inset Support for Standalone PWA on iOS & Android */
+        /* -------------------------------------------------------------
+           Safe-Area for Mobile Standalone PWAs (iOS & Android)
+           ------------------------------------------------------------- */
         @media all and (display-mode: standalone) {
-            #navigationBar {
+            html:not(.wco-active) #navigationBar {
                 padding-top: var(--safe-top);
                 height: calc(4rem + var(--safe-top));
             }
-            .pt-16 {
+            html:not(.wco-active) .pt-16 {
                 padding-top: calc(4rem + var(--safe-top)) !important;
             }
-            #mobileDock {
+            html:not(.wco-active) #mobileDock {
                 padding-bottom: var(--safe-bottom);
                 height: calc(4rem + var(--safe-bottom));
             }
         }
 
-        html.pwa-standalone #navigationBar {
+        html.pwa-standalone:not(.wco-active) #navigationBar {
             padding-top: var(--safe-top);
             height: calc(4rem + var(--safe-top));
         }
-        html.pwa-standalone .pt-16 {
+        html.pwa-standalone:not(.wco-active) .pt-16 {
             padding-top: calc(4rem + var(--safe-top)) !important;
         }
-        html.pwa-standalone #mobileDock {
+        html.pwa-standalone:not(.wco-active) #mobileDock {
+            padding-bottom: var(--safe-bottom);
+            height: calc(4rem + var(--safe-bottom));
+        }
+
+        /* -------------------------------------------------------------
+           Desktop Window Controls Overlay (WCO) Custom Titlebar
+           ------------------------------------------------------------- */
+        @media all and (display-mode: window-controls-overlay) {
+            :root {
+                --wco-height: env(titlebar-area-height, 42px);
+            }
+            #navigationBar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                height: var(--wco-height) !important;
+                min-height: var(--wco-height) !important;
+                max-height: var(--wco-height) !important;
+                padding: 0 !important;
+                -webkit-app-region: drag;
+                app-region: drag;
+                z-index: 50;
+            }
+            #navigationBar .nav-inner-bar {
+                height: 100% !important;
+                max-width: 100% !important;
+                padding-top: env(titlebar-area-y, 0px) !important;
+                padding-left: calc(env(titlebar-area-x, 0px) + 0.75rem) !important;
+                padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 140px)) + 0.75rem) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+            }
+            #navigationBar a,
+            #navigationBar button,
+            #navigationBar nav,
+            #navigationBar input,
+            #navigationBar [role="button"],
+            #navigationBar [x-show],
+            .no-drag {
+                -webkit-app-region: no-drag !important;
+                app-region: no-drag !important;
+                cursor: pointer;
+            }
+            .nav-brand-logo {
+                height: 24px !important;
+                width: auto !important;
+            }
+            .nav-brand-title {
+                font-size: 0.8125rem !important;
+                line-height: 1 !important;
+                white-space: nowrap !important;
+            }
+            .nav-brand-subtitle {
+                display: none !important;
+            }
+            /* Hide desktop nav links from the compact titlebar (navigation lives in bottom dock) */
+            .nav-desktop-links {
+                display: none !important;
+            }
+            .nav-user-pill {
+                padding: 2px 8px 2px 3px !important;
+                height: 28px !important;
+            }
+            .nav-user-avatar {
+                width: 22px !important;
+                height: 22px !important;
+                font-size: 10px !important;
+            }
+            .nav-user-name {
+                font-size: 11px !important;
+                max-width: 110px !important;
+                line-height: 1 !important;
+            }
+            .nav-user-jersey {
+                display: none !important;
+            }
+            .nav-user-role {
+                font-size: 8px !important;
+                padding: 1px 4px !important;
+            }
+            .nav-auth-btn {
+                padding: 3px 10px !important;
+                font-size: 11px !important;
+                height: 26px !important;
+                border-radius: 8px !important;
+            }
+            #appContentWrap,
+            .pt-16 {
+                padding-top: var(--wco-height) !important;
+                padding-bottom: calc(4rem + var(--safe-bottom)) !important;
+            }
+            /* Keep bottom navigation dock active and visible */
+            #mobileDock {
+                display: block !important;
+                padding-bottom: var(--safe-bottom);
+                height: calc(4rem + var(--safe-bottom));
+            }
+        }
+
+        /* Class-based fallback for WCO */
+        html.wco-active {
+            --wco-height: env(titlebar-area-height, 42px);
+        }
+        html.wco-active #navigationBar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100vw !important;
+            height: var(--wco-height) !important;
+            min-height: var(--wco-height) !important;
+            max-height: var(--wco-height) !important;
+            padding: 0 !important;
+            -webkit-app-region: drag;
+            app-region: drag;
+            z-index: 50;
+        }
+        html.wco-active #navigationBar .nav-inner-bar {
+            height: 100% !important;
+            max-width: 100% !important;
+            padding-top: env(titlebar-area-y, 0px) !important;
+            padding-left: calc(env(titlebar-area-x, 0px) + 0.75rem) !important;
+            padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 140px)) + 0.75rem) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+        html.wco-active #navigationBar a,
+        html.wco-active #navigationBar button,
+        html.wco-active #navigationBar nav,
+        html.wco-active #navigationBar input,
+        html.wco-active #navigationBar [role="button"],
+        html.wco-active #navigationBar [x-show],
+        html.wco-active .no-drag {
+            -webkit-app-region: no-drag !important;
+            app-region: no-drag !important;
+            cursor: pointer;
+        }
+        html.wco-active .nav-brand-logo {
+            height: 24px !important;
+            width: auto !important;
+        }
+        html.wco-active .nav-brand-title {
+            font-size: 0.8125rem !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
+        }
+        html.wco-active .nav-brand-subtitle {
+            display: none !important;
+        }
+        /* Hide desktop nav links from the compact titlebar (navigation lives in bottom dock) */
+        html.wco-active .nav-desktop-links {
+            display: none !important;
+        }
+        html.wco-active .nav-user-pill {
+            padding: 2px 8px 2px 3px !important;
+            height: 28px !important;
+        }
+        html.wco-active .nav-user-avatar {
+            width: 22px !important;
+            height: 22px !important;
+            font-size: 10px !important;
+        }
+        html.wco-active .nav-user-name {
+            font-size: 11px !important;
+            max-width: 110px !important;
+            line-height: 1 !important;
+        }
+        html.wco-active .nav-user-jersey {
+            display: none !important;
+        }
+        html.wco-active .nav-user-role {
+            font-size: 8px !important;
+            padding: 1px 4px !important;
+        }
+        html.wco-active .nav-auth-btn {
+            padding: 3px 10px !important;
+            font-size: 11px !important;
+            height: 26px !important;
+            border-radius: 8px !important;
+        }
+        html.wco-active #appContentWrap,
+        html.wco-active .pt-16 {
+            padding-top: var(--wco-height) !important;
+            padding-bottom: calc(4rem + var(--safe-bottom)) !important;
+        }
+        /* Keep bottom navigation dock active and visible */
+        html.wco-active #mobileDock {
+            display: block !important;
             padding-bottom: var(--safe-bottom);
             height: calc(4rem + var(--safe-bottom));
         }
@@ -211,7 +411,50 @@
 
     @include('inc.nav')
 
-    <div class="pt-16 min-h-screen flex flex-col justify-between">
+    <div id="appContentWrap" class="pt-16 pb-16 lg:pb-0 min-h-screen min-h-[100dvh] flex flex-col justify-between">
+        @auth
+            <!-- App Release Notification Banner (One-time per-user) -->
+            <div id="pwa-app-announcement-banner"
+                x-data="{
+                    bannerOpen: localStorage.getItem('pwa_announcement_user_{{ Auth::id() }}') !== 'dismissed',
+                    closeBanner() {
+                        this.bannerOpen = false;
+                        try {
+                            localStorage.setItem('pwa_announcement_user_{{ Auth::id() }}', 'dismissed');
+                        } catch(e) {}
+                    }
+                }"
+                x-show="bannerOpen"
+                x-cloak
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:leave="transition ease-in duration-200"
+                class="bg-gradient-to-r from-sky-950/95 via-slate-900 to-indigo-950/95 border-b border-sky-500/30 text-white px-4 py-3 shadow-md shrink-0">
+                <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+                    <div class="flex items-center gap-3 text-center sm:text-left">
+                        <div class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/40 text-cyan-400 flex items-center justify-center shrink-0 text-sm">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-white">Hey {{ Auth::user()->name }}! There's now a mobile &amp; desktop app available.</span>
+                            <span class="text-slate-300 ml-1">Install Pickup Puck to your device for instant game alerts and faster access.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a href="{{ route('profile') }}#app-install-guide" @click="closeBanner()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 whitespace-nowrap no-underline">
+                            <i class="fa-solid fa-download text-xs"></i>
+                            <span>Download App</span>
+                        </a>
+                        <a href="{{ route('profile') }}#app-install-guide" @click="closeBanner()" class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs transition flex items-center gap-1.5 whitespace-nowrap no-underline">
+                            <i class="fa-solid fa-gear text-xs"></i>
+                            <span>Learn More</span>
+                        </a>
+                        <button type="button" @click="closeBanner()" class="p-1.5 text-slate-400 hover:text-white transition rounded-lg hover:bg-slate-800" title="Dismiss">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endauth
         @if(Auth::check() && !Auth::user()->hasVerifiedEmail() && !request()->routeIs('verification.notice'))
             <div id="email-verification-banner" class="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2.5 shadow-sm shrink-0">
                 <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
@@ -232,24 +475,22 @@
             </div>
         @endif
 
-        <main class="flex-1 w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-6 pb-24 lg:pb-12">
+        <main class="flex-1 flex flex-col w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4 sm:py-6">
             @yield('content')
         </main>
 
         <!-- Global Footer -->
-        <footer class="w-full border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md py-6 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
-            <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <footer class="w-full border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md py-3.5 sm:py-4 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors shrink-0">
+            <div class="w-full max-w-7xl 2xl:max-w-[1680px] 3xl:max-w-[1880px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
                 <div class="flex items-center gap-2 font-medium">
                     <span class="font-black text-slate-800 dark:text-white tracking-wider">PICKUP PUCK</span>
                     <span>•</span>
-                    <span>Pickup Hockey Scheduling Hub</span>
+                    <span>© {{ date('Y') }} Marcus Grau. All rights reserved.</span>
                 </div>
                 <div class="flex items-center gap-3 text-[11px]">
-                    <span>Balanced Teams</span>
+                    <span>Developed by <strong class="text-slate-700 dark:text-slate-200 font-semibold">Marcus Grau</strong></span>
                     <span>•</span>
-                    <span>Live Crease Tracking</span>
-                    <span>•</span>
-                    <span>T-30 Roster Reveals</span>
+                    <span>Pickup Hockey Scheduling Hub</span>
                 </div>
             </div>
         </footer>

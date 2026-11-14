@@ -689,6 +689,7 @@
             <!-- After Game Events / Hangouts Section -->
             @include('components.after_game_events')
         </div>
+    </div>
 
         
 
@@ -1184,7 +1185,5 @@
     }
 </script>
 @endpush
-
-</div>
 
 @endsection

@@ -203,8 +203,13 @@
         <!-- Connected Profiles & Accounts Hub -->
         @include('components.connected_accounts_hub')
 
+        <!-- App Installation Guide -->
+        <div class="w-full">
+            @include('components.pwa_install_guide')
+        </div>
+
         <!-- Push Notifications & Game Alerts Card -->
-        <div id="notifications-preference-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md max-w-4xl mx-auto w-full"
+        <div id="notifications-preference-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md w-full"
             x-data="{
                 notificationsEnabled: {{ Auth::user()->notify_team_assignment ? 'true' : 'false' }},
                 loading: false,
@@ -302,7 +307,7 @@
         </div>
 
         <!-- Security & Password Card -->
-        <div id="password-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md max-w-4xl mx-auto w-full" x-data="passwordValidator()">
+        <div id="password-card" class="rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xl backdrop-blur-md w-full" x-data="passwordValidator()">
             <div class="flex items-center gap-2.5 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
                 <i class="fa-solid fa-shield-halved text-sky-600 dark:text-cyan-400 text-lg"></i>
                 <div>
