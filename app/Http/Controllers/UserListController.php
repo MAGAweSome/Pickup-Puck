@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Games\GameRoles;
 use App\Models\Guest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -38,6 +39,10 @@ class UserListController extends Controller
             return $guest;
         });
 
-        return view('user_list', ['users' => $users, 'guests' => $guests]);
+        return view('user_list', [
+            'users' => $users,
+            'guests' => $guests,
+            'GAME_ROLES' => GameRoles::cases(),
+        ]);
     }
 }

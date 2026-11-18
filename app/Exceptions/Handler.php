@@ -44,5 +44,11 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (\Illuminate\Routing\Exceptions\InvalidSignatureException $e, $request) {
+            if ($request->is('account/recovery/*')) {
+                return response()->view('auth.account-recovery-expired', [], 403);
+            }
+        });
     }
 }

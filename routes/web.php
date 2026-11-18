@@ -12,6 +12,7 @@ use App\Http\Controllers\UserGameHistoryController;
 use App\Http\Controllers\GuestGameHistoryController;
 use App\Http\Controllers\UserListController;
 use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\AccountRecoveryController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\ForgotPasswordsController;
@@ -52,6 +53,14 @@ Auth::routes(['verify' => true]);
 
 // AJAX endpoint for registration email availability (usable by guests)
 Route::post('/register/check-email', [App\Http\Controllers\Auth\RegisterController::class, 'checkEmail'])->name('register.check_email');
+
+// Public 5-hour signed self-service account & password recovery page
+Route::get('/account/recovery/{user}', [AccountRecoveryController::class, 'show'])
+    ->middleware('signed')
+    ->name('account.recovery.show');
+Route::post('/account/recovery/{user}', [AccountRecoveryController::class, 'update'])
+    ->middleware('signed')
+    ->name('account.recovery.update');
 
 // Public calendar download (.ics) for external calendar apps and mobile clients
 Route::get('/game/{game}/calendar/ics', [GameDetailController::class, 'downloadIcs'])->name('game.calendar.ics');
@@ -147,7 +156,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/user/{user}/history', [UserGameHistoryController::class, 'index'])->name('user_game_history');
         Route::get('/guest/{guest}/history', [GuestGameHistoryController::class, 'index'])->name('guest_game_history');
         Route::get('/user/{user}', [UserRoleController::class, 'index'])->name('user_role.user_id');
-        Route::post('/user/{user}',[UserRoleController::class, 'update'])->name('user_role_update.user_id');
+        Route::post('/user/{user}', [UserRoleController::class, 'update'])->name('user_role_update.user_id');
+        Route::delete('/user/{user}', [UserRoleController::class, 'destroy'])->name('admin.user.destroy');
+        Route::post('/user/{user}/recovery-link', [UserRoleController::class, 'generateRecoveryLink'])->name('admin.user.recovery_link');
+        Route::post('/user/{user}/recovery-email', [UserRoleController::class, 'sendRecoveryEmail'])->name('admin.user.recovery_email');
         Route::get('/create_game', [CreateGameController::class, 'index'])->name('create_game');
         Route::post('/create_game', [CreateGameController::class, 'create'])->name('game_create');
         Route::post('/seasons', [CreateGameController::class, 'createSeason'])->name('season.create');

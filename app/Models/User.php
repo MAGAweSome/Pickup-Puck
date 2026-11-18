@@ -50,6 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'account_recovery_expires_at' => 'datetime',
         'completed_onboarding' => 'boolean',
         'level' => 'integer',
         'mobility' => 'integer',

@@ -3,6 +3,19 @@
 @section('content')
 
 <div class="space-y-8 w-full" x-data="playerDirectoryApp()">
+    @if (session('success'))
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-sm font-semibold flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-check text-emerald-500"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 text-sm font-semibold flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Hero / Header with Ambient Stadium Ice Glow -->
     <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-gradient-to-r dark:from-slate-950/95 dark:via-slate-900/90 dark:to-cyan-950/30 border border-slate-200 dark:border-cyan-500/25 p-6 sm:p-8 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all">
         <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-sky-500/10 dark:bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -272,6 +285,15 @@
                 @endphp
                 <a
                     href="/admin/user/{{ $user->id }}"
+                    @click.prevent="openEditModal({
+                        id: {{ $user->id }},
+                        name: @js($user->name),
+                        email: @js($user->email ?? ''),
+                        gameRole: @js($user->role_preference ?? ''),
+                        level: {{ $userLvl }},
+                        isAdmin: {{ $user->hasRole('admin') ? 'true' : 'false' }},
+                        isSelf: {{ $user->id === auth()->id() ? 'true' : 'false' }}
+                    })"
                     x-show="matchesUser({
                         name: '{{ addslashes($user->name) }}',
                         email: '{{ addslashes($user->email ?? '') }}',
@@ -438,6 +460,215 @@
             </div>
         </div>
     @endif
+
+    <!-- Admin Edit Player, 5-Hour Recovery Link & Danger Zone Modal -->
+    <div
+        x-show="editModalOpen"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto"
+        style="display: none;"
+    >
+        <div
+            @click.outside="editModalOpen = false"
+            class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto"
+        >
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-sky-50 dark:bg-cyan-500/15 text-sky-700 dark:text-cyan-300 border border-sky-200 dark:border-cyan-500/30 mb-1.5">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span>Admin Player Management</span>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white" x-text="'Edit Player: ' + editForm.name"></h3>
+                    <p class="text-xs font-mono text-slate-500 dark:text-slate-400" x-text="'User #' + editForm.id + ' · ' + editForm.email"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a :href="'/admin/user/' + editForm.id + '/history'" class="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-500/15 border border-sky-200 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs font-bold no-underline hover:bg-sky-100 dark:hover:bg-sky-500/25 transition">
+                        History
+                    </a>
+                    <a :href="'/admin/user/' + editForm.id" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold no-underline hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        Full Page
+                    </a>
+                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xl leading-none p-1">&times;</button>
+                </div>
+            </div>
+
+            <!-- Edit Profile Form (No password field - Zero Direct Admin Password Editing) -->
+            <form @submit.prevent="savePlayerChanges()" class="space-y-4">
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
+                        <input
+                            type="text"
+                            x-model="editForm.name"
+                            required
+                            minlength="4"
+                            class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
+                        <input
+                            type="email"
+                            x-model="editForm.email"
+                            required
+                            class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Preferred Position</label>
+                        <select
+                            x-model="editForm.gameRole"
+                            class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                            <option value="">Select Position</option>
+                            @foreach (($GAME_ROLES ?? []) as $gamerole)
+                                <option value="{{ $gamerole->value }}">
+                                    {{ \Illuminate\Support\Str::title(str_replace('_', ' ', $gamerole->name)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">Player Level</label>
+                        <select
+                            x-model="editForm.level"
+                            class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                            <option value="1">1 - Beginner / low rec</option>
+                            <option value="2">2 - Recreational</option>
+                            <option value="3">3 - Intermediate / competitive</option>
+                            <option value="4">4 - Advanced / high skill</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-2.5 cursor-pointer select-none pt-1">
+                    <input type="checkbox" x-model="editForm.isAdmin" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-cyan-500 focus:ring-cyan-500">
+                    <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Admin Privileges</span>
+                </label>
+
+                <div class="flex items-center justify-between gap-3 pt-2">
+                    <div>
+                        <span x-show="modalSuccess" x-text="modalSuccess" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400"></span>
+                        <span x-show="modalError" x-text="modalError" class="text-xs font-semibold text-rose-600 dark:text-rose-400"></span>
+                    </div>
+                    <button
+                        type="submit"
+                        :disabled="savingPlayer"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 dark:from-cyan-500 dark:to-sky-500 text-white dark:text-slate-950 font-black rounded-xl text-xs shadow-md transition cursor-pointer disabled:opacity-60"
+                    >
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span x-text="savingPlayer ? 'Saving...' : 'Save Changes'"></span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- 5-Hour Self-Service Recovery Link Section -->
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-key text-cyan-500 text-sm"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Player Account &amp; Password Recovery Link</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Generate a single-use 5-hour link so the player can update their name, email, and password.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        @click="generateRecoveryLink()"
+                        :disabled="generatingLink"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold transition cursor-pointer disabled:opacity-60"
+                    >
+                        <i class="fa-solid fa-link"></i>
+                        <span x-text="generatingLink ? 'Generating...' : (recoveryUrl ? 'Regenerate 5-Hour Link' : 'Generate 5-Hour Link')"></span>
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="sendRecoveryEmail()"
+                        :disabled="sendingEmail"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-500/15 dark:hover:bg-sky-500/25 border border-sky-200 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs font-bold transition cursor-pointer disabled:opacity-60"
+                    >
+                        <i class="fa-solid fa-envelope"></i>
+                        <span x-text="sendingEmail ? 'Sending...' : 'Send Link via Email'"></span>
+                    </button>
+                </div>
+
+                <div x-show="recoveryUrl" class="flex items-center gap-2" style="display: none;">
+                    <input
+                        x-ref="modalRecoveryInput"
+                        type="text"
+                        readonly
+                        :value="recoveryUrl"
+                        class="flex-1 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 dark:text-cyan-300 select-all"
+                    >
+                    <button
+                        type="button"
+                        @click="copyRecoveryUrl()"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer shrink-0"
+                    >
+                        <i class="fa-solid" :class="copiedLink ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
+                        <span x-text="copiedLink ? 'Copied!' : 'Copy to Clipboard'"></span>
+                    </button>
+                </div>
+
+                <p x-show="recoveryMsg" x-text="recoveryMsg" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400" style="display: none;"></p>
+            </div>
+
+            <!-- Danger Zone: Two-Step Permanent Player Deletion -->
+            <div x-show="!editForm.isSelf" class="pt-4 border-t border-rose-200 dark:border-rose-500/25 space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <h4 class="text-sm font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Danger Zone</span>
+                        </h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Permanently delete this player and clean up all game roster records.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        x-show="!confirmDeleteStep"
+                        @click="confirmDeleteStep = true"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition cursor-pointer shrink-0"
+                    >
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Delete Player Permanently</span>
+                    </button>
+                </div>
+
+                <div x-show="confirmDeleteStep" class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3" style="display: none;">
+                    <span class="text-xs font-semibold text-rose-800 dark:text-rose-200" x-text="'Confirm permanent deletion of ' + editForm.name + '? This cannot be undone.'"></span>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            @click="deletePlayerPermanently()"
+                            :disabled="deletingPlayer"
+                            class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition cursor-pointer disabled:opacity-60"
+                            x-text="deletingPlayer ? 'Deleting...' : 'Confirm Delete'"
+                        ></button>
+                        <button
+                            type="button"
+                            @click="confirmDeleteStep = false"
+                            class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -447,6 +678,156 @@ function playerDirectoryApp() {
         filterModalOpen: false,
         sortMenuOpen: false,
         sortBy: 'name_asc',
+        editModalOpen: false,
+        editForm: { id: null, name: '', email: '', gameRole: '', level: 3, isAdmin: false, isSelf: false },
+        savingPlayer: false,
+        deletingPlayer: false,
+        confirmDeleteStep: false,
+        modalSuccess: '',
+        modalError: '',
+        recoveryUrl: '',
+        recoveryMsg: '',
+        copiedLink: false,
+        generatingLink: false,
+        sendingEmail: false,
+
+        openEditModal(player) {
+            this.editForm = {
+                id: player.id,
+                name: player.name || '',
+                email: player.email || '',
+                gameRole: player.gameRole || '',
+                level: String(player.level || 3),
+                isAdmin: !!player.isAdmin,
+                isSelf: !!player.isSelf,
+            };
+            this.modalSuccess = '';
+            this.modalError = '';
+            this.recoveryUrl = '';
+            this.recoveryMsg = '';
+            this.copiedLink = false;
+            this.confirmDeleteStep = false;
+            this.editModalOpen = true;
+        },
+
+        async savePlayerChanges() {
+            this.savingPlayer = true;
+            this.modalSuccess = '';
+            this.modalError = '';
+            try {
+                const res = await fetch('/admin/user/' + this.editForm.id, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.editForm.name,
+                        email: this.editForm.email,
+                        gameRole: this.editForm.gameRole || null,
+                        level: parseInt(this.editForm.level, 10),
+                        adminCheck: this.editForm.isAdmin ? 1 : 0,
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    const firstErr = data.errors ? Object.values(data.errors).flat()[0] : null;
+                    throw new Error(firstErr || data.message || 'Failed to save changes.');
+                }
+                this.modalSuccess = data.message || 'Saved!';
+                setTimeout(() => window.location.reload(), 650);
+            } catch (e) {
+                this.modalError = e.message;
+            } finally {
+                this.savingPlayer = false;
+            }
+        },
+
+        async generateRecoveryLink() {
+            this.generatingLink = true;
+            this.modalError = '';
+            this.recoveryMsg = '';
+            try {
+                const res = await fetch('/admin/user/' + this.editForm.id + '/recovery-link', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to generate link.');
+                this.recoveryUrl = data.url;
+                this.recoveryMsg = '5-hour single-use link ready.';
+            } catch (e) {
+                this.modalError = e.message;
+            } finally {
+                this.generatingLink = false;
+            }
+        },
+
+        async copyRecoveryUrl() {
+            if (!this.recoveryUrl) return;
+            try {
+                await navigator.clipboard.writeText(this.recoveryUrl);
+            } catch (e) {
+                const el = this.$refs.modalRecoveryInput;
+                el.select();
+                document.execCommand('copy');
+            }
+            this.copiedLink = true;
+            setTimeout(() => this.copiedLink = false, 2500);
+        },
+
+        async sendRecoveryEmail() {
+            this.sendingEmail = true;
+            this.modalError = '';
+            this.recoveryMsg = '';
+            try {
+                const res = await fetch('/admin/user/' + this.editForm.id + '/recovery-email', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ recovery_url: this.recoveryUrl })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to send email.');
+                if (data.url) this.recoveryUrl = data.url;
+                this.recoveryMsg = data.message || 'Recovery email sent!';
+            } catch (e) {
+                this.modalError = e.message;
+            } finally {
+                this.sendingEmail = false;
+            }
+        },
+
+        async deletePlayerPermanently() {
+            this.deletingPlayer = true;
+            this.modalError = '';
+            try {
+                const res = await fetch('/admin/user/' + this.editForm.id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to delete player.');
+                window.location.reload();
+            } catch (e) {
+                this.modalError = e.message;
+                this.deletingPlayer = false;
+            }
+        },
         filters: {
             status: [], // 'registered', 'guest'
             roles: [],  // 'goalie', 'skater'

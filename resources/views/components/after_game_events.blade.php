@@ -247,11 +247,11 @@
                             </button>
                             <button
                                 type="button"
-                                @click="selectedVenue = 'The Canadian Brewhouse'; document.getElementById('eventLocationInput').value = 'The Canadian Brewhouse'; document.getElementById('eventTitleInput').value = 'Brewhouse Drinks';"
+                                @click="selectedVenue = 'Sports Park'; document.getElementById('eventLocationInput').value = 'Sports Park'; document.getElementById('eventTitleInput').value = 'Sports Park Drinks';"
                                 class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition"
                             >
                                 <i class="fa-solid fa-mug-hot text-[11px]"></i>
-                                <span>The Canadian Brewhouse</span>
+                                <span>Sports Park</span>
                             </button>
                         </div>
                     </div>

@@ -12,9 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Allow email and password to be nullable for managed profiles
-        DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NULL');
-        DB::statement('ALTER TABLE users MODIFY password VARCHAR(255) NULL');
+        // 1. Allow email and password to be nullable for managed profiles (MySQL)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NULL');
+            DB::statement('ALTER TABLE users MODIFY password VARCHAR(255) NULL');
+        }
 
         // 2. Add manager_id and jersey_number
         Schema::table('users', function (Blueprint $table) {
@@ -42,7 +44,9 @@ return new class extends Migration
             }
         });
 
-        DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NOT NULL');
-        DB::statement('ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE users MODIFY email VARCHAR(255) NOT NULL');
+            DB::statement('ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL');
+        }
     }
 };
